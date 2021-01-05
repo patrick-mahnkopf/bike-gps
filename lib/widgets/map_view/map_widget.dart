@@ -1,24 +1,25 @@
 import 'package:bike_gps/search_model.dart';
 import 'package:bike_gps/widgets/loading_widget.dart';
-import 'package:bike_gps/widgets/map_style_list_widget.dart';
-import 'package:bike_gps/widgets/mapbox_map_widget.dart';
-import 'package:bike_gps/widgets/search_widget.dart';
+import 'package:bike_gps/widgets/map_view/map_style_list_widget.dart';
+import 'package:bike_gps/widgets/map_view/mapbox_map_widget.dart';
+import 'package:bike_gps/widgets/map_view/options_dialog_widget.dart';
+import 'package:bike_gps/widgets/map_view/search_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:route_parser/route_parser.dart';
 
-class FullMap extends StatefulWidget {
+class FullMapWidget extends StatefulWidget {
   final RouteParser routeParser;
 
-  const FullMap(this.routeParser);
+  const FullMapWidget(this.routeParser);
 
   @override
   State createState() => FullMapState();
 }
 
-class FullMapState extends State<FullMap> {
-  bool _useMapbox = false;
+class FullMapState extends State<FullMapWidget> {
+  bool useMapbox = false;
   String mapboxAccessToken;
   final Map styleStrings = {};
   final List<String> styleStringNames = ['Vector', 'Raster'];
@@ -78,7 +79,8 @@ class FullMapState extends State<FullMap> {
                     ),
                     ChangeNotifierProvider(
                       create: (_) => SearchModel(),
-                      child: SearchWidget(_mapboxMapStateKey),
+                      child: SearchWidget(
+                          mapboxMapStateKey: _mapboxMapStateKey, parent: this),
                     ),
                   ],
                 );
@@ -87,23 +89,43 @@ class FullMapState extends State<FullMap> {
         });
   }
 
+  openOptionsMenu() {
+    showGeneralDialog(
+      barrierLabel: "Barrier",
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      transitionDuration: Duration(milliseconds: 100),
+      context: context,
+      pageBuilder: (_, __, ___) {
+        return OptionsDialogWidget();
+      },
+      transitionBuilder: (_, anim, __, child) {
+        return FadeTransition(
+          opacity: anim,
+          // Tween(begin: Offset(0.1, -0.25), end: Offset(0, 0)).animate(anim),
+          child: child,
+        );
+      },
+    );
+  }
+
   changeMapStyleSource(String mapStyleName) {
     _mapboxMapStateKey.currentState.changeStyle(mapStyleName);
   }
 
   Future<String> _getMapboxAccessToken() async {
-    if (_useMapbox) {
-      return rootBundle.loadString('assets/mapbox_access_token.txt');
+    if (useMapbox) {
+      return rootBundle.loadString('assets/map/mapbox_access_token.txt');
     } else {
       return "random_string";
     }
   }
 
   Future<String> _getVectorStyleString() async {
-    return rootBundle.loadString('assets/vector_style_string.txt');
+    return rootBundle.loadString('assets/map/vector_style_string.txt');
   }
 
   Future<String> _getRasterStyleString() async {
-    return rootBundle.loadString('assets/raster_style_string.txt');
+    return rootBundle.loadString('assets/map/raster_style_string.txt');
   }
 }

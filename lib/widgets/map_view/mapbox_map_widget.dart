@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:bike_gps/widgets/map_widget.dart';
+import 'package:bike_gps/widgets/map_view/map_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
@@ -48,7 +48,11 @@ class MapboxMapState extends State<MapboxMapWidget> {
   }
 
   String _getCurrentStyleString() {
-    return parent.styleStrings[_currentStyleStringName];
+    if (parent.useMapbox) {
+      return MapboxStyles.OUTDOORS;
+    } else {
+      return parent.styleStrings[_currentStyleStringName];
+    }
   }
 
   _onMapCreated(MapboxMapController controller) {

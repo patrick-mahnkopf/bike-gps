@@ -1,5 +1,6 @@
 name: bike_gps
 description: The Bike GPS mobile app
+author: Patrick Mahnkopf
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
@@ -32,7 +33,7 @@ dependencies:
       url: https://github.com/igaurab/user_location_plugin.git
   mapbox_gl:
     git:
-      url: https://github.com/lfofelipe/flutter-mapbox-gl
+      url: https://github.com/tobrun/flutter-mapbox-gl
   geocoder: ^0.2.1
   material_floating_search_bar: ^0.2.6
   provider: ^4.3.2+3
@@ -66,6 +67,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
      - assets/
+     - assets/map/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

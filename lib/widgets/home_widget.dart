@@ -1,5 +1,5 @@
 import 'package:bike_gps/widgets/loading_widget.dart';
-import 'package:bike_gps/widgets/map_widget.dart';
+import 'package:bike_gps/widgets/map_view/map_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:route_parser/route_parser.dart';
@@ -27,7 +27,7 @@ class _HomeState extends State<Home> {
 
   _HomeState(this.routeParser, {this.additionalWidgetList}) {
     _children = [
-      FullMap(routeParser),
+      FullMapWidget(routeParser),
       LoadingWidget(),
     ];
     additionalWidgetList.forEach((tuple) {

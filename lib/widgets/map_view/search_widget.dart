@@ -2,7 +2,8 @@ import 'dart:math';
 
 import 'package:bike_gps/place.dart';
 import 'package:bike_gps/search_model.dart';
-import 'package:bike_gps/widgets/mapbox_map_widget.dart';
+import 'package:bike_gps/widgets/map_view/map_widget.dart';
+import 'package:bike_gps/widgets/map_view/mapbox_map_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
@@ -12,19 +13,22 @@ import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:provider/provider.dart';
 
 class SearchWidget extends StatefulWidget {
-  final GlobalKey<MapboxMapState> _mapboxMapStateKey;
+  final GlobalKey<MapboxMapState> mapboxMapStateKey;
+  final FullMapState parent;
 
-  SearchWidget(this._mapboxMapStateKey);
+  SearchWidget({this.mapboxMapStateKey, this.parent});
 
   @override
-  _SearchWidgetState createState() => _SearchWidgetState(_mapboxMapStateKey);
+  _SearchWidgetState createState() =>
+      _SearchWidgetState(mapboxMapStateKey, parent);
 }
 
 class _SearchWidgetState extends State<SearchWidget> {
   final searchBarController = FloatingSearchBarController();
   final GlobalKey<MapboxMapState> _mapboxMapStateKey;
+  final FullMapState parent;
 
-  _SearchWidgetState(this._mapboxMapStateKey);
+  _SearchWidgetState(this._mapboxMapStateKey, this.parent);
 
   int _index = 0;
 
@@ -58,8 +62,8 @@ class _SearchWidgetState extends State<SearchWidget> {
           FloatingSearchBarAction(
             showIfOpened: false,
             child: CircularButton(
-              icon: const Icon(Icons.place),
-              onPressed: () {},
+              icon: const Icon(Icons.menu),
+              onPressed: () => parent.openOptionsMenu(),
             ),
           ),
           FloatingSearchBarAction.searchToClear(

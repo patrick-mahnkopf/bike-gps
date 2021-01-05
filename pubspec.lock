@@ -287,8 +287,8 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: d69105e1015db35a7ed97036157dd118f8d399dd
-      url: "https://github.com/lfofelipe/flutter-mapbox-gl"
+      resolved-ref: "37703aa872a877d0dc4c88fe358647003f4949cc"
+      url: "https://github.com/tobrun/flutter-mapbox-gl"
     source: git
     version: "0.9.0"
   mapbox_gl_dart:
