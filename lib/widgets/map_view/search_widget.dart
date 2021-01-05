@@ -14,7 +14,7 @@ import 'package:provider/provider.dart';
 
 class SearchWidget extends StatefulWidget {
   final GlobalKey<MapboxMapState> mapboxMapStateKey;
-  final FullMapState parent;
+  final MapState parent;
 
   SearchWidget({this.mapboxMapStateKey, this.parent});
 
@@ -26,7 +26,7 @@ class SearchWidget extends StatefulWidget {
 class _SearchWidgetState extends State<SearchWidget> {
   final searchBarController = FloatingSearchBarController();
   final GlobalKey<MapboxMapState> _mapboxMapStateKey;
-  final FullMapState parent;
+  final MapState parent;
 
   _SearchWidgetState(this._mapboxMapStateKey, this.parent);
 

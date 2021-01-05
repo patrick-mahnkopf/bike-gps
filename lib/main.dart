@@ -1,12 +1,12 @@
+import 'package:bike_gps/routeManager.dart';
 import 'package:bike_gps/widgets/home_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:gpx_parser/gpx_parser.dart';
-import 'package:route_parser/route_parser.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  final RouteParser routeParser = new GpxParser();
+  final RouteManager routeManager = new RouteManager(new GpxParser());
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: Home(routeParser: routeParser),
+      home: Home(routeManager: routeManager),
     );
   }
 }

@@ -1,11 +1,13 @@
 import 'dart:math';
 
 import 'package:bike_gps/widgets/map_view/map_widget.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Route;
+import 'package:gpx/gpx.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:route_parser/models/route.dart';
 
 class MapboxMapWidget extends StatefulWidget {
-  final FullMapState parent;
+  final MapState parent;
 
   MapboxMapWidget({Key key, this.parent}) : super(key: key);
 
@@ -14,7 +16,7 @@ class MapboxMapWidget extends StatefulWidget {
 }
 
 class MapboxMapState extends State<MapboxMapWidget> {
-  final FullMapState parent;
+  final MapState parent;
   MapboxMapController _mapController;
   String _currentStyleStringName;
   MapboxMap mapboxMap;
@@ -62,5 +64,23 @@ class MapboxMapState extends State<MapboxMapWidget> {
   updateCameraPosition(CameraUpdate cameraUpdate) {
     _mapController.updateMyLocationTrackingMode(MyLocationTrackingMode.None);
     _mapController.moveCamera(cameraUpdate);
+  }
+
+  drawRoute(Route route) {
+    _mapController.addLine(
+      LineOptions(
+        geometry: getTrackAsList(route),
+      ),
+    );
+  }
+
+  getTrackAsList(Route route) {
+    List<LatLng> trackList = [];
+
+    for (Wpt trackPoint in route.trackPoints) {
+      trackList.add(LatLng(trackPoint.lat, trackPoint.lon));
+    }
+
+    return trackList;
   }
 }

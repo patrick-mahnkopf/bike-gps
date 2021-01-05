@@ -1,38 +1,53 @@
+import 'dart:io';
+
+import 'package:bike_gps/routeManager.dart';
 import 'package:bike_gps/widgets/loading_widget.dart';
 import 'package:bike_gps/widgets/map_view/map_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
-import 'package:route_parser/route_parser.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:tuple/tuple.dart';
 
 class Home extends StatefulWidget {
-  final RouteParser routeParser;
+  final RouteManager routeManager;
   final List<Tuple3<int, Widget, BottomNavigationBarItem>> additionalWidgetList;
 
   Home(
-      {this.routeParser,
+      {this.routeManager,
       List<Tuple3<int, Widget, BottomNavigationBarItem>> additionalWidgetList})
       : this.additionalWidgetList = additionalWidgetList ?? [];
 
   @override
   State<StatefulWidget> createState() =>
-      _HomeState(routeParser, additionalWidgetList: additionalWidgetList);
+      _HomeState(routeManager, additionalWidgetList: additionalWidgetList);
 }
 
 class _HomeState extends State<Home> {
   int _currentIndex = 0;
-  RouteParser routeParser;
+  RouteManager routeManager;
   List<Tuple3<int, Widget, BottomNavigationBarItem>> additionalWidgetList;
   List<Widget> _children;
+  List<String> fileDirectories = ['routes'];
 
-  _HomeState(this.routeParser, {this.additionalWidgetList}) {
+  _HomeState(this.routeManager, {this.additionalWidgetList}) {
     _children = [
-      FullMapWidget(routeParser),
+      MapWidget(routeManager),
       LoadingWidget(),
     ];
     additionalWidgetList.forEach((tuple) {
       _children.insert(tuple.item1, tuple.item2);
     });
+    initFileSystem();
+  }
+
+  initFileSystem() async {
+    String basePath = (await getApplicationDocumentsDirectory()).path;
+    for (String directory in fileDirectories) {
+      if (!await Directory(p.join(basePath, directory)).exists()) {
+        await Directory(p.join(basePath, directory)).create(recursive: true);
+      }
+    }
   }
 
   @override

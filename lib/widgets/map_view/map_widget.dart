@@ -1,30 +1,38 @@
+import 'dart:io';
+
+import 'package:bike_gps/routeManager.dart';
 import 'package:bike_gps/search_model.dart';
 import 'package:bike_gps/widgets/loading_widget.dart';
 import 'package:bike_gps/widgets/map_view/map_style_list_widget.dart';
 import 'package:bike_gps/widgets/map_view/mapbox_map_widget.dart';
 import 'package:bike_gps/widgets/map_view/options_dialog_widget.dart';
 import 'package:bike_gps/widgets/map_view/search_widget.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:route_parser/route_parser.dart';
+import 'package:route_parser/models/route.dart';
 
-class FullMapWidget extends StatefulWidget {
-  final RouteParser routeParser;
+class MapWidget extends StatefulWidget {
+  final RouteManager routeManager;
 
-  const FullMapWidget(this.routeParser);
+  const MapWidget(this.routeManager);
 
   @override
-  State createState() => FullMapState();
+  State createState() => MapState(routeManager);
 }
 
-class FullMapState extends State<FullMapWidget> {
+class MapState extends State<MapWidget> {
   bool useMapbox = false;
   String mapboxAccessToken;
+  final RouteManager routeManager;
   final Map styleStrings = {};
   final List<String> styleStringNames = ['Vector', 'Raster'];
   final GlobalKey<MapStyleListState> _mapStyleListStateKey = GlobalKey();
   final GlobalKey<MapboxMapState> _mapboxMapStateKey = GlobalKey();
+
+  MapState(this.routeManager);
 
   @override
   Widget build(BuildContext context) {
@@ -82,11 +90,54 @@ class FullMapState extends State<FullMapWidget> {
                       child: SearchWidget(
                           mapboxMapStateKey: _mapboxMapStateKey, parent: this),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16.0, bottom: 64.0),
+                      child: Align(
+                        alignment: Alignment.bottomLeft,
+                        child: FloatingActionButton(
+                          mini: true,
+                          onPressed: () => onSelectRoute('Eilenriede Route'),
+                          child: Icon(Icons.navigation),
+                        ),
+                      ),
+                    ),
                   ],
                 );
               }
           }
         });
+  }
+
+  mockRouteFile() async {
+    String dir =
+        p.join((await getApplicationDocumentsDirectory()).path, 'routes');
+    String routeFilePath = p.join(dir, 'Eilenriede Route.gpx');
+    if (!await File(routeFilePath).exists()) {
+      String routeString =
+          await rootBundle.loadString('assets/Eilenriede Route.gpx');
+      File routeFile = new File(routeFilePath);
+      routeFile.writeAsString(routeString);
+    }
+  }
+
+  onSelectRoute(String routeName) async {
+    await mockRouteFile();
+    Route route = await routeManager.getRoute(routeName);
+    if (route == null) {
+      showDialog(
+          context: context,
+          child: AlertDialog(
+            title: Text('Route error'),
+            content: Text("Couldn't find route $routeName"),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('Dismiss'))
+            ],
+          ));
+    } else {
+      _mapboxMapStateKey.currentState.drawRoute(route);
+    }
   }
 
   openOptionsMenu() {
@@ -102,7 +153,6 @@ class FullMapState extends State<FullMapWidget> {
       transitionBuilder: (_, anim, __, child) {
         return FadeTransition(
           opacity: anim,
-          // Tween(begin: Offset(0.1, -0.25), end: Offset(0, 0)).animate(anim),
           child: child,
         );
       },
