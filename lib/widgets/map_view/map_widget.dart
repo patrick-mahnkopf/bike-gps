@@ -1,16 +1,12 @@
-import 'dart:io';
-
 import 'package:bike_gps/routeManager.dart';
 import 'package:bike_gps/search_model.dart';
-import 'package:bike_gps/widgets/loading_widget.dart';
 import 'package:bike_gps/widgets/map_view/map_style_list_widget.dart';
 import 'package:bike_gps/widgets/map_view/mapbox_map_widget.dart';
 import 'package:bike_gps/widgets/map_view/options_dialog_widget.dart';
 import 'package:bike_gps/widgets/map_view/search_widget.dart';
+import 'package:flutter/cupertino.dart' hide Route;
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/services.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:route_parser/models/route.dart';
 
@@ -45,7 +41,9 @@ class MapState extends State<MapWidget> {
         builder: (context, AsyncSnapshot<List> snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.waiting:
-              return LoadingWidget();
+              return Theme.of(context).platform == TargetPlatform.android
+                  ? CircularProgressIndicator()
+                  : CupertinoActivityIndicator();
             default:
               if (snapshot.hasError) {
                 return ErrorWidget(snapshot.error);
@@ -59,7 +57,10 @@ class MapState extends State<MapWidget> {
                     Scaffold(
                         resizeToAvoidBottomInset: false,
                         body: MapboxMapWidget(
-                            key: _mapboxMapStateKey, parent: this)),
+                          key: _mapboxMapStateKey,
+                          parent: this,
+                          routeManager: routeManager,
+                        )),
                     SafeArea(
                       child: Padding(
                         padding: EdgeInsets.only(top: 64, right: 8),
@@ -88,18 +89,9 @@ class MapState extends State<MapWidget> {
                     ChangeNotifierProvider(
                       create: (_) => SearchModel(),
                       child: SearchWidget(
-                          mapboxMapStateKey: _mapboxMapStateKey, parent: this),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16.0, bottom: 64.0),
-                      child: Align(
-                        alignment: Alignment.bottomLeft,
-                        child: FloatingActionButton(
-                          mini: true,
-                          onPressed: () => onSelectRoute('Eilenriede Route'),
-                          child: Icon(Icons.navigation),
-                        ),
-                      ),
+                          mapboxMapStateKey: _mapboxMapStateKey,
+                          parent: this,
+                          routeManager: routeManager),
                     ),
                   ],
                 );
@@ -108,20 +100,7 @@ class MapState extends State<MapWidget> {
         });
   }
 
-  mockRouteFile() async {
-    String dir =
-        p.join((await getApplicationDocumentsDirectory()).path, 'routes');
-    String routeFilePath = p.join(dir, 'Eilenriede Route.gpx');
-    if (!await File(routeFilePath).exists()) {
-      String routeString =
-          await rootBundle.loadString('assets/Eilenriede Route.gpx');
-      File routeFile = new File(routeFilePath);
-      routeFile.writeAsString(routeString);
-    }
-  }
-
   onSelectRoute(String routeName) async {
-    await mockRouteFile();
     Route route = await routeManager.getRoute(routeName);
     if (route == null) {
       showDialog(

@@ -9,14 +9,13 @@ class SearchModel extends ChangeNotifier {
   bool _isLoading = false;
 
   bool get isLoading => _isLoading;
-
   List<Place> _suggestions = history;
 
   List<Place> get suggestions => _suggestions;
-
   String _query = '';
 
   String get query => _query;
+  static String searchHistoryPath;
 
   void onQueryChanged(String query) async {
     if (query == _query) return;
@@ -45,19 +44,4 @@ class SearchModel extends ChangeNotifier {
   }
 }
 
-const List<Place> history = [
-  Place(
-    name: 'Leibniz Universität Hannover',
-    state: 'Niedersachsen',
-    country: 'Germany',
-  ),
-  Place(
-    name: 'Bremen',
-    country: 'Germany',
-  ),
-  Place(
-    name: 'Munich',
-    state: 'Bavaria',
-    country: 'Germany',
-  ),
-];
+List<Place> history = [];

@@ -4,13 +4,12 @@ class Place {
   final String name;
   final String state;
   final String country;
+  final bool isRoute;
 
-  const Place({
-    @required this.name,
-    this.state,
-    @required this.country,
-  })  : assert(name != null),
-        assert(country != null);
+  const Place(
+      {@required this.name, this.state, this.country, this.isRoute = false})
+      : assert(name != null),
+        assert(country != null || isRoute);
 
   bool get hasState => state?.isNotEmpty == true;
 

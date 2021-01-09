@@ -11,6 +11,7 @@ class LoadingWidget extends StatelessWidget {
           child: Padding(
               padding: EdgeInsets.all(15.0),
               child: Column(
+                mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [CircularProgressIndicator()],
               )),
