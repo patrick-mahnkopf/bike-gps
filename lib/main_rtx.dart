@@ -1,8 +1,8 @@
+import 'package:bike_gps/model/additional_widget.dart';
 import 'package:bike_gps/routeManager.dart';
-import 'package:bike_gps/widgets/home_widget.dart';
+import 'package:bike_gps/widget/home_widget.dart';
 import 'package:bike_gps_closed_source/bike_gps_closed_source.dart';
 import 'package:flutter/material.dart';
-import 'package:tuple/tuple.dart';
 
 void main() => runApp(MyApp());
 
@@ -25,13 +25,16 @@ class MyApp extends StatelessWidget {
         routeManager: routeManager, additionalWidgetList: getRtxWidgets());
   }
 
-  List<Tuple3<int, Widget, BottomNavigationBarItem>> getRtxWidgets() {
-    List<Tuple3<int, Widget, BottomNavigationBarItem>> widgetList = [];
-    widgetList.add(Tuple3<int, Widget, BottomNavigationBarItem>(
-        1,
-        AccountWidget(),
-        BottomNavigationBarItem(
-            label: 'Account', icon: Icon(Icons.account_circle))));
-    return widgetList;
+  List<AdditionalWidget> getRtxWidgets() {
+    List<AdditionalWidget> additionalWidgets = [];
+
+    additionalWidgets.add(AdditionalWidget(
+      insertionIndex: 1,
+      widget: AccountWidget(),
+      bottomNavigationBarItemLabel: 'Account',
+      bottomNavigationBarItemIcon: Icon(Icons.account_circle),
+    ));
+
+    return additionalWidgets;
   }
 }

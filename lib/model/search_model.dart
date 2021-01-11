@@ -17,6 +17,8 @@ class SearchModel extends ChangeNotifier {
   String get query => _query;
   static String searchHistoryPath;
 
+  bool get isHistory => suggestions == history;
+
   void onQueryChanged(String query) async {
     if (query == _query) return;
 

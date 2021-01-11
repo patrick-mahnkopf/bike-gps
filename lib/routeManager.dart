@@ -20,28 +20,25 @@ class RouteManager {
     init();
   }
 
-  mockRouteFile() async {
-    String dir =
-        p.join((await getApplicationDocumentsDirectory()).path, 'routes');
-    String routeFilePath = p.join(dir, 'Eilenriede.gpx');
+  initMockRouteFiles() async {
+    initMockRouteFile('Eilenriede.gpx');
+    initMockRouteFile('Julius-Trip-Ring.gpx');
+  }
+
+  initMockRouteFile(String fileName) async {
+    String routeFilePath = p.join(
+        (await getApplicationDocumentsDirectory()).path, 'routes', fileName);
     if (!await File(routeFilePath).exists()) {
-      String routeString = await rootBundle.loadString('assets/Eilenriede.gpx');
       File routeFile = new File(routeFilePath);
+      String routeString = await rootBundle.loadString('assets/$fileName');
       routeFile.writeAsString(routeString);
-    }
-    String routeFilePath2 = p.join(dir, 'Julius-Trip-Ring.gpx');
-    if (!await File(routeFilePath2).exists()) {
-      String routeString2 =
-          await rootBundle.loadString('assets/Julius-Trip-Ring.gpx');
-      File routeFile2 = new File(routeFilePath2);
-      routeFile2.writeAsString(routeString2);
     }
   }
 
   void init() async {
     routesPath =
         p.join((await getApplicationDocumentsDirectory()).path, 'routes');
-    mockRouteFile();
+    initMockRouteFiles();
     updateRouteList();
   }
 
@@ -63,8 +60,7 @@ class RouteManager {
     if (routeFile == null) {
       return null;
     } else {
-      currentRoute = await routeParser.getRoute(routeFile);
-      return currentRoute;
+      return await routeParser.getRoute(routeFile);
     }
   }
 
@@ -74,8 +70,7 @@ class RouteManager {
     if (routeFile == null) {
       return null;
     } else {
-      currentRoute = routeParser.getRouteSync(routeFile);
-      return currentRoute;
+      return routeParser.getRouteSync(routeFile);
     }
   }
 
@@ -112,12 +107,14 @@ class RouteManager {
     };
     double padding = 0.006;
     double offset = 0.006;
+
     for (Wpt trackPoint in route.trackPoints) {
       if (trackPoint.lon < extrema['west']) extrema['west'] = trackPoint.lon;
       if (trackPoint.lon > extrema['east']) extrema['east'] = trackPoint.lon;
       if (trackPoint.lat > extrema['north']) extrema['north'] = trackPoint.lat;
       if (trackPoint.lat < extrema['south']) extrema['south'] = trackPoint.lat;
     }
+
     return LatLngBounds(
       southwest: LatLng(
           extrema['south'] - padding + offset, extrema['west'] - padding),

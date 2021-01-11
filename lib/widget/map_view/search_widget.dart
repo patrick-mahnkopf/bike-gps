@@ -1,17 +1,16 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:bike_gps/place.dart';
+import 'package:bike_gps/model/place.dart';
+import 'package:bike_gps/model/search_model.dart';
 import 'package:bike_gps/routeManager.dart';
-import 'package:bike_gps/search_model.dart';
-import 'package:bike_gps/widgets/map_view/map_widget.dart';
-import 'package:bike_gps/widgets/map_view/mapbox_map_widget.dart';
+import 'package:bike_gps/widget/map_view/map_widget.dart';
+import 'package:bike_gps/widget/map_view/mapbox_map_widget.dart';
 import 'package:flutter/cupertino.dart' hide Route;
 import 'package:flutter/material.dart' hide Route;
 import 'package:geocoder/geocoder.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/transitions.dart';
-import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -35,10 +34,11 @@ class _SearchWidgetState extends State<SearchWidget> {
   final GlobalKey<MapboxMapState> _mapboxMapStateKey;
   final MapState parent;
   final RouteManager routeManager;
+  static const DISPLAY_SUGGESTION_COUNT = 8;
   String searchHistoryPath;
 
   _SearchWidgetState(this._mapboxMapStateKey, this.parent, this.routeManager) {
-    initHistory();
+    _initHistory();
   }
 
   int _index = 0;
@@ -49,6 +49,38 @@ class _SearchWidgetState extends State<SearchWidget> {
     _index = min(value, 2);
     _index == 2 ? searchBarController.hide() : searchBarController.show();
     setState(() {});
+  }
+
+  void _initHistory() async {
+    searchHistoryPath = p.join(
+        (await getApplicationDocumentsDirectory()).path, 'searchHistory.txt');
+
+    if (!await File(searchHistoryPath).exists()) {
+      File(searchHistoryPath).create();
+    } else {
+      _loadHistory();
+    }
+  }
+
+  void _loadHistory() async {
+    String input = await File(searchHistoryPath).readAsString();
+    List<String> routeList = await routeManager.getRouteList();
+
+    for (String line in input.split('\n')) {
+      if (line != '') {
+        List<String> properties = line.split('|');
+        bool _isRoute = routeList.contains(properties[0]);
+
+        Place place = new Place(
+            name: properties[0],
+            country: properties[1],
+            state: properties[2],
+            isRoute: _isRoute);
+        history.add(place);
+      }
+    }
+
+    _removeHistoryDuplicates();
   }
 
   @override
@@ -135,36 +167,30 @@ class _SearchWidgetState extends State<SearchWidget> {
   }
 
   Future<List<Place>> prepareSuggestions(SearchModel model) async {
-    List<Place> suggestionList = model.suggestions.take(8).toList();
-    List<Place> newSuggestionList = suggestionList.toList();
-    List<String> routeList = await routeManager.getRouteList();
-    if (model.suggestions != history) {
-      int indexOffset = 0;
-      for (Place suggestion in suggestionList) {
-        if (routeList != null && routeList.contains(suggestion.name)) {
-          Place routeSuggestion = await getPlaceFromRouteName(suggestion.name);
-          newSuggestionList.insert(
-              suggestionList.indexOf(suggestion) + indexOffset,
-              routeSuggestion);
-          indexOffset++;
-        }
-      }
+    List<Place> suggestionList =
+        model.suggestions.take(DISPLAY_SUGGESTION_COUNT).toList();
 
-      List<String> matches = routeList.toList();
-      matches.retainWhere((element) => element
-          .toLowerCase()
-          .contains(searchBarController.query.toLowerCase()));
-      for (String match in matches) {
-        Place routeSuggestion = await getPlaceFromRouteName(match);
-        newSuggestionList.insert(0, routeSuggestion);
-        indexOffset++;
+    if (!model.isHistory) {
+      List<String> routeList = await routeManager.getRouteList();
+      routeList.retainWhere((routeName) {
+        String query = searchBarController.query;
+        if (query.length >= (routeName.length / 3)) {
+          return routeName.toLowerCase().contains(query.toLowerCase());
+        } else {
+          return false;
+        }
+      });
+
+      for (String routeName in routeList) {
+        Place routeSuggestion = await getPlaceFromRouteName(routeName);
+        suggestionList.insert(0, routeSuggestion);
       }
     }
-    return newSuggestionList;
+    return suggestionList;
   }
 
   Future<Place> getPlaceFromRouteName(String routeName) async {
-    Route route = routeManager.getRouteSync(routeName);
+    Route route = await routeManager.getRoute(routeName);
     Coordinates routePosition =
         Coordinates(route.trackPoints[0].lat, route.trackPoints[0].lon);
     List<Address> addresses =
@@ -187,7 +213,7 @@ class _SearchWidgetState extends State<SearchWidget> {
       children: [
         InkWell(
           onTap: () {
-            updateHistory(place);
+            _updateHistory(place);
             _onSuggestionTouch(place);
             FloatingSearchBar.of(context).close();
             Future.delayed(
@@ -234,39 +260,17 @@ class _SearchWidgetState extends State<SearchWidget> {
     );
   }
 
-  Icon getItemIcon(SearchModel model, Place place) {
-    if (place.isRoute) {
-      return Icon(Icons.directions_bike, key: Key('route'));
-    } else if (model.suggestions == history) {
-      return Icon(Icons.history, key: Key('history'));
-    } else {
-      return Icon(Icons.place, key: Key('place'));
-    }
-  }
-
-  _onSuggestionTouch(Place place) async {
-    if (place.isRoute) {
-      parent.onSelectRoute(place.name);
-    } else {
-      List<Address> addresses =
-          await Geocoder.local.findAddressesFromQuery(place.address);
-      Coordinates resultCoordinates = addresses.first.coordinates;
-      CameraUpdate cameraUpdate = CameraUpdate.newLatLngZoom(
-          LatLng(resultCoordinates.latitude, resultCoordinates.longitude), 14);
-      _mapboxMapStateKey.currentState.updateCameraPosition(cameraUpdate);
-    }
-  }
-
-  void updateHistory(Place newPlace) {
-    history.removeWhere((place) => place == newPlace);
+  void _updateHistory(Place newPlace) {
     history.insert(0, newPlace);
-    while (history.length > 6) {
+    _removeHistoryDuplicates();
+    while (history.length > DISPLAY_SUGGESTION_COUNT) {
       history.removeLast();
     }
-    safeHistory();
+    _saveHistory();
   }
 
-  void safeHistory() async {
+  void _saveHistory() async {
+    _removeHistoryDuplicates();
     String output = '';
     for (Place place in history) {
       output += "${place.name}|${place.country}|${place.state}\n";
@@ -274,31 +278,27 @@ class _SearchWidgetState extends State<SearchWidget> {
     File(searchHistoryPath).writeAsString(output, flush: true);
   }
 
-  void loadHistory() async {
-    String input = await File(searchHistoryPath).readAsString();
-    List<String> routeList = await routeManager.getRouteList();
-    for (String line in input.split('\n')) {
-      if (line != '') {
-        List<String> properties = line.split('|');
-        bool _isRoute = routeList.contains(properties[0]);
+  void _removeHistoryDuplicates() {
+    history = history.toSet().toList();
+  }
 
-        Place place = new Place(
-            name: properties[0],
-            country: properties[1],
-            state: properties[2],
-            isRoute: _isRoute);
-        history.add(place);
-      }
+  _onSuggestionTouch(Place place) {
+    MapboxMapState mapState = _mapboxMapStateKey.currentState;
+    mapState.clearAllDrawnRoutes();
+    if (place.isRoute) {
+      mapState.onSelectRoute(place.name);
+    } else {
+      mapState.moveCameraToPlace(place);
     }
   }
 
-  void initHistory() async {
-    searchHistoryPath = p.join(
-        (await getApplicationDocumentsDirectory()).path, 'searchHistory.txt');
-    if (!await File(searchHistoryPath).exists()) {
-      File(searchHistoryPath).create();
+  Icon getItemIcon(SearchModel model, Place place) {
+    if (model.suggestions == history) {
+      return Icon(Icons.history, key: Key('history'));
+    } else if (place.isRoute) {
+      return Icon(Icons.directions_bike, key: Key('route'));
     } else {
-      loadHistory();
+      return Icon(Icons.place, key: Key('place'));
     }
   }
 }
