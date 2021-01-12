@@ -21,8 +21,11 @@ class RouteManager {
   }
 
   initMockRouteFiles() async {
+    // TODO move to tests
     initMockRouteFile('Eilenriede.gpx');
     initMockRouteFile('Julius-Trip-Ring.gpx');
+    initMockRouteFile('Bocca Fortini.gpx');
+    initMockRouteFile('BoccaFortini.rtx');
   }
 
   initMockRouteFile(String fileName) async {
@@ -61,16 +64,6 @@ class RouteManager {
       return null;
     } else {
       return await routeParser.getRoute(routeFile);
-    }
-  }
-
-  Route getRouteSync(String routeName) {
-    File routeFile = getRouteFile(routeName);
-
-    if (routeFile == null) {
-      return null;
-    } else {
-      return routeParser.getRouteSync(routeFile);
     }
   }
 
