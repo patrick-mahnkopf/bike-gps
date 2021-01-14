@@ -55,7 +55,6 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO FutureBuilder that loads style strings and mapbox token and passes them to map_widget
     return FutureBuilder(
       future: MapResources().getMapResources(),
       builder: (context, AsyncSnapshot<MapResources> snapshot) {

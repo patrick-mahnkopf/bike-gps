@@ -31,7 +31,11 @@ class MapboxMapState extends State<MapboxMapWidget> {
   final RouteManager routeManager;
   final MapResources mapResources;
   MapboxMapController _mapController;
-  List<String> assetImages = ['start_location.png', 'end_location.png'];
+  List<String> assetImages = [
+    'start_location.png',
+    'end_location.png',
+    'place_pin.png'
+  ];
 
   MapboxMapState(this.routeManager, this.mapResources);
 
@@ -54,12 +58,19 @@ class MapboxMapState extends State<MapboxMapWidget> {
   _onMapCreated(MapboxMapController controller) {
     _mapController = controller;
     initImages();
+    initLocation();
   }
 
   initImages() async {
     for (String imageAsset in assetImages) {
       await addImageToController(imageAsset);
     }
+  }
+
+  initLocation() async {
+    CameraUpdate cameraUpdate = CameraUpdate.newLatLngZoom(
+        await _mapController.requestMyLocationLatLng(), 14);
+    _mapController.moveCamera(cameraUpdate);
   }
 
   addImageToController(String imageAsset) async {
@@ -69,13 +80,21 @@ class MapboxMapState extends State<MapboxMapWidget> {
     _mapController.addImage(imageName, list);
   }
 
-  moveCameraToPlace(Place place) async {
+  onSelectPlace(Place place) async {
+    CameraUpdate cameraUpdate = await getCameraUpdateFromPlace(place);
+    updateCameraPosition(cameraUpdate);
+    drawPlaceIcon(place);
+  }
+
+  Future<CameraUpdate> getCameraUpdateFromPlace(Place place) async {
+    return CameraUpdate.newLatLngZoom(await _getLatLngFromPlace(place), 14);
+  }
+
+  Future<LatLng> _getLatLngFromPlace(Place place) async {
     List<Address> addresses =
         await Geocoder.local.findAddressesFromQuery(place.address);
-    Coordinates resultCoordinates = addresses.first.coordinates;
-    CameraUpdate cameraUpdate = CameraUpdate.newLatLngZoom(
-        LatLng(resultCoordinates.latitude, resultCoordinates.longitude), 14);
-    updateCameraPosition(cameraUpdate);
+    Coordinates coordinates = addresses.first.coordinates;
+    return LatLng(coordinates.latitude, coordinates.longitude);
   }
 
   updateCameraPosition(CameraUpdate cameraUpdate) {
@@ -100,6 +119,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
           ));
     } else {
       drawRoute(route);
+      displayHeightMap();
     }
   }
 
@@ -110,17 +130,31 @@ class MapboxMapState extends State<MapboxMapWidget> {
       ),
     );
 
-    drawStartAndEndIcons(route);
+    drawRouteStartAndEndIcons(route);
     moveCameraToRouteBounds(route);
   }
 
-  clearAllDrawnRoutes() {
+  displayHeightMap() {}
+
+  clearActiveDrawings() {
     _mapController.clearLines();
     _mapController.clearCircles();
     _mapController.clearSymbols();
   }
 
-  drawStartAndEndIcons(Route route) {
+  drawPlaceIcon(Place place) async {
+    LatLng location = await _getLatLngFromPlace(place);
+
+    _mapController.addSymbol(SymbolOptions(
+      iconImage: 'place_pin',
+      iconSize: 0.1,
+      iconOffset: Offset(0, 15),
+      iconAnchor: 'bottom',
+      geometry: location,
+    ));
+  }
+
+  drawRouteStartAndEndIcons(Route route) {
     LatLng startPoint = LatLng(
       route.trackPoints.first.lat,
       route.trackPoints.first.lon,

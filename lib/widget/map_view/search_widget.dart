@@ -92,7 +92,7 @@ class _SearchWidgetState extends State<SearchWidget> {
       builder: (context, model, _) => FloatingSearchBar(
         automaticallyImplyBackButton: false,
         controller: searchBarController,
-        clearQueryOnClose: true,
+        clearQueryOnClose: false,
         hint: 'Search...',
         iconColor: Colors.grey,
         transitionDuration: const Duration(milliseconds: 800),
@@ -101,13 +101,23 @@ class _SearchWidgetState extends State<SearchWidget> {
         axisAlignment: isPortrait ? 0.0 : -1.0,
         openAxisAlignment: 0.0,
         maxWidth: isPortrait ? 600 : 500,
+        onSubmitted: (_) => _onSubmitted(context, model),
         actions: [
           FloatingSearchBarAction(
             showIfOpened: false,
-            child: CircularButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () => parent.openOptionsMenu(),
-            ),
+            builder: (context, _) {
+              if (searchBarController.query.isEmpty) {
+                return CircularButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () => parent.openOptionsMenu(),
+                );
+              } else {
+                return CircularButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => _clearCurrentlyActiveSearch(),
+                );
+              }
+            },
           ),
           FloatingSearchBarAction.searchToClear(
             showIfClosed: false,
@@ -123,9 +133,23 @@ class _SearchWidgetState extends State<SearchWidget> {
     );
   }
 
+  _clearCurrentlyActiveSearch() {
+    searchBarController.clear();
+    _mapboxMapStateKey.currentState.clearActiveDrawings();
+  }
+
+  _onSubmitted(BuildContext context, SearchModel model) async {
+    if (searchBarController.query.isNotEmpty) {
+      List<Place> suggestions = await prepareSuggestions(model);
+      _onSuggestionTouch(suggestions.first);
+    } else {
+      _closeSearchBar();
+    }
+  }
+
   Widget buildExpandableBody(SearchModel model) {
     return new FutureBuilder(
-        future: Future.wait([prepareSuggestions(model)]),
+        future: prepareSuggestions(model),
         builder: (context, AsyncSnapshot<List> snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.waiting:
@@ -136,7 +160,7 @@ class _SearchWidgetState extends State<SearchWidget> {
               if (snapshot.hasError) {
                 return ErrorWidget(snapshot.error);
               } else {
-                List<Place> _items = snapshot.data.first;
+                List<Place> _items = snapshot.data;
                 return Material(
                   color: Colors.white,
                   elevation: 4.0,
@@ -213,13 +237,7 @@ class _SearchWidgetState extends State<SearchWidget> {
       children: [
         InkWell(
           onTap: () {
-            _updateHistory(place);
             _onSuggestionTouch(place);
-            FloatingSearchBar.of(context).close();
-            Future.delayed(
-              const Duration(milliseconds: 500),
-              () => model.clear(),
-            );
           },
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -283,13 +301,21 @@ class _SearchWidgetState extends State<SearchWidget> {
   }
 
   _onSuggestionTouch(Place place) {
+    _closeSearchBar();
+    _updateHistory(place);
+    searchBarController.query = place.name;
     MapboxMapState mapState = _mapboxMapStateKey.currentState;
-    mapState.clearAllDrawnRoutes();
+    mapState.clearActiveDrawings();
     if (place.isRoute) {
       mapState.onSelectRoute(place.name);
     } else {
-      mapState.moveCameraToPlace(place);
+      mapState.onSelectPlace(place);
     }
+  }
+
+  _closeSearchBar() {
+    searchBarController.clear();
+    searchBarController.close();
   }
 
   Icon getItemIcon(SearchModel model, Place place) {
