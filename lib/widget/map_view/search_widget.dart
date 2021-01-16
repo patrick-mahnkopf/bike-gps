@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -11,6 +12,7 @@ import 'package:flutter/material.dart' hide Route;
 import 'package:geocoder/geocoder.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/transitions.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -53,7 +55,7 @@ class _SearchWidgetState extends State<SearchWidget> {
 
   void _initHistory() async {
     searchHistoryPath = p.join(
-        (await getApplicationDocumentsDirectory()).path, 'searchHistory.txt');
+        (await getApplicationDocumentsDirectory()).path, 'searchHistory.json');
 
     if (!await File(searchHistoryPath).exists()) {
       File(searchHistoryPath).create();
@@ -66,19 +68,11 @@ class _SearchWidgetState extends State<SearchWidget> {
     String input = await File(searchHistoryPath).readAsString();
     List<String> routeList = await routeManager.getRouteList();
 
-    for (String line in input.split('\n')) {
-      if (line != '') {
-        List<String> properties = line.split('|');
-        bool _isRoute = routeList.contains(properties[0]);
-
-        Place place = new Place(
-            name: properties[0],
-            country: properties[1],
-            state: properties[2],
-            isRoute: _isRoute);
-        history.add(place);
-      }
-    }
+    List places = jsonDecode(input) as List;
+    places.forEach((historyItem) {
+      bool _isRoute = routeList.contains(historyItem['properties']['name']);
+      history.add(Place.fromJson(historyItem, isRoute: _isRoute));
+    });
 
     _removeHistoryDuplicates();
   }
@@ -133,11 +127,6 @@ class _SearchWidgetState extends State<SearchWidget> {
     );
   }
 
-  _clearCurrentlyActiveSearch() {
-    searchBarController.clear();
-    _mapboxMapStateKey.currentState.clearActiveDrawings();
-  }
-
   _onSubmitted(BuildContext context, SearchModel model) async {
     if (searchBarController.query.isNotEmpty) {
       List<Place> suggestions = await prepareSuggestions(model);
@@ -145,6 +134,11 @@ class _SearchWidgetState extends State<SearchWidget> {
     } else {
       _closeSearchBar();
     }
+  }
+
+  _clearCurrentlyActiveSearch() {
+    searchBarController.clear();
+    _mapboxMapStateKey.currentState.clearActiveDrawings();
   }
 
   Widget buildExpandableBody(SearchModel model) {
@@ -192,7 +186,7 @@ class _SearchWidgetState extends State<SearchWidget> {
 
   Future<List<Place>> prepareSuggestions(SearchModel model) async {
     List<Place> suggestionList =
-        model.suggestions.take(DISPLAY_SUGGESTION_COUNT).toList();
+    model.suggestions.take(DISPLAY_SUGGESTION_COUNT).toList();
 
     if (!model.isHistory) {
       List<String> routeList = await routeManager.getRouteList();
@@ -217,13 +211,21 @@ class _SearchWidgetState extends State<SearchWidget> {
     Route route = await routeManager.getRoute(routeName);
     Coordinates routePosition =
         Coordinates(route.trackPoints[0].lat, route.trackPoints[0].lon);
-    List<Address> addresses =
-        await Geocoder.local.findAddressesFromCoordinates(routePosition);
+    Address address =
+        (await Geocoder.local.findAddressesFromCoordinates(routePosition))
+            .first;
     return Place(
-        name: routeName,
-        state: addresses.first.adminArea,
-        country: addresses.first.countryName,
-        isRoute: true);
+      name: routeName,
+      street: address.addressLine.split(',').first,
+      city: address.locality,
+      coordinates: LatLng(
+        address.coordinates.latitude,
+        address.coordinates.longitude,
+      ),
+      state: address.adminArea,
+      country: address.countryName,
+      isRoute: true,
+    );
   }
 
   Widget buildItem(BuildContext context, Place place) {
@@ -261,7 +263,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        place.level2Address,
+                        place.secondaryAddress,
                         style: textTheme.bodyText2
                             .copyWith(color: Colors.grey.shade600),
                       ),
@@ -289,11 +291,7 @@ class _SearchWidgetState extends State<SearchWidget> {
 
   void _saveHistory() async {
     _removeHistoryDuplicates();
-    String output = '';
-    for (Place place in history) {
-      output += "${place.name}|${place.country}|${place.state}\n";
-    }
-    File(searchHistoryPath).writeAsString(output, flush: true);
+    File(searchHistoryPath).writeAsString(jsonEncode(history), flush: true);
   }
 
   void _removeHistoryDuplicates() {

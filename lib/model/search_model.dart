@@ -29,8 +29,8 @@ class SearchModel extends ChangeNotifier {
     if (query.isEmpty) {
       _suggestions = history;
     } else {
-      // TODO replace 3rd party dependence with local Geocoder
-      final response = await http.get('http://photon.komoot.de/api/?q=$query');
+      // TODO Check API usage rights
+      final response = await http.get('http://photon.komoot.io/api/?q=$query');
       final body = json.decode(utf8.decode(response.bodyBytes));
       final features = body['features'] as List;
 

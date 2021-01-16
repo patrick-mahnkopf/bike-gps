@@ -8,7 +8,6 @@ import 'package:bike_gps/widget/map_view/map_style_list_widget.dart';
 import 'package:flutter/cupertino.dart' hide Route;
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/services.dart';
-import 'package:geocoder/geocoder.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:path/path.dart';
 import 'package:route_parser/models/route.dart';
@@ -80,21 +79,14 @@ class MapboxMapState extends State<MapboxMapWidget> {
     _mapController.addImage(imageName, list);
   }
 
-  onSelectPlace(Place place) async {
-    CameraUpdate cameraUpdate = await getCameraUpdateFromPlace(place);
+  onSelectPlace(Place place) {
+    CameraUpdate cameraUpdate = getCameraUpdateFromPlace(place);
     updateCameraPosition(cameraUpdate);
     drawPlaceIcon(place);
   }
 
-  Future<CameraUpdate> getCameraUpdateFromPlace(Place place) async {
-    return CameraUpdate.newLatLngZoom(await _getLatLngFromPlace(place), 14);
-  }
-
-  Future<LatLng> _getLatLngFromPlace(Place place) async {
-    List<Address> addresses =
-        await Geocoder.local.findAddressesFromQuery(place.address);
-    Coordinates coordinates = addresses.first.coordinates;
-    return LatLng(coordinates.latitude, coordinates.longitude);
+  CameraUpdate getCameraUpdateFromPlace(Place place) {
+    return CameraUpdate.newLatLngZoom(place.coordinates, 14);
   }
 
   updateCameraPosition(CameraUpdate cameraUpdate) {
@@ -143,14 +135,12 @@ class MapboxMapState extends State<MapboxMapWidget> {
   }
 
   drawPlaceIcon(Place place) async {
-    LatLng location = await _getLatLngFromPlace(place);
-
     _mapController.addSymbol(SymbolOptions(
       iconImage: 'place_pin',
       iconSize: 0.1,
       iconOffset: Offset(0, 15),
       iconAnchor: 'bottom',
-      geometry: location,
+      geometry: place.coordinates,
     ));
   }
 

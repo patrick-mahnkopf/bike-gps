@@ -194,9 +194,11 @@ packages:
   geocoder:
     dependency: "direct main"
     description:
-      name: geocoder
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: a861a7fb6fdcc5e9bccece8df475be6c3df35dab
+      url: "https://github.com/otopba/flutter_geocoder.git"
+    source: git
     version: "0.2.1"
   gpx:
     dependency: "direct main"

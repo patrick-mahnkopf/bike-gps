@@ -35,7 +35,9 @@ dependencies:
   mapbox_gl:
     git:
       url: https://github.com/tobrun/flutter-mapbox-gl
-  geocoder: ^0.2.1
+  geocoder:
+    git:
+      url: https://github.com/otopba/flutter_geocoder.git
   material_floating_search_bar: ^0.2.6
   provider: ^4.3.2+3
   implicitly_animated_reorderable_list: ^0.2.5
