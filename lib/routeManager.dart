@@ -1,8 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:bike_gps/model/routeInfo.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/services.dart';
-import 'package:gpx/gpx.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -10,64 +11,86 @@ import 'package:route_parser/models/route.dart';
 import 'package:route_parser/route_parser.dart';
 
 class RouteManager {
-  List<String> routeList = [];
-  Route currentRoute;
-  RouteParser routeParser;
   String routesPath;
+  RouteParser routeParser;
+  Route currentRoute;
+  RouteList routeList = RouteList();
 
   RouteManager(this.routeParser) {
     WidgetsFlutterBinding.ensureInitialized();
     init();
   }
 
-  initMockRouteFiles() async {
-    // TODO move to tests
-    initMockRouteFile('Eilenriede.gpx');
-    initMockRouteFile('Julius-Trip-Ring.gpx');
-    initMockRouteFile('Bocca Fortini.gpx');
-    initMockRouteFile('BoccaFortini.rtx');
-  }
-
-  initMockRouteFile(String fileName) async {
-    String routeFilePath = p.join(
-        (await getApplicationDocumentsDirectory()).path, 'routes', fileName);
-    if (!await File(routeFilePath).exists()) {
-      File routeFile = new File(routeFilePath);
-      String routeString = await rootBundle.loadString('assets/$fileName');
-      routeFile.writeAsString(routeString);
-    }
-  }
-
   void init() async {
-    routesPath =
-        p.join((await getApplicationDocumentsDirectory()).path, 'routes');
+    routesPath = p.join(
+      (await getApplicationDocumentsDirectory()).path,
+      'routes',
+    );
     initMockRouteFiles();
     updateRouteList();
   }
 
-  updateRouteList() async {
-    routeList = await Directory(routesPath)
-        .list()
-        .map((event) => p.basenameWithoutExtension(event.path))
-        .toList();
-  }
-
-  Future<List<String>> getRouteList() async {
-    await updateRouteList();
-    return routeList;
-  }
-
-  Future<Route> getRoute(String routeName) async {
-    File routeFile = getRouteFile(routeName);
-
-    if (routeFile == null) {
-      return null;
-    } else {
-      return await routeParser.getRoute(routeFile);
+  initMockRouteFiles() async {
+    // TODO move to tests
+    final Map<String, dynamic> manifestMap =
+        jsonDecode((await rootBundle.loadString('AssetManifest.json')));
+    final routePaths =
+        manifestMap.keys.where((String key) => key.contains('routes/'));
+    for (String routePath in routePaths) {
+      initMockRouteFile(p.basename(routePath).replaceAll('%20', ' '));
     }
   }
 
-  File getRouteFile(String routeName) {
+  initMockRouteFile(String fileName) async {
+    String routeFilePath = p.join(
+      (await getApplicationDocumentsDirectory()).path,
+      'routes',
+      fileName,
+    );
+    if (!await File(routeFilePath).exists()) {
+      File routeFile = new File(routeFilePath);
+      String routeString =
+          await rootBundle.loadString('assets/routes/$fileName');
+      routeFile.writeAsString(routeString);
+    }
+  }
+
+  updateRouteList() async {
+    await Directory(routesPath).list().forEach((element) async {
+      String routeName = p.basenameWithoutExtension(element.path);
+      if (!routeList.contains(routeName)) {
+        Route route = await getRoute(routeName);
+        String routePath = getRouteFileWithBestExtension(routeName).path;
+        LatLngBounds routeBounds = route.getBounds();
+        routeList.add(
+          name: routeName,
+          path: routePath,
+          bounds: routeBounds,
+        );
+      }
+    });
+  }
+
+  Future<List<String>> getRouteNames() async {
+    await updateRouteList();
+    return routeList.routeNames;
+  }
+
+  Future<Route> getRoute(String routeName) async {
+    if (routeList.contains(routeName)) {
+      return await routeParser.getRoute(routeList.getFile(routeName));
+    } else {
+      File routeFile = getRouteFileWithBestExtension(routeName);
+
+      if (routeFile == null) {
+        return null;
+      } else {
+        return await routeParser.getRoute(routeFile);
+      }
+    }
+  }
+
+  File getRouteFileWithBestExtension(String routeName) {
     String filePath = p.join(routesPath, routeName);
     File routeFile;
 
@@ -81,38 +104,13 @@ class RouteManager {
     return routeFile;
   }
 
-  List<LatLng> getTrackAsList(Route route) {
-    List<LatLng> trackList = [];
-
-    for (Wpt trackPoint in route.trackPoints) {
-      trackList.add(LatLng(trackPoint.lat, trackPoint.lon));
+  Future<List<Route>> getSimilarRoutes(Route primaryRoute) async {
+    List<Route> similarRoutes = [];
+    List<String> similarRouteNames =
+        routeList.getSimilarRouteNames(primaryRoute.routeName);
+    for (String routeName in similarRouteNames) {
+      similarRoutes.add(await getRoute(routeName));
     }
-
-    return trackList;
-  }
-
-  LatLngBounds getRouteBounds(Route route) {
-    Map<String, double> extrema = {
-      'west': route.trackPoints[0].lon,
-      'north': route.trackPoints[0].lat,
-      'east': route.trackPoints[0].lon,
-      'south': route.trackPoints[0].lat,
-    };
-    double padding = 0.006;
-    double offset = 0.006;
-
-    for (Wpt trackPoint in route.trackPoints) {
-      if (trackPoint.lon < extrema['west']) extrema['west'] = trackPoint.lon;
-      if (trackPoint.lon > extrema['east']) extrema['east'] = trackPoint.lon;
-      if (trackPoint.lat > extrema['north']) extrema['north'] = trackPoint.lat;
-      if (trackPoint.lat < extrema['south']) extrema['south'] = trackPoint.lat;
-    }
-
-    return LatLngBounds(
-      southwest: LatLng(
-          extrema['south'] - padding + offset, extrema['west'] - padding),
-      northeast: LatLng(
-          extrema['north'] + padding + offset, extrema['east'] + padding),
-    );
+    return similarRoutes;
   }
 }

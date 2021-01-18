@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:bike_gps/model/map_resources.dart';
 import 'package:bike_gps/model/place.dart';
 import 'package:bike_gps/routeManager.dart';
+import 'package:bike_gps/utils.dart';
 import 'package:bike_gps/widget/map_view/map_style_list_widget.dart';
 import 'package:flutter/cupertino.dart' hide Route;
 import 'package:flutter/material.dart' hide Route;
@@ -35,6 +36,10 @@ class MapboxMapState extends State<MapboxMapWidget> {
     'end_location.png',
     'place_pin.png'
   ];
+  String primaryRouteColor = Utils.getColorHex(materialColor: Colors.blue);
+  String secondaryRouteColor = Utils.getColorHex(materialColor: Colors.grey);
+  String routeBorderColor = Utils.getColorHex(color: Colors.black);
+  String routeTouchAreaColor = Utils.getColorHex(materialColor: Colors.teal);
 
   MapboxMapState(this.routeManager, this.mapResources);
 
@@ -56,6 +61,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
 
   _onMapCreated(MapboxMapController controller) {
     _mapController = controller;
+    _mapController.onLineTapped.add(_onLineTapped);
     initImages();
     initLocation();
   }
@@ -97,6 +103,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
 
   onSelectRoute(String routeName) async {
     Route route = await routeManager.getRoute(routeName);
+    List<Route> similarRoutes = await routeManager.getSimilarRoutes(route);
     if (route == null) {
       showDialog(
           context: this.context,
@@ -110,50 +117,104 @@ class MapboxMapState extends State<MapboxMapWidget> {
             ],
           ));
     } else {
-      drawRoute(route);
+      if (similarRoutes != null && similarRoutes.length > 0) {
+        drawMultipleRoutes(route, similarRoutes);
+      } else {
+        drawSingleRoute(route);
+      }
       displayHeightMap();
     }
   }
 
-  drawRoute(Route route) {
+  drawMultipleRoutes(Route primaryRoute, List<Route> similarRoutes) {
+    for (Route route in similarRoutes) {
+      _drawRoute(
+          lineCoordinateList: route.getTrackAsList(), isMainRoute: false);
+    }
+
+    _drawRoute(
+        lineCoordinateList: primaryRoute.getTrackAsList(), isMainRoute: true);
+    drawRouteStartAndEndIcons(primaryRoute.startPoint, primaryRoute.endPoint);
+
+    LatLngBounds combinedBounds =
+        routeManager.routeList.getCombinedBounds(primaryRoute, similarRoutes);
+    moveCameraToRouteBounds(combinedBounds);
+  }
+
+  drawSingleRoute(Route route) {
+    _drawRoute(lineCoordinateList: route.getTrackAsList(), isMainRoute: true);
+
+    drawRouteStartAndEndIcons(route.startPoint, route.endPoint);
+    moveCameraToRouteBounds(route.getBounds());
+  }
+
+  _drawRoute({List<LatLng> lineCoordinateList, bool isMainRoute = false}) {
+    double lineWidth = 6;
+    double lineBorder = 2;
+    double touchAreaWidth = 36;
+
     _mapController.addLine(
       LineOptions(
-        geometry: routeManager.getTrackAsList(route),
+        geometry: lineCoordinateList,
+        lineWidth: lineWidth + lineBorder,
+        lineColor: routeBorderColor,
+        lineOpacity: 0.8,
       ),
     );
-
-    drawRouteStartAndEndIcons(route);
-    moveCameraToRouteBounds(route);
+    _mapController.addLine(
+      LineOptions(
+        geometry: lineCoordinateList,
+        lineWidth: lineWidth,
+        lineColor: isMainRoute ? primaryRouteColor : secondaryRouteColor,
+      ),
+    );
+    _mapController.addLine(
+      LineOptions(
+        geometry: lineCoordinateList,
+        lineWidth: touchAreaWidth,
+        lineColor: routeTouchAreaColor,
+        lineOpacity: 0,
+      ),
+    );
   }
 
-  displayHeightMap() {}
+  _onLineTapped(Line line) {
+    if (line.options.lineColor == routeBorderColor ||
+        line.options.lineColor == routeTouchAreaColor) {
+      line = _mapController.lines.firstWhere((otherLine) =>
+          otherLine.options.geometry == line.options.geometry &&
+          (otherLine.options.lineColor == primaryRouteColor ||
+              otherLine.options.lineColor == secondaryRouteColor));
+    }
+    _updateLines(line);
+  }
 
-  clearActiveDrawings() {
-    _mapController.clearLines();
-    _mapController.clearCircles();
+  _updateLines(Line activeLine) {
     _mapController.clearSymbols();
+    drawRouteStartAndEndIcons(
+        activeLine.options.geometry.first, activeLine.options.geometry.last);
+
+    List<Line> lines = _mapController.lines.toList();
+    Line previousActiveLine = _mapController.lines
+        .firstWhere((line) => line.options.lineColor == primaryRouteColor);
+
+    for (Line line in lines) {
+      if (line.options.geometry == activeLine.options.geometry ||
+          line.options.geometry == previousActiveLine.options.geometry)
+        _mapController.removeLine(line);
+    }
+
+    _drawRoute(
+      lineCoordinateList: previousActiveLine.options.geometry,
+      isMainRoute: false,
+    );
+    _drawRoute(
+      lineCoordinateList: activeLine.options.geometry,
+      isMainRoute: true,
+    );
   }
 
-  drawPlaceIcon(Place place) async {
-    _mapController.addSymbol(SymbolOptions(
-      iconImage: 'place_pin',
-      iconSize: 0.1,
-      iconOffset: Offset(0, 15),
-      iconAnchor: 'bottom',
-      geometry: place.coordinates,
-    ));
-  }
-
-  drawRouteStartAndEndIcons(Route route) {
-    LatLng startPoint = LatLng(
-      route.trackPoints.first.lat,
-      route.trackPoints.first.lon,
-    );
-    LatLng endPoint = LatLng(
-      route.trackPoints.last.lat,
-      route.trackPoints.last.lon,
-    );
-
+  drawRouteStartAndEndIcons(LatLng startPoint, LatLng endPoint) {
     _mapController.addSymbol(SymbolOptions(
       iconImage: 'start_location',
       iconSize: 0.1,
@@ -176,10 +237,27 @@ class MapboxMapState extends State<MapboxMapWidget> {
     ));
   }
 
-  moveCameraToRouteBounds(Route route) {
-    LatLngBounds routeBounds = routeManager.getRouteBounds(route);
-    CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(routeBounds);
+  moveCameraToRouteBounds(LatLngBounds bounds) {
+    CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds);
     updateCameraPosition(cameraUpdate);
+  }
+
+  displayHeightMap() {}
+
+  clearActiveDrawings() {
+    _mapController.clearLines();
+    _mapController.clearCircles();
+    _mapController.clearSymbols();
+  }
+
+  drawPlaceIcon(Place place) async {
+    _mapController.addSymbol(SymbolOptions(
+      iconImage: 'place_pin',
+      iconSize: 0.1,
+      iconOffset: Offset(0, 15),
+      iconAnchor: 'bottom',
+      geometry: place.coordinates,
+    ));
   }
 
   showStyleSelectionDialog() {

@@ -66,11 +66,11 @@ class _SearchWidgetState extends State<SearchWidget> {
 
   void _loadHistory() async {
     String input = await File(searchHistoryPath).readAsString();
-    List<String> routeList = await routeManager.getRouteList();
+    List<String> routeNames = await routeManager.getRouteNames();
 
     List places = jsonDecode(input) as List;
     places.forEach((historyItem) {
-      bool _isRoute = routeList.contains(historyItem['properties']['name']);
+      bool _isRoute = routeNames.contains(historyItem['properties']['name']);
       history.add(Place.fromJson(historyItem, isRoute: _isRoute));
     });
 
@@ -186,11 +186,11 @@ class _SearchWidgetState extends State<SearchWidget> {
 
   Future<List<Place>> prepareSuggestions(SearchModel model) async {
     List<Place> suggestionList =
-    model.suggestions.take(DISPLAY_SUGGESTION_COUNT).toList();
+        model.suggestions.take(DISPLAY_SUGGESTION_COUNT).toList();
 
     if (!model.isHistory) {
-      List<String> routeList = await routeManager.getRouteList();
-      routeList.retainWhere((routeName) {
+      List<String> routeNames = await routeManager.getRouteNames();
+      routeNames.retainWhere((routeName) {
         String query = searchBarController.query;
         if (query.length >= (routeName.length / 3)) {
           return routeName.toLowerCase().contains(query.toLowerCase());
@@ -199,7 +199,7 @@ class _SearchWidgetState extends State<SearchWidget> {
         }
       });
 
-      for (String routeName in routeList) {
+      for (String routeName in routeNames) {
         Place routeSuggestion = await getPlaceFromRouteName(routeName);
         suggestionList.insert(0, routeSuggestion);
       }
