@@ -41,6 +41,7 @@ dependencies:
   material_floating_search_bar: ^0.2.6
   provider: ^4.3.2+3
   implicitly_animated_reorderable_list: ^0.2.5
+  snapping_sheet: ^2.0.2
   gpx: ^1.1.1
   route_parser:
     path: ..\route_parser

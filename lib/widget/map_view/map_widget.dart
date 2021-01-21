@@ -1,12 +1,14 @@
 import 'package:bike_gps/model/map_resources.dart';
 import 'package:bike_gps/model/search_model.dart';
 import 'package:bike_gps/routeManager.dart';
+import 'package:bike_gps/widget/map_view/bottom_sheet_widget.dart';
 import 'package:bike_gps/widget/map_view/mapbox_map_widget.dart';
 import 'package:bike_gps/widget/map_view/options_dialog_widget.dart';
 import 'package:bike_gps/widget/map_view/search_widget.dart';
 import 'package:flutter/cupertino.dart' hide Route;
 import 'package:flutter/material.dart' hide Route;
 import 'package:provider/provider.dart';
+import 'package:route_parser/models/route.dart';
 
 class MapWidget extends StatefulWidget {
   final RouteManager routeManager;
@@ -24,7 +26,12 @@ class MapWidget extends StatefulWidget {
 class MapState extends State<MapWidget> {
   final RouteManager routeManager;
   final MapResources mapResources;
+  bool _bottomSheetVisible = false;
+  Route _activeRoute;
+  List<Route> _similarRoutes;
   final GlobalKey<MapboxMapState> _mapboxMapStateKey = GlobalKey();
+  final GlobalKey<SearchWidgetState> _searchWidgetStateKey = GlobalKey();
+  final GlobalKey<BottomSheetState> _bottomSheetStateKey = GlobalKey();
 
   MapState(this.routeManager, this.mapResources);
 
@@ -39,6 +46,8 @@ class MapState extends State<MapWidget> {
               key: _mapboxMapStateKey,
               routeManager: routeManager,
               mapResources: mapResources,
+              searchWidgetStateKey: _searchWidgetStateKey,
+              parent: this,
             )),
         SafeArea(
           child: Padding(
@@ -62,10 +71,20 @@ class MapState extends State<MapWidget> {
         ChangeNotifierProvider(
           create: (_) => SearchModel(),
           child: SearchWidget(
+              key: _searchWidgetStateKey,
               mapboxMapStateKey: _mapboxMapStateKey,
               parent: this,
               routeManager: routeManager),
         ),
+        SafeArea(
+          child: _bottomSheetVisible
+              ? BottomSheetWidget(
+                  key: _bottomSheetStateKey,
+                  activeRoute: _activeRoute,
+                  similarRoutes: _similarRoutes,
+                )
+              : Container(),
+        )
       ],
     );
   }
@@ -87,5 +106,23 @@ class MapState extends State<MapWidget> {
         );
       },
     );
+  }
+
+  showBottomDrawer(Route route, List<Route> similarRoutes) {
+    setState(() {
+      _activeRoute = route;
+      _similarRoutes = similarRoutes;
+      _bottomSheetVisible = true;
+    });
+  }
+
+  hideBottomDrawer() {
+    setState(() {
+      _bottomSheetVisible = false;
+    });
+  }
+
+  changeBottomDrawerRoute(Route route, List<Route> similarRoutes) {
+    _bottomSheetStateKey.currentState.updateRoutes(route, similarRoutes);
   }
 }

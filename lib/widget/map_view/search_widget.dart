@@ -24,14 +24,19 @@ class SearchWidget extends StatefulWidget {
   final MapState parent;
   final RouteManager routeManager;
 
-  SearchWidget({this.mapboxMapStateKey, this.parent, this.routeManager});
+  SearchWidget({
+    @required Key key,
+    this.mapboxMapStateKey,
+    this.parent,
+    this.routeManager,
+  }) : super(key: key);
 
   @override
-  _SearchWidgetState createState() =>
-      _SearchWidgetState(mapboxMapStateKey, parent, routeManager);
+  SearchWidgetState createState() =>
+      SearchWidgetState(mapboxMapStateKey, parent, routeManager);
 }
 
-class _SearchWidgetState extends State<SearchWidget> {
+class SearchWidgetState extends State<SearchWidget> {
   final searchBarController = FloatingSearchBarController();
   final GlobalKey<MapboxMapState> _mapboxMapStateKey;
   final MapState parent;
@@ -39,7 +44,7 @@ class _SearchWidgetState extends State<SearchWidget> {
   static const DISPLAY_SUGGESTION_COUNT = 8;
   String searchHistoryPath;
 
-  _SearchWidgetState(this._mapboxMapStateKey, this.parent, this.routeManager) {
+  SearchWidgetState(this._mapboxMapStateKey, this.parent, this.routeManager) {
     _initHistory();
   }
 
@@ -324,5 +329,9 @@ class _SearchWidgetState extends State<SearchWidget> {
     } else {
       return Icon(Icons.place, key: Key('place'));
     }
+  }
+
+  setActiveQuery(String routeName) {
+    searchBarController.query = routeName;
   }
 }

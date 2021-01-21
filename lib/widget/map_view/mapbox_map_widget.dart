@@ -3,34 +3,47 @@ import 'dart:typed_data';
 
 import 'package:bike_gps/model/map_resources.dart';
 import 'package:bike_gps/model/place.dart';
+import 'package:bike_gps/model/routeLines.dart';
 import 'package:bike_gps/routeManager.dart';
 import 'package:bike_gps/utils.dart';
 import 'package:bike_gps/widget/map_view/map_style_list_widget.dart';
+import 'package:bike_gps/widget/map_view/map_widget.dart';
+import 'package:bike_gps/widget/map_view/search_widget.dart';
 import 'package:flutter/cupertino.dart' hide Route;
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/services.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:mapbox_gl_platform_interface/mapbox_gl_platform_interface.dart';
 import 'package:path/path.dart';
 import 'package:route_parser/models/route.dart';
 
 class MapboxMapWidget extends StatefulWidget {
   final RouteManager routeManager;
   final MapResources mapResources;
+  final GlobalKey<SearchWidgetState> searchWidgetStateKey;
+  final MapState parent;
 
-  MapboxMapWidget(
-      {@required Key key,
-      @required this.routeManager,
-      @required this.mapResources})
-      : super(key: key);
+  MapboxMapWidget({
+    @required Key key,
+    @required this.routeManager,
+    @required this.mapResources,
+    this.searchWidgetStateKey,
+    this.parent,
+  }) : super(key: key);
 
   @override
-  State createState() => MapboxMapState(routeManager, mapResources);
+  State createState() =>
+      MapboxMapState(routeManager, mapResources, searchWidgetStateKey, parent);
 }
 
 class MapboxMapState extends State<MapboxMapWidget> {
   final RouteManager routeManager;
   final MapResources mapResources;
+  final GlobalKey<SearchWidgetState> _searchWidgetStateKey;
+  final MapState parent;
   MapboxMapController _mapController;
+  bool _compassEnabled = true;
+  RouteLines routeLines = RouteLines();
   List<String> assetImages = [
     'start_location.png',
     'end_location.png',
@@ -41,7 +54,12 @@ class MapboxMapState extends State<MapboxMapWidget> {
   String routeBorderColor = Utils.getColorHex(color: Colors.black);
   String routeTouchAreaColor = Utils.getColorHex(materialColor: Colors.teal);
 
-  MapboxMapState(this.routeManager, this.mapResources);
+  MapboxMapState(
+    this.routeManager,
+    this.mapResources,
+    this._searchWidgetStateKey,
+    this.parent,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +68,8 @@ class MapboxMapState extends State<MapboxMapWidget> {
       onMapCreated: _onMapCreated,
       styleString: mapResources.activeStyleString,
       compassViewPosition: CompassViewPosition.BottomRight,
-      compassViewMargins: new Point(32, 32),
+      compassViewMargins: Point(32, 32),
+      compassEnabled: _compassEnabled,
       myLocationEnabled: true,
       myLocationRenderMode: MyLocationRenderMode.COMPASS,
       myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass,
@@ -104,6 +123,9 @@ class MapboxMapState extends State<MapboxMapWidget> {
   onSelectRoute(String routeName) async {
     Route route = await routeManager.getRoute(routeName);
     List<Route> similarRoutes = await routeManager.getSimilarRoutes(route);
+    setState(() {
+      _compassEnabled = false;
+    });
     if (route == null) {
       showDialog(
           context: this.context,
@@ -122,18 +144,23 @@ class MapboxMapState extends State<MapboxMapWidget> {
       } else {
         drawSingleRoute(route);
       }
-      displayHeightMap();
+      parent.showBottomDrawer(route, similarRoutes);
     }
   }
 
   drawMultipleRoutes(Route primaryRoute, List<Route> similarRoutes) {
     for (Route route in similarRoutes) {
       _drawRoute(
-          lineCoordinateList: route.getTrackAsList(), isMainRoute: false);
+        routeName: route.routeName,
+        lineCoordinateList: route.getTrackAsList(),
+        isMainRoute: false,
+      );
     }
 
     _drawRoute(
-        lineCoordinateList: primaryRoute.getTrackAsList(), isMainRoute: true);
+        routeName: primaryRoute.routeName,
+        lineCoordinateList: primaryRoute.getTrackAsList(),
+        isMainRoute: true);
     drawRouteStartAndEndIcons(primaryRoute.startPoint, primaryRoute.endPoint);
 
     LatLngBounds combinedBounds =
@@ -142,76 +169,94 @@ class MapboxMapState extends State<MapboxMapWidget> {
   }
 
   drawSingleRoute(Route route) {
-    _drawRoute(lineCoordinateList: route.getTrackAsList(), isMainRoute: true);
+    _drawRoute(
+      routeName: route.routeName,
+      lineCoordinateList: route.getTrackAsList(),
+      isMainRoute: true,
+    );
 
     drawRouteStartAndEndIcons(route.startPoint, route.endPoint);
     moveCameraToRouteBounds(route.getBounds());
   }
 
-  _drawRoute({List<LatLng> lineCoordinateList, bool isMainRoute = false}) {
+  _drawRoute({
+    List<LatLng> lineCoordinateList,
+    bool isMainRoute = false,
+    @required String routeName,
+  }) async {
     double lineWidth = 6;
     double lineBorder = 2;
     double touchAreaWidth = 36;
 
-    _mapController.addLine(
-      LineOptions(
-        geometry: lineCoordinateList,
-        lineWidth: lineWidth + lineBorder,
-        lineColor: routeBorderColor,
-        lineOpacity: 0.8,
+    routeLines.add(
+      routeName: routeName,
+      background: await _mapController.addLine(
+        LineOptions(
+          geometry: lineCoordinateList,
+          lineWidth: lineWidth + lineBorder,
+          lineColor: routeBorderColor,
+          lineOpacity: 0.8,
+        ),
       ),
-    );
-    _mapController.addLine(
-      LineOptions(
-        geometry: lineCoordinateList,
-        lineWidth: lineWidth,
-        lineColor: isMainRoute ? primaryRouteColor : secondaryRouteColor,
+      route: await _mapController.addLine(
+        LineOptions(
+          geometry: lineCoordinateList,
+          lineWidth: lineWidth,
+          lineColor: isMainRoute ? primaryRouteColor : secondaryRouteColor,
+        ),
       ),
-    );
-    _mapController.addLine(
-      LineOptions(
-        geometry: lineCoordinateList,
-        lineWidth: touchAreaWidth,
-        lineColor: routeTouchAreaColor,
-        lineOpacity: 0,
+      isActive: isMainRoute,
+      touchArea: await _mapController.addLine(
+        LineOptions(
+          geometry: lineCoordinateList,
+          lineWidth: touchAreaWidth,
+          lineColor: routeTouchAreaColor,
+          lineOpacity: 0,
+        ),
       ),
     );
   }
 
-  _onLineTapped(Line line) {
-    if (line.options.lineColor == routeBorderColor ||
-        line.options.lineColor == routeTouchAreaColor) {
-      line = _mapController.lines.firstWhere((otherLine) =>
-          otherLine.options.geometry == line.options.geometry &&
-          (otherLine.options.lineColor == primaryRouteColor ||
-              otherLine.options.lineColor == secondaryRouteColor));
-    }
-    _updateLines(line);
+  _onLineTapped(Line line) async {
+    RouteLine routeLine = routeLines.getRouteLine(line);
+    _updateLines(routeLine);
+    Route route = await routeManager.getRoute(routeLine.routeName);
+    List<Route> similarRoutes = await routeManager.getSimilarRoutes(route);
+    parent.changeBottomDrawerRoute(route, similarRoutes);
   }
 
-  _updateLines(Line activeLine) {
+  _updateLines(RouteLine newActiveLine) async {
     _mapController.clearSymbols();
+
+    RouteLine previousActiveLine = routeLines.activeLine;
+    await _deactivateRouteLine(previousActiveLine);
+    _activateRouteLine(newActiveLine);
     drawRouteStartAndEndIcons(
-        activeLine.options.geometry.first, activeLine.options.geometry.last);
+      newActiveLine.route.options.geometry.first,
+      newActiveLine.route.options.geometry.last,
+    );
+    _searchWidgetStateKey.currentState.setActiveQuery(newActiveLine.routeName);
+  }
 
-    List<Line> lines = _mapController.lines.toList();
-    Line previousActiveLine = _mapController.lines
-        .firstWhere((line) => line.options.lineColor == primaryRouteColor);
-
-    for (Line line in lines) {
-      if (line.options.geometry == activeLine.options.geometry ||
-          line.options.geometry == previousActiveLine.options.geometry)
-        _mapController.removeLine(line);
+  _deactivateRouteLine(RouteLine routeLine) async {
+    for (Line line in routeLine.getLines()) {
+      _mapController.removeLine(line);
     }
-
-    _drawRoute(
-      lineCoordinateList: previousActiveLine.options.geometry,
+    await _drawRoute(
+      routeName: routeLine.routeName,
+      lineCoordinateList: routeLine.route.options.geometry,
       isMainRoute: false,
     );
+  }
+
+  _activateRouteLine(RouteLine routeLine) {
+    for (Line line in routeLine.getLines()) {
+      _mapController.removeLine(line);
+    }
     _drawRoute(
-      lineCoordinateList: activeLine.options.geometry,
-      isMainRoute: true,
-    );
+        routeName: routeLine.routeName,
+        lineCoordinateList: routeLine.route.options.geometry,
+        isMainRoute: true);
   }
 
   drawRouteStartAndEndIcons(LatLng startPoint, LatLng endPoint) {
@@ -242,12 +287,14 @@ class MapboxMapState extends State<MapboxMapWidget> {
     updateCameraPosition(cameraUpdate);
   }
 
-  displayHeightMap() {}
-
   clearActiveDrawings() {
     _mapController.clearLines();
     _mapController.clearCircles();
     _mapController.clearSymbols();
+    parent.hideBottomDrawer();
+    setState(() {
+      _compassEnabled = true;
+    });
   }
 
   drawPlaceIcon(Place place) async {
