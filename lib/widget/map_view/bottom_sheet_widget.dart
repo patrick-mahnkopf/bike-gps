@@ -23,6 +23,7 @@ class BottomSheetState extends State<BottomSheetWidget>
   Route _activeRoute;
   List<Route> _similarRoutes;
   final GlobalKey<GrabSectionState> _grabSectionStateKey = GlobalKey();
+  final GlobalKey<SheetContentState> _sheetContentStateKey = GlobalKey();
 
   BottomSheetState(this._activeRoute, this._similarRoutes);
 
@@ -40,10 +41,18 @@ class BottomSheetState extends State<BottomSheetWidget>
         SnapPosition(positionFactor: 0.6),
         SnapPosition(positionFactor: 1),
       ],
-      grabbingHeight: MediaQuery.of(context).padding.bottom + 50,
+      grabbingHeight: MediaQuery.of(context).padding.bottom + 117,
       grabbing: GrabSectionWidget(
-          _grabSectionStateKey, _activeRoute, _similarRoutes, _controller),
-      sheetBelow: SnappingSheetContent(child: SheetContent()),
+          key: _grabSectionStateKey,
+          activeRoute: _activeRoute,
+          similarRoutes: _similarRoutes,
+          controller: _controller),
+      sheetBelow: SnappingSheetContent(
+          child: SheetContentWidget(
+        key: _sheetContentStateKey,
+        activeRoute: _activeRoute,
+        similarRoutes: _similarRoutes,
+      )),
     );
   }
 
@@ -63,10 +72,15 @@ class BottomSheetState extends State<BottomSheetWidget>
 
   updateRoutes(Route activeRoute, List<Route> similarRoutes) {
     GrabSectionState grabSectionState = _grabSectionStateKey.currentState;
+    SheetContentState sheetContentState = _sheetContentStateKey.currentState;
 
     grabSectionState.setState(() {
       grabSectionState._activeRoute = activeRoute;
       grabSectionState._similarRoutes = similarRoutes;
+    });
+    sheetContentState.setState(() {
+      sheetContentState._activeRoute = activeRoute;
+      sheetContentState._similarRoutes = similarRoutes;
     });
   }
 }
@@ -76,12 +90,12 @@ class GrabSectionWidget extends StatefulWidget {
   final List<Route> similarRoutes;
   final SnappingSheetController controller;
 
-  GrabSectionWidget(
+  GrabSectionWidget({
     Key key,
     this.activeRoute,
     this.similarRoutes,
     this.controller,
-  ) : super(key: key);
+  }) : super(key: key);
 
   @override
   GrabSectionState createState() =>
@@ -113,8 +127,8 @@ class GrabSectionState extends State<GrabSectionWidget> {
             )
           ],
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(30.0),
-            topRight: Radius.circular(30.0),
+            topLeft: Radius.circular(8.0),
+            topRight: Radius.circular(8.0),
           ),
         ),
         child: Column(
@@ -160,9 +174,70 @@ class GrabSectionState extends State<GrabSectionWidget> {
                         borderRadius: BorderRadius.all(Radius.circular(5.0))),
                   ),
             Container(
-              margin: EdgeInsets.only(left: 20),
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
               alignment: Alignment.centerLeft,
-              child: Text(_activeRoute.routeName),
+              child: Row(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(right: 8),
+                    child: Text(
+                      "${(_activeRoute.length.toDouble() / 1000).toStringAsFixed(1)} km",
+                      style: TextStyle(fontSize: 20),
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_upward,
+                    color: Colors.green,
+                    size: 16,
+                  ),
+                  Text("${_activeRoute.ascent} m"),
+                  Icon(
+                    Icons.arrow_downward,
+                    color: Colors.red,
+                    size: 16,
+                  ),
+                  Text("${_activeRoute.descent} m"),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: Icon(Icons.list),
+                      label: Text("Road book"),
+                      onPressed: _toggleBetweenSnapPoints,
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.white,
+                        onPrimary: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(32),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: ElevatedButton.icon(
+                        icon: Icon(Icons.navigation),
+                        label: Text("Start"),
+                        onPressed: _startNavigation,
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.blue,
+                          onPrimary: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(32),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             Container(
               height: 2.0,
@@ -183,28 +258,74 @@ class GrabSectionState extends State<GrabSectionWidget> {
     }
     setState(() {});
   }
+
+  _startNavigation() {}
 }
 
-class SheetContent extends StatelessWidget {
+class SheetContentWidget extends StatefulWidget {
+  final Route activeRoute;
+  final List<Route> similarRoutes;
+
+  SheetContentWidget({
+    Key key,
+    this.activeRoute,
+    this.similarRoutes,
+  }) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() =>
+      SheetContentState(activeRoute, similarRoutes);
+}
+
+class SheetContentState extends State<SheetContentWidget> {
+  Route _activeRoute;
+  List<Route> _similarRoutes;
+  static const MIN_ITEM_COUNT = 2;
+
+  int get _itemCount => _activeRoute.roadBook.length + MIN_ITEM_COUNT;
+
+  bool get _roadBookEmpty => _itemCount == MIN_ITEM_COUNT;
+
+  SheetContentState(this._activeRoute, this._similarRoutes);
+
   @override
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
       child: ListView.builder(
         padding: EdgeInsets.all(20.0),
-        itemCount: 50,
+        itemCount: _itemCount,
         itemBuilder: (context, index) {
           return Container(
             decoration: BoxDecoration(
                 border: Border(
                     bottom: BorderSide(color: Colors.grey[300], width: 1.0))),
-            child: ListTile(
-              leading: Icon(Icons.info),
-              title: Text('List item $index'),
-            ),
+            child: index == 0 ? _getHeightMap() : _getRoadBook(index - 1),
           );
         },
       ),
     );
+  }
+
+  _getHeightMap() {
+    return Container(
+      color: Colors.black,
+      height: 80,
+    );
+  }
+
+  _getRoadBook(int index) {
+    print('roadBook call');
+    if (_roadBookEmpty) {
+      return ListTile(
+        leading: Icon(Icons.error),
+        title: Text("This route file does not include road book information."),
+      );
+    } else {
+      return ListTile(
+        leading: Icon(Icons.info),
+        title: Text(_activeRoute.roadBook[index]),
+      );
+    }
   }
 }

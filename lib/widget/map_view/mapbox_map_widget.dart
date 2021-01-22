@@ -152,14 +152,14 @@ class MapboxMapState extends State<MapboxMapWidget> {
     for (Route route in similarRoutes) {
       _drawRoute(
         routeName: route.routeName,
-        lineCoordinateList: route.getTrackAsList(),
+        lineCoordinateList: route.trackAsList,
         isMainRoute: false,
       );
     }
 
     _drawRoute(
         routeName: primaryRoute.routeName,
-        lineCoordinateList: primaryRoute.getTrackAsList(),
+        lineCoordinateList: primaryRoute.trackAsList,
         isMainRoute: true);
     drawRouteStartAndEndIcons(primaryRoute.startPoint, primaryRoute.endPoint);
 
@@ -171,7 +171,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
   drawSingleRoute(Route route) {
     _drawRoute(
       routeName: route.routeName,
-      lineCoordinateList: route.getTrackAsList(),
+      lineCoordinateList: route.trackAsList,
       isMainRoute: true,
     );
 
