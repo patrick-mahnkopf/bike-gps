@@ -66,6 +66,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
     return MapboxMap(
       accessToken: mapResources.mapboxAccessToken,
       onMapCreated: _onMapCreated,
+      onStyleLoadedCallback: _onStyleLoaded,
       styleString: mapResources.activeStyleString,
       compassViewPosition: CompassViewPosition.BottomRight,
       compassViewMargins: Point(32, 32),
@@ -81,6 +82,9 @@ class MapboxMapState extends State<MapboxMapWidget> {
   _onMapCreated(MapboxMapController controller) {
     _mapController = controller;
     _mapController.onLineTapped.add(_onLineTapped);
+  }
+
+  _onStyleLoaded() {
     initImages();
     initLocation();
   }
@@ -106,7 +110,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
 
   onSelectPlace(Place place) {
     CameraUpdate cameraUpdate = getCameraUpdateFromPlace(place);
-    updateCameraPosition(cameraUpdate);
+    _animateCamera(cameraUpdate);
     drawPlaceIcon(place);
   }
 
@@ -114,7 +118,13 @@ class MapboxMapState extends State<MapboxMapWidget> {
     return CameraUpdate.newLatLngZoom(place.coordinates, 14);
   }
 
-  updateCameraPosition(CameraUpdate cameraUpdate) {
+  _moveCamera(CameraUpdate cameraUpdate) {
+    _mapController.updateMyLocationTrackingMode(MyLocationTrackingMode.None);
+    _mapController.moveCamera(CameraUpdate.bearingTo(0));
+    _mapController.moveCamera(cameraUpdate);
+  }
+
+  _animateCamera(CameraUpdate cameraUpdate) {
     _mapController.updateMyLocationTrackingMode(MyLocationTrackingMode.None);
     _mapController.moveCamera(CameraUpdate.bearingTo(0));
     _mapController.animateCamera(cameraUpdate);
@@ -284,7 +294,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
 
   moveCameraToRouteBounds(LatLngBounds bounds) {
     CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds);
-    updateCameraPosition(cameraUpdate);
+    _moveCamera(cameraUpdate);
   }
 
   clearActiveDrawings() {

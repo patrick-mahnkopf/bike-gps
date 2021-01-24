@@ -282,7 +282,9 @@ class SheetContentState extends State<SheetContentWidget> {
   List<Route> _similarRoutes;
   static const MIN_ITEM_COUNT = 2;
 
-  int get _itemCount => _activeRoute.roadBook.length + MIN_ITEM_COUNT;
+  int get _itemCount => _activeRoute.roadBook.length == 0
+      ? MIN_ITEM_COUNT
+      : _activeRoute.roadBook.length - 1 + MIN_ITEM_COUNT;
 
   bool get _roadBookEmpty => _itemCount == MIN_ITEM_COUNT;
 
@@ -315,7 +317,7 @@ class SheetContentState extends State<SheetContentWidget> {
   }
 
   _getRoadBook(int index) {
-    print('roadBook call');
+    RoadBook _roadBook = _activeRoute.roadBook;
     if (_roadBookEmpty) {
       return ListTile(
         leading: Icon(Icons.error),
@@ -324,7 +326,11 @@ class SheetContentState extends State<SheetContentWidget> {
     } else {
       return ListTile(
         leading: Icon(Icons.info),
-        title: Text(_activeRoute.roadBook[index]),
+        title: Text(_roadBook.getName(index) ?? ''),
+        subtitle: Text(
+          "${_roadBook.getLocation(index) ?? ''}\n"
+          "${_roadBook.getDirection(index) ?? ''}\n",
+        ),
       );
     }
   }

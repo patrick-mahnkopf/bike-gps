@@ -70,6 +70,7 @@ class _HomeState extends State<Home> {
               mapResources = snapshot.data;
               initChildWidgets(mapResources);
               return Scaffold(
+                resizeToAvoidBottomInset: false,
                 body: _children[_currentIndex],
                 bottomNavigationBar: BottomNavigationBar(
                   onTap: onTabTapped,

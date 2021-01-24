@@ -13,8 +13,9 @@ import 'package:route_parser/route_parser.dart';
 class RouteManager {
   String routesPath;
   RouteParser routeParser;
-  Route currentRoute;
   RouteList routeList = RouteList();
+  List<Route> recentRoutes = [];
+  static const int RECENT_ROUTE_BUFFER = 20;
 
   RouteManager(this.routeParser) {
     WidgetsFlutterBinding.ensureInitialized();
@@ -77,16 +78,37 @@ class RouteManager {
   }
 
   Future<Route> getRoute(String routeName) async {
-    if (routeList.contains(routeName)) {
-      return await routeParser.getRoute(routeList.getFile(routeName));
+    Route route;
+    if (recentRoutes.isNotEmpty) {
+      route = recentRoutes.firstWhere(
+          (recentRoute) => recentRoute.routeName == routeName,
+          orElse: null);
+    }
+    if (route != null) {
+      return route;
     } else {
-      File routeFile = getRouteFileWithBestExtension(routeName);
-
-      if (routeFile == null) {
-        return null;
+      if (routeList.contains(routeName)) {
+        route = await routeParser.getRoute(routeList.getFile(routeName));
+        _addRecentRoute(route);
+        return route;
       } else {
-        return await routeParser.getRoute(routeFile);
+        File routeFile = getRouteFileWithBestExtension(routeName);
+
+        if (routeFile == null) {
+          return null;
+        } else {
+          route = await routeParser.getRoute(routeFile);
+          _addRecentRoute(route);
+          return route;
+        }
       }
+    }
+  }
+
+  _addRecentRoute(Route route) {
+    recentRoutes.insert(0, route);
+    if (recentRoutes.length > RECENT_ROUTE_BUFFER) {
+      recentRoutes.removeLast();
     }
   }
 
