@@ -92,8 +92,6 @@ class Route {
       'east': trackPoints.first.lon,
       'south': trackPoints.first.lat,
     };
-    double padding = 0.006;
-    double offset = 0.006;
 
     for (Wpt trackPoint in trackPoints) {
       if (trackPoint.lon < extrema['west']) extrema['west'] = trackPoint.lon;
@@ -103,10 +101,8 @@ class Route {
     }
 
     return LatLngBounds(
-      southwest: LatLng(
-          extrema['south'] - padding + offset, extrema['west'] - padding),
-      northeast: LatLng(
-          extrema['north'] + padding + offset, extrema['east'] + padding),
+      southwest: LatLng(extrema['south'], extrema['west']),
+      northeast: LatLng(extrema['north'], extrema['east']),
     );
   }
 }

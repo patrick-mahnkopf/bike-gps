@@ -48,14 +48,14 @@ class RouteList {
     RouteInfo combinedInfo = _getRouteInfo(primaryRoute.routeName);
     for (Route route in similarRoutes) {
       RouteInfo routeInfo = _getRouteInfo(route.routeName);
+      if (routeInfo.south < combinedInfo.south)
+        combinedInfo.south = routeInfo.south;
       if (routeInfo.west < combinedInfo.west)
         combinedInfo.west = routeInfo.west;
+      if (routeInfo.north > combinedInfo.north)
+        combinedInfo.north = routeInfo.north;
       if (routeInfo.east > combinedInfo.east)
         combinedInfo.east = routeInfo.east;
-      if (routeInfo.north < combinedInfo.north)
-        combinedInfo.north = routeInfo.north;
-      if (routeInfo.south > combinedInfo.south)
-        combinedInfo.south = routeInfo.south;
     }
     return combinedInfo.bounds;
   }
@@ -95,6 +95,10 @@ class RouteInfo {
   RouteInfo({this.name, this.path, this.bounds});
 
   double overlap(RouteInfo other) {
+    if (this.east <= other.west ||
+        other.east <= this.west ||
+        this.north <= other.south ||
+        other.north <= this.south) return 0;
     double overlapArea =
         (max(this.west, other.west) - min(this.east, other.east)) *
             (max(this.south, other.south) - min(this.north, other.north));

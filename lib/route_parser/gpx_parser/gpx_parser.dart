@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:bike_gps/route_parser/models/route.dart';
 import 'package:bike_gps/route_parser/route_parser.dart';
+import 'package:flutter/widgets.dart' hide Route;
 import 'package:geolocator/geolocator.dart';
 import 'package:gpx/gpx.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -11,6 +12,8 @@ import 'package:path/path.dart' as p;
 
 class GpxParser implements RouteParser {
   List<String> supportedFileExtensions = ['.gpx', '.xml'];
+  @override
+  Map<String, AssetImage> turnArrowImages = {};
 
   GpxParser() : super();
 

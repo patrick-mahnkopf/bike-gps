@@ -82,6 +82,7 @@ class MapState extends State<MapWidget> {
                   key: _bottomSheetStateKey,
                   activeRoute: _activeRoute,
                   similarRoutes: _similarRoutes,
+                  routeManager: routeManager,
                 )
               : Container(),
         )

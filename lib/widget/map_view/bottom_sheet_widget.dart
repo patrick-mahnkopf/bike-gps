@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:bike_gps/routeManager.dart';
 import 'package:bike_gps/route_parser/models/route.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart' hide Route;
@@ -10,13 +11,15 @@ import 'package:snapping_sheet/snapping_sheet.dart';
 class BottomSheetWidget extends StatefulWidget {
   final Route activeRoute;
   final List<Route> similarRoutes;
+  final RouteManager routeManager;
 
-  BottomSheetWidget({Key key, this.activeRoute, this.similarRoutes})
+  BottomSheetWidget(
+      {Key key, this.activeRoute, this.similarRoutes, this.routeManager})
       : super(key: key);
 
   @override
   BottomSheetState createState() =>
-      BottomSheetState(activeRoute, similarRoutes);
+      BottomSheetState(activeRoute, similarRoutes, routeManager);
 }
 
 class BottomSheetState extends State<BottomSheetWidget>
@@ -24,10 +27,11 @@ class BottomSheetState extends State<BottomSheetWidget>
   SnappingSheetController _controller = SnappingSheetController();
   Route _activeRoute;
   List<Route> _similarRoutes;
+  final RouteManager routeManager;
   final GlobalKey<GrabSectionState> _grabSectionStateKey = GlobalKey();
   final GlobalKey<SheetContentState> _sheetContentStateKey = GlobalKey();
 
-  BottomSheetState(this._activeRoute, this._similarRoutes);
+  BottomSheetState(this._activeRoute, this._similarRoutes, this.routeManager);
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +58,7 @@ class BottomSheetState extends State<BottomSheetWidget>
         key: _sheetContentStateKey,
         activeRoute: _activeRoute,
         similarRoutes: _similarRoutes,
+        routeManager: routeManager,
       )),
     );
   }
@@ -267,21 +272,24 @@ class GrabSectionState extends State<GrabSectionWidget> {
 class SheetContentWidget extends StatefulWidget {
   final Route activeRoute;
   final List<Route> similarRoutes;
+  final RouteManager routeManager;
 
   SheetContentWidget({
     Key key,
     this.activeRoute,
     this.similarRoutes,
+    this.routeManager,
   }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() =>
-      SheetContentState(activeRoute, similarRoutes);
+      SheetContentState(activeRoute, similarRoutes, routeManager);
 }
 
 class SheetContentState extends State<SheetContentWidget> {
   Route _activeRoute;
   List<Route> _similarRoutes;
+  final RouteManager routeManager;
   static const MIN_ITEM_COUNT = 2;
 
   int get _itemCount => _activeRoute.roadBook.wayPoints.length == 0
@@ -290,7 +298,7 @@ class SheetContentState extends State<SheetContentWidget> {
 
   bool get _roadBookEmpty => _itemCount == MIN_ITEM_COUNT;
 
-  SheetContentState(this._activeRoute, this._similarRoutes);
+  SheetContentState(this._activeRoute, this._similarRoutes, this.routeManager);
 
   @override
   Widget build(BuildContext context) {
@@ -421,13 +429,28 @@ class SheetContentState extends State<SheetContentWidget> {
     } else {
       RoutePoint _routePoint = _activeRoute.roadBook.wayPoints[index];
       return ListTile(
-        leading: Icon(Icons.info),
+        leading: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _getArrowIcon(_routePoint.turnSymbolId),
+          ],
+        ),
         title: Text(_routePoint.name ?? ''),
         subtitle: Text(
           "${_routePoint.location ?? ''}\n\n"
           "${_routePoint.direction ?? ''}\n",
         ),
       );
+    }
+  }
+
+  Widget _getArrowIcon(String iconId) {
+    if (routeManager.routeParser.turnArrowImages.containsKey(iconId)) {
+      return Image(
+        image: routeManager.routeParser.turnArrowImages[iconId.toLowerCase()],
+      );
+    } else {
+      return Icon(Icons.info);
     }
   }
 }

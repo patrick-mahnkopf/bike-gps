@@ -293,7 +293,16 @@ class MapboxMapState extends State<MapboxMapWidget> {
   }
 
   moveCameraToRouteBounds(LatLngBounds bounds) {
-    CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds);
+    double latOffset =
+        (bounds.northeast.latitude - bounds.southwest.latitude) / 4;
+    double lonOffset =
+        (bounds.northeast.longitude - bounds.southwest.longitude) / 10;
+    LatLngBounds adjustedBounds = LatLngBounds(
+        southwest: LatLng(bounds.southwest.latitude - latOffset,
+            bounds.southwest.longitude - lonOffset),
+        northeast: LatLng(bounds.northeast.latitude + latOffset,
+            bounds.northeast.longitude + lonOffset));
+    CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(adjustedBounds);
     _moveCamera(cameraUpdate);
   }
 
