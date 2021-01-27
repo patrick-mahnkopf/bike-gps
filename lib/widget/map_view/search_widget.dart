@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:bike_gps/model/place.dart';
 import 'package:bike_gps/model/search_model.dart';
 import 'package:bike_gps/routeManager.dart';
+import 'package:bike_gps/route_parser/models/route.dart';
 import 'package:bike_gps/widget/map_view/map_widget.dart';
 import 'package:bike_gps/widget/map_view/mapbox_map_widget.dart';
 import 'package:flutter/cupertino.dart' hide Route;
@@ -17,7 +18,6 @@ import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:route_parser/models/route.dart';
 
 class SearchWidget extends StatefulWidget {
   final GlobalKey<MapboxMapState> mapboxMapStateKey;
@@ -71,6 +71,7 @@ class SearchWidgetState extends State<SearchWidget> {
 
   void _loadHistory() async {
     String input = await File(searchHistoryPath).readAsString();
+    await routeManager.updateRouteList();
     List<String> routeNames = await routeManager.getRouteNames();
 
     List places = jsonDecode(input) as List;

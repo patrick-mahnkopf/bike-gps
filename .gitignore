@@ -42,4 +42,4 @@ app.*.map.json
 
 # Tile server related
 assets/map
-assets/routes/Bocca Fortini.gpx
+assets/routes/Bocca Fortini Simple.gpx

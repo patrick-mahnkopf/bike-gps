@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bike_gps/model/routeInfo.dart';
+import 'package:bike_gps/route_parser/models/route.dart';
+import 'package:bike_gps/route_parser/route_parser.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/services.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:route_parser/models/route.dart';
-import 'package:route_parser/route_parser.dart';
 
 class RouteManager {
   String routesPath;
@@ -61,19 +61,19 @@ class RouteManager {
       String routeName = p.basenameWithoutExtension(element.path);
       if (!routeList.contains(routeName)) {
         Route route = await getRoute(routeName);
-        String routePath = getRouteFileWithBestExtension(routeName).path;
-        LatLngBounds routeBounds = route.getBounds();
-        routeList.add(
-          name: routeName,
-          path: routePath,
-          bounds: routeBounds,
-        );
+        if (route != null) {
+          LatLngBounds routeBounds = route.getBounds();
+          routeList.add(
+            name: routeName,
+            path: route.filePath,
+            bounds: routeBounds,
+          );
+        }
       }
     });
   }
 
   Future<List<String>> getRouteNames() async {
-    await updateRouteList();
     return routeList.routeNames;
   }
 
@@ -82,7 +82,7 @@ class RouteManager {
     if (recentRoutes.isNotEmpty) {
       route = recentRoutes.firstWhere(
           (recentRoute) => recentRoute.routeName == routeName,
-          orElse: null);
+          orElse: () => null);
     }
     if (route != null) {
       return route;

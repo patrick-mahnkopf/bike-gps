@@ -5,6 +5,7 @@ import 'package:bike_gps/model/map_resources.dart';
 import 'package:bike_gps/model/place.dart';
 import 'package:bike_gps/model/routeLines.dart';
 import 'package:bike_gps/routeManager.dart';
+import 'package:bike_gps/route_parser/models/route.dart';
 import 'package:bike_gps/utils.dart';
 import 'package:bike_gps/widget/map_view/map_style_list_widget.dart';
 import 'package:bike_gps/widget/map_view/map_widget.dart';
@@ -15,7 +16,6 @@ import 'package:flutter/services.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:mapbox_gl_platform_interface/mapbox_gl_platform_interface.dart';
 import 'package:path/path.dart';
-import 'package:route_parser/models/route.dart';
 
 class MapboxMapWidget extends StatefulWidget {
   final RouteManager routeManager;

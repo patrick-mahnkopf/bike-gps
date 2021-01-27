@@ -1,6 +1,7 @@
 import 'package:bike_gps/model/map_resources.dart';
 import 'package:bike_gps/model/search_model.dart';
 import 'package:bike_gps/routeManager.dart';
+import 'package:bike_gps/route_parser/models/route.dart';
 import 'package:bike_gps/widget/map_view/bottom_sheet_widget.dart';
 import 'package:bike_gps/widget/map_view/mapbox_map_widget.dart';
 import 'package:bike_gps/widget/map_view/options_dialog_widget.dart';
@@ -8,7 +9,6 @@ import 'package:bike_gps/widget/map_view/search_widget.dart';
 import 'package:flutter/cupertino.dart' hide Route;
 import 'package:flutter/material.dart' hide Route;
 import 'package:provider/provider.dart';
-import 'package:route_parser/models/route.dart';
 
 class MapWidget extends StatefulWidget {
   final RouteManager routeManager;

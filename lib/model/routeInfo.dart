@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:bike_gps/route_parser/models/route.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-import 'package:route_parser/models/route.dart';
 
 class RouteList {
   static const MIN_OVERLAP_PERCENTAGE = 0.25;

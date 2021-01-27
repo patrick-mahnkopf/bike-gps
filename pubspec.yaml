@@ -42,11 +42,9 @@ dependencies:
   provider: ^4.3.2+3
   implicitly_animated_reorderable_list: ^0.2.5
   snapping_sheet: ^2.0.2
+  charts_flutter: ^0.9.0
   gpx: ^1.1.1
-  route_parser:
-    path: ..\route_parser
-  gpx_parser:
-    path: ..\gpx_parser
+  geolocator: ^6.1.14
   bike_gps_closed_source:
     path: ..\bike_gps_closed_source
   # The following adds the Cupertino Icons font to your application.

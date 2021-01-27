@@ -71,6 +71,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.0-nullsafety.1"
+  charts_common:
+    dependency: transitive
+    description:
+      name: charts_common
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.9.0"
+  charts_flutter:
+    dependency: "direct main"
+    description:
+      name: charts_flutter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.9.0"
   clock:
     dependency: transitive
     description:
@@ -201,7 +215,7 @@ packages:
     source: git
     version: "0.2.1"
   geolocator:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: geolocator
       url: "https://pub.dartlang.org"
@@ -221,13 +235,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.1"
-  gpx_parser:
-    dependency: "direct main"
-    description:
-      path: "../gpx_parser"
-      relative: true
-    source: path
-    version: "0.0.1"
   http:
     dependency: transitive
     description:
@@ -500,13 +507,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.5"
-  route_parser:
-    dependency: "direct main"
-    description:
-      path: "../route_parser"
-      relative: true
-    source: path
-    version: "0.0.1"
   rxdart:
     dependency: transitive
     description:

@@ -1,8 +1,10 @@
 import 'dart:math';
 
+import 'package:bike_gps/route_parser/models/route.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/widgets.dart' hide Route;
-import 'package:route_parser/models/route.dart';
+import 'package:latlong/latlong.dart';
 import 'package:snapping_sheet/snapping_sheet.dart';
 
 class BottomSheetWidget extends StatefulWidget {
@@ -282,9 +284,9 @@ class SheetContentState extends State<SheetContentWidget> {
   List<Route> _similarRoutes;
   static const MIN_ITEM_COUNT = 2;
 
-  int get _itemCount => _activeRoute.roadBook.length == 0
+  int get _itemCount => _activeRoute.roadBook.wayPoints.length == 0
       ? MIN_ITEM_COUNT
-      : _activeRoute.roadBook.length - 1 + MIN_ITEM_COUNT;
+      : _activeRoute.roadBook.wayPoints.length - 1 + MIN_ITEM_COUNT;
 
   bool get _roadBookEmpty => _itemCount == MIN_ITEM_COUNT;
 
@@ -310,26 +312,116 @@ class SheetContentState extends State<SheetContentWidget> {
   }
 
   _getHeightMap() {
-    return Container(
-      color: Colors.black,
-      height: 80,
+    // TODO draw similar routes as well
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: SizedBox(
+        width: double.infinity,
+        height: 200,
+        child: charts.LineChart(
+          _createChartData(),
+          defaultRenderer: charts.LineRendererConfig(
+            includeArea: true,
+            stacked: true,
+          ),
+          defaultInteractions: false,
+          primaryMeasureAxis: charts.NumericAxisSpec(
+            tickProviderSpec: charts.StaticNumericTickProviderSpec(
+              _getPrimaryMeasureAxisTicks(_activeRoute),
+            ),
+          ),
+          domainAxis: charts.NumericAxisSpec(
+              tickProviderSpec: charts.StaticNumericTickProviderSpec(
+            _getDomainAxisTicks(_activeRoute),
+          )),
+        ),
+      ),
     );
   }
 
+  List<charts.TickSpec<num>> _getPrimaryMeasureAxisTicks(Route route) {
+    List<charts.TickSpec<num>> tickSpecs = [];
+    double tickStep = route.highestPoint / 5;
+    for (double tickValue = 0;
+        tickValue < route.highestPoint + tickStep;
+        tickValue += tickStep) {
+      double roundValue = round(tickStep / 10, decimals: 0) * 10;
+      double labelValue =
+          round(tickValue / roundValue, decimals: 0) * roundValue;
+      tickSpecs.add(charts.TickSpec(labelValue, label: '$labelValue m'));
+    }
+    return tickSpecs;
+  }
+
+  List<charts.TickSpec<num>> _getDomainAxisTicks(Route route) {
+    List<charts.TickSpec<num>> tickSpecs = [];
+    double tickStep = route.length / 5;
+    for (double tickValue = 0;
+        tickValue < route.length + tickStep;
+        tickValue += tickStep) {
+      tickSpecs
+          .add(charts.TickSpec(tickValue, label: '${tickValue ~/ 1000} km'));
+    }
+    return tickSpecs;
+  }
+
+  List<charts.Series<RoutePoint, int>> _createChartData() {
+    return [
+      new charts.Series<RoutePoint, int>(
+        id: 'Active Route',
+        colorFn: (RoutePoint routePoint, _) =>
+            _getSurfaceColor(routePoint.surface),
+        domainFn: (RoutePoint routePoint, _) =>
+            routePoint.distanceFromStart.toInt(),
+        measureFn: (RoutePoint routePoint, _) => routePoint.ele.toInt(),
+        data: _activeRoute.roadBook.routePoints,
+      )
+    ];
+  }
+
+  charts.Color _getSurfaceColor(String surface) {
+    switch (surface) {
+      case 'A':
+        return charts.MaterialPalette.blue.shadeDefault;
+        break;
+      case 'R':
+        return charts.MaterialPalette.purple.shadeDefault;
+        break;
+      case 'S':
+        return charts.MaterialPalette.green.shadeDefault;
+        break;
+      case 'W':
+        return charts.MaterialPalette.deepOrange.shadeDefault;
+        break;
+      case 'P':
+        return charts.MaterialPalette.red.shadeDefault;
+        break;
+      case 'T':
+        return charts.MaterialPalette.black;
+        break;
+      case 'X':
+        return charts.MaterialPalette.purple.makeShades(2).last;
+        break;
+      default:
+        return charts.MaterialPalette.blue.shadeDefault;
+        break;
+    }
+  }
+
   _getRoadBook(int index) {
-    RoadBook _roadBook = _activeRoute.roadBook;
     if (_roadBookEmpty) {
       return ListTile(
         leading: Icon(Icons.error),
         title: Text("This route file does not include road book information."),
       );
     } else {
+      RoutePoint _routePoint = _activeRoute.roadBook.wayPoints[index];
       return ListTile(
         leading: Icon(Icons.info),
-        title: Text(_roadBook.getName(index) ?? ''),
+        title: Text(_routePoint.name ?? ''),
         subtitle: Text(
-          "${_roadBook.getLocation(index) ?? ''}\n"
-          "${_roadBook.getDirection(index) ?? ''}\n",
+          "${_routePoint.location ?? ''}\n\n"
+          "${_routePoint.direction ?? ''}\n",
         ),
       );
     }
