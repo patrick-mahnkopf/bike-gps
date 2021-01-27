@@ -312,7 +312,8 @@ class SheetContentState extends State<SheetContentWidget> {
   }
 
   _getHeightMap() {
-    // TODO draw similar routes as well
+    /* TODO create chart data only once and then just load that for performance reasons
+        async futureBuilder on initial route load maybe */
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: SizedBox(
@@ -355,12 +356,15 @@ class SheetContentState extends State<SheetContentWidget> {
 
   List<charts.TickSpec<num>> _getDomainAxisTicks(Route route) {
     List<charts.TickSpec<num>> tickSpecs = [];
-    double tickStep = route.length / 5;
+    double routeLength =
+        double.parse((route.length.toDouble() / 1000).toStringAsFixed(1)) *
+            1000;
+    double tickStep = routeLength / 5;
     for (double tickValue = 0;
-        tickValue < route.length + tickStep;
+        tickValue < routeLength + tickStep;
         tickValue += tickStep) {
-      tickSpecs
-          .add(charts.TickSpec(tickValue, label: '${tickValue ~/ 1000} km'));
+      tickSpecs.add(charts.TickSpec(tickValue,
+          label: '${round(tickValue / 1000, decimals: 1)} km'));
     }
     return tickSpecs;
   }
