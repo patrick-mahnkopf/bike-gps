@@ -23,17 +23,19 @@ class SearchWidget extends StatefulWidget {
   final GlobalKey<MapboxMapState> mapboxMapStateKey;
   final MapState parent;
   final RouteManager routeManager;
+  final String initialQuery;
 
   SearchWidget({
     @required Key key,
     this.mapboxMapStateKey,
     this.parent,
     this.routeManager,
+    this.initialQuery,
   }) : super(key: key);
 
   @override
   SearchWidgetState createState() =>
-      SearchWidgetState(mapboxMapStateKey, parent, routeManager);
+      SearchWidgetState(mapboxMapStateKey, parent, routeManager, initialQuery);
 }
 
 class SearchWidgetState extends State<SearchWidget> {
@@ -41,10 +43,12 @@ class SearchWidgetState extends State<SearchWidget> {
   final GlobalKey<MapboxMapState> _mapboxMapStateKey;
   final MapState parent;
   final RouteManager routeManager;
+  String initialQuery;
   static const DISPLAY_SUGGESTION_COUNT = 8;
   String searchHistoryPath;
 
-  SearchWidgetState(this._mapboxMapStateKey, this.parent, this.routeManager) {
+  SearchWidgetState(this._mapboxMapStateKey, this.parent, this.routeManager,
+      this.initialQuery) {
     _initHistory();
   }
 
@@ -87,6 +91,7 @@ class SearchWidgetState extends State<SearchWidget> {
   Widget build(BuildContext context) {
     final isPortrait =
         MediaQuery.of(context).orientation == Orientation.portrait;
+    if (initialQuery.isNotEmpty) searchBarController.query = initialQuery;
 
     return Consumer<SearchModel>(
       builder: (context, model, _) => FloatingSearchBar(
@@ -144,6 +149,7 @@ class SearchWidgetState extends State<SearchWidget> {
 
   _clearCurrentlyActiveSearch() {
     searchBarController.clear();
+    initialQuery = '';
     _mapboxMapStateKey.currentState.clearActiveDrawings();
   }
 

@@ -44,6 +44,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
   MapboxMapController _mapController;
   bool _compassEnabled = true;
   RouteLines routeLines = RouteLines();
+  MyLocationRenderMode _locationRenderMode = MyLocationRenderMode.COMPASS;
   List<String> assetImages = [
     'start_location.png',
     'end_location.png',
@@ -72,7 +73,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
       compassViewMargins: Point(32, 32),
       compassEnabled: _compassEnabled,
       myLocationEnabled: true,
-      myLocationRenderMode: MyLocationRenderMode.COMPASS,
+      myLocationRenderMode: _locationRenderMode,
       myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass,
       initialCameraPosition:
           const CameraPosition(target: LatLng(52.3825, 9.7177), zoom: 14),
@@ -106,6 +107,19 @@ class MapboxMapState extends State<MapboxMapWidget> {
     Uint8List list = bytes.buffer.asUint8List();
     String imageName = basenameWithoutExtension(imageAsset);
     _mapController.addImage(imageName, list);
+  }
+
+  onNavigationStarted() {
+    _locationRenderMode = MyLocationRenderMode.GPS;
+    _mapController
+        .updateMyLocationTrackingMode(MyLocationTrackingMode.TrackingCompass);
+    _clearAlternativeRoutes();
+  }
+
+  onNavigationStopped() {
+    _locationRenderMode = MyLocationRenderMode.COMPASS;
+    _mapController.updateMyLocationTrackingMode(MyLocationTrackingMode.None);
+    _redrawAlternativeRoutes();
   }
 
   onSelectPlace(Place place) {
@@ -232,7 +246,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
     _updateLines(routeLine);
     Route route = await routeManager.getRoute(routeLine.routeName);
     List<Route> similarRoutes = await routeManager.getSimilarRoutes(route);
-    parent.changeBottomDrawerRoute(route, similarRoutes);
+    parent.changeActiveRoute(route, similarRoutes);
   }
 
   _updateLines(RouteLine newActiveLine) async {
@@ -267,6 +281,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
         routeName: routeLine.routeName,
         lineCoordinateList: routeLine.route.options.geometry,
         isMainRoute: true);
+    routeLines.activeLine = routeLine;
   }
 
   drawRouteStartAndEndIcons(LatLng startPoint, LatLng endPoint) {
@@ -290,6 +305,35 @@ class MapboxMapState extends State<MapboxMapWidget> {
       textOffset: Offset(0, -1.7),
       textAnchor: 'bottom',
     ));
+  }
+
+  _clearAlternativeRoutes() {
+    for (RouteLine routeLine in routeLines.routeLines.values) {
+      if (routeLine != routeLines.activeLine) {
+        for (Line line in routeLine.getLines()) {
+          _mapController.removeLine(line);
+        }
+      }
+    }
+  }
+
+  _redrawAlternativeRoutes() async {
+    _mapController.clearLines();
+    for (RouteLine routeLine in routeLines.routeLines.values) {
+      if (routeLine != routeLines.activeLine) {
+        routeLine.background =
+            await _mapController.addLine(routeLine.background.options);
+        routeLine.route = await _mapController.addLine(routeLine.route.options);
+        routeLine.touchArea =
+            await _mapController.addLine(routeLine.touchArea.options);
+      }
+    }
+    routeLines.activeLine.background =
+        await _mapController.addLine(routeLines.activeLine.background.options);
+    routeLines.activeLine.route =
+        await _mapController.addLine(routeLines.activeLine.route.options);
+    routeLines.activeLine.touchArea =
+        await _mapController.addLine(routeLines.activeLine.touchArea.options);
   }
 
   moveCameraToRouteBounds(LatLngBounds bounds) {

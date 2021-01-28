@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:bike_gps/routeManager.dart';
 import 'package:bike_gps/route_parser/models/route.dart';
+import 'package:bike_gps/widget/map_view/map_widget.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/widgets.dart' hide Route;
@@ -12,14 +13,19 @@ class BottomSheetWidget extends StatefulWidget {
   final Route activeRoute;
   final List<Route> similarRoutes;
   final RouteManager routeManager;
+  final MapState parent;
 
-  BottomSheetWidget(
-      {Key key, this.activeRoute, this.similarRoutes, this.routeManager})
-      : super(key: key);
+  BottomSheetWidget({
+    Key key,
+    this.activeRoute,
+    this.similarRoutes,
+    this.routeManager,
+    this.parent,
+  }) : super(key: key);
 
   @override
   BottomSheetState createState() =>
-      BottomSheetState(activeRoute, similarRoutes, routeManager);
+      BottomSheetState(activeRoute, similarRoutes, routeManager, parent);
 }
 
 class BottomSheetState extends State<BottomSheetWidget>
@@ -28,10 +34,12 @@ class BottomSheetState extends State<BottomSheetWidget>
   Route _activeRoute;
   List<Route> _similarRoutes;
   final RouteManager routeManager;
+  final MapState parent;
   final GlobalKey<GrabSectionState> _grabSectionStateKey = GlobalKey();
   final GlobalKey<SheetContentState> _sheetContentStateKey = GlobalKey();
 
-  BottomSheetState(this._activeRoute, this._similarRoutes, this.routeManager);
+  BottomSheetState(
+      this._activeRoute, this._similarRoutes, this.routeManager, this.parent);
 
   @override
   Widget build(BuildContext context) {
@@ -49,10 +57,12 @@ class BottomSheetState extends State<BottomSheetWidget>
       ],
       grabbingHeight: MediaQuery.of(context).padding.bottom + 117,
       grabbing: GrabSectionWidget(
-          key: _grabSectionStateKey,
-          activeRoute: _activeRoute,
-          similarRoutes: _similarRoutes,
-          controller: _controller),
+        key: _grabSectionStateKey,
+        activeRoute: _activeRoute,
+        similarRoutes: _similarRoutes,
+        controller: _controller,
+        parent: parent,
+      ),
       sheetBelow: SnappingSheetContent(
           child: SheetContentWidget(
         key: _sheetContentStateKey,
@@ -96,26 +106,30 @@ class GrabSectionWidget extends StatefulWidget {
   final Route activeRoute;
   final List<Route> similarRoutes;
   final SnappingSheetController controller;
+  final MapState parent;
 
   GrabSectionWidget({
     Key key,
     this.activeRoute,
     this.similarRoutes,
     this.controller,
+    this.parent,
   }) : super(key: key);
 
   @override
   GrabSectionState createState() =>
-      GrabSectionState(activeRoute, similarRoutes, controller);
+      GrabSectionState(activeRoute, similarRoutes, controller, parent);
 }
 
 class GrabSectionState extends State<GrabSectionWidget> {
   final SnappingSheetController _controller;
+  final MapState parent;
   Route _activeRoute;
   List<Route> _similarRoutes;
   bool _snappingTop = false;
 
-  GrabSectionState(this._activeRoute, this._similarRoutes, this._controller);
+  GrabSectionState(
+      this._activeRoute, this._similarRoutes, this._controller, this.parent);
 
   @override
   Widget build(BuildContext context) {
@@ -266,7 +280,9 @@ class GrabSectionState extends State<GrabSectionWidget> {
     setState(() {});
   }
 
-  _startNavigation() {}
+  _startNavigation() {
+    parent.startNavigation();
+  }
 }
 
 class SheetContentWidget extends StatefulWidget {
@@ -291,6 +307,7 @@ class SheetContentState extends State<SheetContentWidget> {
   List<Route> _similarRoutes;
   final RouteManager routeManager;
   static const MIN_ITEM_COUNT = 2;
+  List<charts.Series<RoutePoint, int>> _heightMapData = [];
 
   int get _itemCount => _activeRoute.roadBook.wayPoints.length == 0
       ? MIN_ITEM_COUNT
@@ -298,7 +315,9 @@ class SheetContentState extends State<SheetContentWidget> {
 
   bool get _roadBookEmpty => _itemCount == MIN_ITEM_COUNT;
 
-  SheetContentState(this._activeRoute, this._similarRoutes, this.routeManager);
+  SheetContentState(this._activeRoute, this._similarRoutes, this.routeManager) {
+    _heightMapData = _createChartData();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -328,7 +347,7 @@ class SheetContentState extends State<SheetContentWidget> {
         width: double.infinity,
         height: 200,
         child: charts.LineChart(
-          _createChartData(),
+          _heightMapData,
           defaultRenderer: charts.LineRendererConfig(
             includeArea: true,
             stacked: true,
