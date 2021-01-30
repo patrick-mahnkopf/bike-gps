@@ -74,6 +74,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
       compassEnabled: _compassEnabled,
       myLocationEnabled: true,
       myLocationRenderMode: _locationRenderMode,
+      onUserLocationUpdated: parent.onLocationUpdated,
       myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass,
       initialCameraPosition:
           const CameraPosition(target: LatLng(52.3825, 9.7177), zoom: 14),
@@ -83,6 +84,10 @@ class MapboxMapState extends State<MapboxMapWidget> {
   _onMapCreated(MapboxMapController controller) {
     _mapController = controller;
     _mapController.onLineTapped.add(_onLineTapped);
+  }
+
+  Future<LatLng> getCurrentLocation() async {
+    return await _mapController.requestMyLocationLatLng();
   }
 
   _onStyleLoaded() {

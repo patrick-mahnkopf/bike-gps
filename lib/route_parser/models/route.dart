@@ -242,4 +242,13 @@ class RoutePoint {
     this.surface,
     this.turnSymbolId,
   });
+
+  double distance(LatLng other) {
+    return Geolocator.distanceBetween(
+      this.latLng.latitude,
+      this.latLng.longitude,
+      other.latitude,
+      other.longitude,
+    );
+  }
 }
