@@ -123,6 +123,7 @@ class MapState extends State<MapWidget> {
     _navigationHandler.startNavigation(
       activeRoute: _activeRoute,
       stopNavigationCallback: stopNavigation,
+      recenterCallback: recenterMap,
       currentLocation: currentLocation,
     );
     _mapboxMapState.onNavigationStarted();
@@ -133,10 +134,18 @@ class MapState extends State<MapWidget> {
     _navigationHandler.onLocationChanged(userLocation);
   }
 
+  onCameraTrackingDismissed() {
+    _navigationHandler.onCameraTrackingDismissed();
+  }
+
   stopNavigation() {
     _initialSearchBarQuery = _activeRoute.routeName;
     _activateRouteSelectionView();
     _mapboxMapStateKey.currentState.onNavigationStopped();
+  }
+
+  recenterMap() {
+    _mapboxMapStateKey.currentState.setNavigationTrackingMode();
   }
 
   _activateRouteSelectionView() {

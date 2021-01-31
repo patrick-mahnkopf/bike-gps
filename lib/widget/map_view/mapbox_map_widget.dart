@@ -76,9 +76,15 @@ class MapboxMapState extends State<MapboxMapWidget> {
       myLocationRenderMode: _locationRenderMode,
       onUserLocationUpdated: parent.onLocationUpdated,
       myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass,
+      onCameraTrackingDismissed: parent.onCameraTrackingDismissed,
       initialCameraPosition:
           const CameraPosition(target: LatLng(52.3825, 9.7177), zoom: 14),
     );
+  }
+
+  setNavigationTrackingMode() {
+    _mapController
+        .updateMyLocationTrackingMode(MyLocationTrackingMode.TrackingCompass);
   }
 
   _onMapCreated(MapboxMapController controller) {
@@ -114,7 +120,13 @@ class MapboxMapState extends State<MapboxMapWidget> {
     _mapController.addImage(imageName, list);
   }
 
-  onNavigationStarted() {
+  onNavigationStarted() async {
+    await _mapController
+        .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+      target: await _mapController.requestMyLocationLatLng(),
+      tilt: 200,
+      zoom: 18,
+    )));
     _locationRenderMode = MyLocationRenderMode.GPS;
     _mapController
         .updateMyLocationTrackingMode(MyLocationTrackingMode.TrackingCompass);

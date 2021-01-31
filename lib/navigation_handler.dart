@@ -4,33 +4,56 @@ import 'package:bike_gps/routeManager.dart';
 import 'package:bike_gps/route_parser/models/route.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/widgets.dart' hide Route;
+import 'package:geolocator/geolocator.dart';
 import 'package:mapbox_gl_platform_interface/mapbox_gl_platform_interface.dart';
 
 class NavigationHandler {
   Route _activeRoute;
   Function _stopNavigationCallback;
+  Function _recenterCallback;
   int _routeStartIndex = -1;
   LatLng _userLocation;
   RouteManager routeManager;
+  final GlobalKey<NavigationState> _navigationStateKey = GlobalKey();
+  final GlobalKey<NavigationBottomSheetState> _navigationBottomSheetStateKey =
+      GlobalKey();
 
-  NavigationHandler({this.routeManager});
+  NavigationHandler({@required this.routeManager});
 
   void startNavigation(
-      {Route activeRoute,
-      Function stopNavigationCallback,
-      LatLng currentLocation}) {
+      {@required Route activeRoute,
+      @required Function stopNavigationCallback,
+      @required Function recenterCallback,
+      @required LatLng currentLocation}) {
     _activeRoute = activeRoute;
     _stopNavigationCallback = stopNavigationCallback;
+    _recenterCallback = recenterCallback;
     _userLocation = currentLocation;
     _routeStartIndex = _getClosestTrackPointIndex(currentLocation);
   }
 
-  void onLocationChanged(UserLocation userLocation) {}
+  void onLocationChanged(UserLocation userLocation) {
+    print("NavigationHandler: onLocationChanged");
+    _userLocation = userLocation.position;
+    int closestTrackPointIndex = _getClosestTrackPointIndex(_userLocation);
+    _navigationStateKey.currentState.onLocationChanged(
+      _userLocation,
+      closestTrackPointIndex,
+    );
+    _navigationBottomSheetStateKey.currentState.onLocationChanged(
+      _userLocation,
+      closestTrackPointIndex,
+    );
+  }
+
+  void onCameraTrackingDismissed() {
+    _navigationBottomSheetStateKey.currentState.showRecenterButton();
+  }
 
   int _getClosestTrackPointIndex(LatLng userLocation) {
     double shortestDistance = double.infinity;
     int index = -1;
-    List<RoutePoint> routePoints = _activeRoute.roadBook.wayPoints;
+    List<RoutePoint> routePoints = _activeRoute.roadBook.routePoints;
     for (int i = 0; i < routePoints.length; i++) {
       RoutePoint routePoint = routePoints[i];
       double currentDistance = routePoint.distance(userLocation);
@@ -39,8 +62,9 @@ class NavigationHandler {
         index = i;
       }
     }
-    if (routePoints[index + 1].distance(userLocation) <
-        routePoints[index - 1].distance(userLocation)) {
+    if (index != 0 &&
+        routePoints[index + 1].distance(userLocation) <
+            routePoints[index - 1].distance(userLocation)) {
       index++;
     }
     return index;
@@ -49,14 +73,19 @@ class NavigationHandler {
   List<Widget> getNavigationWidgets() {
     return [
       NavigationWidget(
+        key: _navigationStateKey,
         activeRoute: _activeRoute,
         routeStartIndex: _routeStartIndex,
         userLocation: _userLocation,
         routeManager: routeManager,
       ),
       NavigationBottomSheet(
+        key: _navigationBottomSheetStateKey,
         activeRoute: _activeRoute,
         stopNavigationCallback: _stopNavigationCallback,
+        recenterCallback: _recenterCallback,
+        routeStartIndex: _routeStartIndex,
+        userLocation: _userLocation,
       ),
     ];
   }
@@ -69,10 +98,12 @@ class NavigationWidget extends StatefulWidget {
   final LatLng userLocation;
 
   NavigationWidget(
-      {this.activeRoute,
-      this.routeStartIndex,
-      this.userLocation,
-      this.routeManager});
+      {@required Key key,
+      @required this.activeRoute,
+      @required this.routeStartIndex,
+      @required this.userLocation,
+      @required this.routeManager})
+      : super(key: key);
 
   @override
   NavigationState createState() =>
@@ -80,26 +111,28 @@ class NavigationWidget extends StatefulWidget {
 }
 
 class NavigationState extends State<NavigationWidget> {
-  final Route activeRoute;
-  int routePointIndex;
-  final RouteManager routeManager;
-  final LatLng userLocation;
+  final Route _activeRoute;
+  int _routePointIndex;
+  final RouteManager _routeManager;
+  LatLng _userLocation;
+  double _currentWayPointDistance = 0;
+  List<RoutePoint> _routePoints;
+  RoutePoint _currentWayPoint;
+  RoutePoint _nextRoutePoint;
+  int _currentWayPointIndex;
 
   NavigationState(
-    this.activeRoute,
-    this.routePointIndex,
-    this.userLocation,
-    this.routeManager,
-  );
+    this._activeRoute,
+    this._routePointIndex,
+    this._userLocation,
+    this._routeManager,
+  ) {
+    _routePoints = _activeRoute.roadBook.routePoints;
+    _updateRoutePointsAndDistance();
+  }
 
   @override
   Widget build(BuildContext context) {
-    RoutePoint currentRoutePoint =
-        activeRoute.roadBook.wayPoints[routePointIndex];
-    RoutePoint nextRoutePoint;
-    if (routePointIndex < activeRoute.roadBook.wayPoints.length) {
-      nextRoutePoint = activeRoute.roadBook.wayPoints[routePointIndex + 1];
-    }
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: SafeArea(
@@ -132,9 +165,10 @@ class NavigationState extends State<NavigationWidget> {
                       padding: EdgeInsets.only(right: 8),
                       child: Column(
                         children: [
-                          _getArrowIcon(currentRoutePoint.turnSymbolId),
+                          _getArrowIcon(_currentWayPoint.turnSymbolId),
                           Text(
-                            '${currentRoutePoint.distance(userLocation).toInt()} m',
+                            getDistanceAsString(
+                                _currentWayPointDistance.toInt()),
                             style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -146,7 +180,7 @@ class NavigationState extends State<NavigationWidget> {
                     Padding(
                       padding: EdgeInsets.only(left: 8),
                       child: Text(
-                        '${currentRoutePoint.name}',
+                        '${_currentWayPoint.name}',
                         style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -157,7 +191,7 @@ class NavigationState extends State<NavigationWidget> {
                 ),
               ),
             ),
-            nextRoutePoint != null
+            _nextRoutePoint != null
                 ? Container(
                     padding: EdgeInsets.zero,
                     margin: EdgeInsets.zero,
@@ -186,7 +220,14 @@ class NavigationState extends State<NavigationWidget> {
                               style: TextStyle(color: Colors.white),
                             ),
                           ),
-                          _getArrowIcon(nextRoutePoint.turnSymbolId),
+                          _getArrowIcon(_nextRoutePoint.turnSymbolId),
+                          Padding(
+                            padding: EdgeInsets.only(right: 8.0),
+                            child: Text(
+                              _nextRoutePoint.name,
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -198,42 +239,98 @@ class NavigationState extends State<NavigationWidget> {
     );
   }
 
+  _updateRoutePointsAndDistance() {
+    _currentWayPointDistance = 0;
+    for (int i = _routePointIndex; i < _routePoints.length; i++) {
+      if (i == _routePointIndex) {
+        _currentWayPointDistance +=
+            _distanceBetween(_userLocation, _routePoints[i].latLng);
+      } else {
+        _currentWayPointDistance += _distanceBetween(
+            _routePoints[i - 1].latLng, _routePoints[i].latLng);
+      }
+      if (_routePoints[i].isWayPoint) {
+        _currentWayPoint = _routePoints[i];
+        _currentWayPointIndex = i;
+        break;
+      }
+    }
+
+    if (_currentWayPointIndex + 1 <= _routePoints.length) {
+      int _nextRoutePointIndex = _routePoints.indexWhere(
+          (routePoint) => routePoint.isWayPoint, _currentWayPointIndex + 1);
+      if (_nextRoutePointIndex != -1) {
+        _nextRoutePoint = _routePoints[_nextRoutePointIndex];
+      } else {
+        _nextRoutePoint = null;
+      }
+    }
+  }
+
   Widget _getArrowIcon(String iconId) {
-    if (routeManager.routeParser.turnArrowImages.containsKey(iconId)) {
+    if (_routeManager.routeParser.turnArrowImages.containsKey(iconId)) {
       return Image(
-        image: routeManager.routeParser.turnArrowImages[iconId.toLowerCase()],
+        image: _routeManager.routeParser.turnArrowImages[iconId.toLowerCase()],
       );
     } else {
       return Icon(Icons.info);
     }
   }
+
+  onLocationChanged(LatLng userLocation, int routeStartIndex) {
+    setState(() {
+      _routePointIndex = routeStartIndex;
+      _userLocation = userLocation;
+      _updateRoutePointsAndDistance();
+    });
+  }
 }
 
 class NavigationBottomSheet extends StatefulWidget {
   final Function stopNavigationCallback;
+  final Function recenterCallback;
   final Route activeRoute;
+  final int routeStartIndex;
+  final LatLng userLocation;
 
   NavigationBottomSheet({
-    this.activeRoute,
-    this.stopNavigationCallback,
-  });
+    @required Key key,
+    @required this.activeRoute,
+    @required this.stopNavigationCallback,
+    @required this.recenterCallback,
+    @required this.routeStartIndex,
+    @required this.userLocation,
+  }) : super(key: key);
 
   @override
   NavigationBottomSheetState createState() => NavigationBottomSheetState(
-        activeRoute,
+    activeRoute,
         stopNavigationCallback,
+        recenterCallback,
+        routeStartIndex,
+        userLocation,
       );
 }
 
 class NavigationBottomSheetState extends State<NavigationBottomSheet> {
-  final Function stopNavigationCallback;
+  final Function _stopNavigationCallback;
+  final Function _recenterCallback;
   Route _activeRoute;
+  int _routeStartIndex;
+  LatLng _userLocation;
   bool _snappingBot = false;
+  bool _recenterButtonVisible = false;
+  double _distanceLeft;
 
   NavigationBottomSheetState(
     this._activeRoute,
-    this.stopNavigationCallback,
-  );
+    this._stopNavigationCallback,
+    this._recenterCallback,
+    this._routeStartIndex,
+    this._userLocation,
+  ) {
+    _setDistanceLeft(_userLocation, _routeStartIndex);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -244,6 +341,23 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
           padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
           child: Wrap(
             children: [
+              _recenterButtonVisible
+                  ? Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
+                      child: FloatingActionButton.extended(
+                        onPressed: () => recenterMap(),
+                        backgroundColor: Colors.white,
+                        label: Text(
+                          "Re-center",
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                        icon: Icon(
+                          Icons.navigation,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    )
+                  : Container(),
               Container(
                 padding: EdgeInsets.zero,
                 margin: EdgeInsets.zero,
@@ -316,7 +430,7 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
                           Padding(
                             padding: EdgeInsets.only(right: 8),
                             child: Text(
-                              "${(_activeRoute.length.toDouble() / 1000).toStringAsFixed(1)} km",
+                              getDistanceAsString(_distanceLeft.toInt()),
                               style: TextStyle(fontSize: 20),
                             ),
                           ),
@@ -326,7 +440,7 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
                               alignment: Alignment.centerRight,
                               child: ElevatedButton(
                                 child: Text("Exit"),
-                                onPressed: stopNavigationCallback,
+                                onPressed: _stopNavigationCallback,
                                 style: ElevatedButton.styleFrom(
                                   primary: Colors.red,
                                   onPrimary: Colors.white,
@@ -353,5 +467,49 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
         ),
       ),
     );
+  }
+
+  onLocationChanged(LatLng userLocation, int routeStartIndex) {
+    setState(() {
+      _setDistanceLeft(userLocation, routeStartIndex);
+    });
+  }
+
+  _setDistanceLeft(LatLng userLocation, int routeStartIndex) {
+    RoutePoint closestTrackPoint =
+        _activeRoute.roadBook.routePoints[routeStartIndex];
+    _distanceLeft =
+        (_activeRoute.routeLength - closestTrackPoint.distanceFromStart) +
+            _distanceBetween(userLocation, closestTrackPoint.latLng);
+  }
+
+  recenterMap() {
+    hideRecenterButton();
+    _recenterCallback();
+  }
+
+  showRecenterButton() {
+    setState(() {
+      _recenterButtonVisible = true;
+    });
+  }
+
+  hideRecenterButton() {
+    setState(() {
+      _recenterButtonVisible = false;
+    });
+  }
+}
+
+double _distanceBetween(LatLng first, LatLng second) {
+  return Geolocator.distanceBetween(
+      first.latitude, first.longitude, second.latitude, second.longitude);
+}
+
+String getDistanceAsString(int distance) {
+  if (distance.toDouble() / 1000 >= 1) {
+    return "${(distance.toDouble() / 1000).toStringAsFixed(1)} km";
+  } else {
+    return "$distance m";
   }
 }

@@ -202,7 +202,7 @@ class GrabSectionState extends State<GrabSectionWidget> {
                   Padding(
                     padding: EdgeInsets.only(right: 8),
                     child: Text(
-                      "${(_activeRoute.length.toDouble() / 1000).toStringAsFixed(1)} km",
+                      "${(_activeRoute.routeLength.toDouble() / 1000).toStringAsFixed(1)} km",
                       style: TextStyle(fontSize: 20),
                     ),
                   ),
@@ -384,7 +384,7 @@ class SheetContentState extends State<SheetContentWidget> {
   List<charts.TickSpec<num>> _getDomainAxisTicks(Route route) {
     List<charts.TickSpec<num>> tickSpecs = [];
     double routeLength =
-        double.parse((route.length.toDouble() / 1000).toStringAsFixed(1)) *
+        double.parse((route.routeLength.toDouble() / 1000).toStringAsFixed(1)) *
             1000;
     double tickStep = routeLength / 5;
     for (double tickValue = 0;

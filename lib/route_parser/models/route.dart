@@ -42,7 +42,7 @@ class Route {
     return distancesFromStart;
   }
 
-  int get length {
+  int get routeLength {
     double totalLength = 0;
     for (int i = 0; i < trackPoints.length - 1; i++) {
       Wpt currentPoint = trackPoints[i];
@@ -231,6 +231,7 @@ class RoutePoint {
   String direction;
   String surface;
   String turnSymbolId;
+  bool isWayPoint = false;
 
   RoutePoint({
     this.latLng,
@@ -241,6 +242,7 @@ class RoutePoint {
     this.direction,
     this.surface,
     this.turnSymbolId,
+    this.isWayPoint = false,
   });
 
   double distance(LatLng other) {
