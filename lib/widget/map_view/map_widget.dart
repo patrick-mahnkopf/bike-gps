@@ -198,10 +198,10 @@ class MapState extends State<MapWidget> {
   changeActiveRoute(Route route, List<Route> similarRoutes) {
     _activeRoute = route;
     _similarRoutes = similarRoutes;
-    _changeBottomDrawerRoute(route, similarRoutes);
+    _changeBottomDrawerRoute(route);
   }
 
-  _changeBottomDrawerRoute(Route route, List<Route> similarRoutes) {
-    _bottomSheetStateKey.currentState.updateRoutes(route, similarRoutes);
+  _changeBottomDrawerRoute(Route route) {
+    _bottomSheetStateKey.currentState.updateActiveRoute(route);
   }
 }

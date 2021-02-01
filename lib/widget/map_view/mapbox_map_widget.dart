@@ -44,7 +44,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
   MapboxMapController _mapController;
   bool _compassEnabled = true;
   RouteLines routeLines = RouteLines();
-  LatLngBounds _combinedBounds;
+  LatLngBounds _currentBounds;
   MyLocationRenderMode _locationRenderMode = MyLocationRenderMode.COMPASS;
   List<String> assetImages = [
     'start_location.png',
@@ -125,7 +125,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
     await _mapController
         .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
       target: await _mapController.requestMyLocationLatLng(),
-      tilt: 200,
+      // tilt: 200,
       zoom: 18,
     )));
     _locationRenderMode = MyLocationRenderMode.GPS;
@@ -140,7 +140,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
       target: await _mapController.requestMyLocationLatLng(),
       tilt: 0,
     )));
-    moveCameraToRouteBounds(_combinedBounds);
+    moveCameraToRouteBounds(_currentBounds);
     _locationRenderMode = MyLocationRenderMode.COMPASS;
     _mapController.updateMyLocationTrackingMode(MyLocationTrackingMode.None);
     _redrawAlternativeRoutes();
@@ -211,11 +211,11 @@ class MapboxMapState extends State<MapboxMapWidget> {
         isMainRoute: true);
     drawRouteStartAndEndIcons(primaryRoute.startPoint, primaryRoute.endPoint);
 
-    if (_combinedBounds == null) {
-      _combinedBounds =
+    if (_currentBounds == null) {
+      _currentBounds =
           routeManager.routeList.getCombinedBounds(primaryRoute, similarRoutes);
     }
-    moveCameraToRouteBounds(_combinedBounds);
+    moveCameraToRouteBounds(_currentBounds);
   }
 
   drawSingleRoute(Route route) {
@@ -226,7 +226,11 @@ class MapboxMapState extends State<MapboxMapWidget> {
     );
 
     drawRouteStartAndEndIcons(route.startPoint, route.endPoint);
-    moveCameraToRouteBounds(route.getBounds());
+
+    if (_currentBounds == null) {
+      _currentBounds = route.getBounds();
+    }
+    moveCameraToRouteBounds(_currentBounds);
   }
 
   _drawRoute({
@@ -381,7 +385,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
     _mapController.clearCircles();
     _mapController.clearSymbols();
     parent.hideBottomDrawer();
-    _combinedBounds = null;
+    _currentBounds = null;
     setState(() {
       _compassEnabled = true;
     });

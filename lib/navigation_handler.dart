@@ -76,6 +76,7 @@ class NavigationHandler {
       NavigationWidget(
         key: _navigationStateKey,
         activeRoute: _activeRoute,
+        stopNavigationCallback: _stopNavigationCallback,
         routeStartIndex: _routeStartIndex,
         userLocation: _userLocation,
         routeManager: routeManager,
@@ -97,36 +98,41 @@ class NavigationWidget extends StatefulWidget {
   final int routeStartIndex;
   final RouteManager routeManager;
   final LatLng userLocation;
+  final Function stopNavigationCallback;
 
-  NavigationWidget(
-      {@required Key key,
-      @required this.activeRoute,
-      @required this.routeStartIndex,
-      @required this.userLocation,
-      @required this.routeManager})
-      : super(key: key);
+  NavigationWidget({
+    @required Key key,
+    @required this.activeRoute,
+    @required this.routeStartIndex,
+    @required this.userLocation,
+    @required this.routeManager,
+    @required this.stopNavigationCallback,
+  }) : super(key: key);
 
   @override
-  NavigationState createState() =>
-      NavigationState(activeRoute, routeStartIndex, userLocation, routeManager);
+  NavigationState createState() => NavigationState(activeRoute, routeStartIndex,
+      userLocation, routeManager, stopNavigationCallback);
 }
 
 class NavigationState extends State<NavigationWidget> {
   final Route _activeRoute;
   int _routePointIndex;
   final RouteManager _routeManager;
+  final Function _stopNavigationCallback;
   LatLng _userLocation;
   double _currentWayPointDistance = 0;
   List<RoutePoint> _routePoints;
   RoutePoint _currentWayPoint;
   RoutePoint _nextRoutePoint;
   int _currentWayPointIndex;
+  bool _leftRouteDialogOpen = false;
 
   NavigationState(
     this._activeRoute,
     this._routePointIndex,
     this._userLocation,
     this._routeManager,
+    this._stopNavigationCallback,
   ) {
     _routePoints = _activeRoute.roadBook.routePoints;
     _updateRoutePointsAndDistance();
@@ -134,123 +140,129 @@ class NavigationState extends State<NavigationWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: EdgeInsets.zero,
-              margin: EdgeInsets.zero,
-              decoration: BoxDecoration(
-                color: Colors.green,
-                boxShadow: [
-                  BoxShadow(
-                    blurRadius: 20.0,
-                    color: Colors.black.withOpacity(0.2),
-                  )
-                ],
-                borderRadius: BorderRadius.only(
-                  bottomRight: Radius.circular(8),
-                  topLeft: Radius.circular(8),
-                  topRight: Radius.circular(8),
-                ),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        _getArrowIcon(_currentWayPoint.turnSymbolId),
-                        Text(
-                          getDistanceAsString(_currentWayPointDistance.toInt()),
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18),
-                        ),
-                      ],
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              _currentWayPoint.name,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 24),
-                            ),
-                            Text(
-                              _currentWayPoint.location,
-                              textAlign: TextAlign.center,
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 16),
-                            ),
-                            Text(
-                              _currentWayPoint.direction,
-                              textAlign: TextAlign.center,
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 16),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            _nextRoutePoint != null
-                ? Container(
+    return _currentWayPoint != null
+        ? Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
                     padding: EdgeInsets.zero,
                     margin: EdgeInsets.zero,
                     decoration: BoxDecoration(
-                      color: Colors.green.shade800,
+                      color: Colors.green,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.4),
+                          blurRadius: 20.0,
+                          color: Colors.black.withOpacity(0.2),
                         )
                       ],
                       borderRadius: BorderRadius.only(
                         bottomRight: Radius.circular(8),
-                        bottomLeft: Radius.circular(8),
+                        topLeft: Radius.circular(8),
+                        topRight: Radius.circular(8),
                       ),
                     ),
                     child: Padding(
                       padding:
                           EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Text(
-                            "Then",
-                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              _getArrowIcon(_currentWayPoint.turnSymbolId),
+                              Text(
+                                getDistanceAsString(
+                                    _currentWayPointDistance.toInt()),
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18),
+                              ),
+                            ],
                           ),
-                          _getArrowIcon(_nextRoutePoint.turnSymbolId),
-                          Text(
-                            _nextRoutePoint.name,
-                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    _currentWayPoint.name,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 24),
+                                  ),
+                                  Text(
+                                    _currentWayPoint.location,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 16),
+                                  ),
+                                  Text(
+                                    _currentWayPoint.direction,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 16),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  )
-                : Container(),
-          ],
-        ),
-      ),
-    );
+                  ),
+                  _nextRoutePoint != null
+                      ? Container(
+                          padding: EdgeInsets.zero,
+                          margin: EdgeInsets.zero,
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade800,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.4),
+                              )
+                            ],
+                            borderRadius: BorderRadius.only(
+                              bottomRight: Radius.circular(8),
+                              bottomLeft: Radius.circular(8),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  "Then",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16),
+                                ),
+                                _getArrowIcon(_nextRoutePoint.turnSymbolId),
+                                Text(
+                                  _nextRoutePoint.name,
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : Container(),
+                ],
+              ),
+            ),
+          )
+        : Container();
   }
 
   _updateRoutePointsAndDistance() {
@@ -270,7 +282,8 @@ class NavigationState extends State<NavigationWidget> {
       }
     }
 
-    if (_currentWayPointIndex + 1 <= _routePoints.length) {
+    if (_currentWayPointIndex != null &&
+        _currentWayPointIndex + 1 <= _routePoints.length) {
       int _nextRoutePointIndex = _routePoints.indexWhere(
           (routePoint) => routePoint.isWayPoint, _currentWayPointIndex + 1);
       if (_nextRoutePointIndex != -1) {
@@ -283,9 +296,6 @@ class NavigationState extends State<NavigationWidget> {
 
   Widget _getArrowIcon(String iconId) {
     if (_routeManager.routeParser.turnArrowAssetPaths.containsKey(iconId)) {
-      // return Image(
-      //   image: _routeManager.routeParser.turnArrowImages[iconId.toLowerCase()],
-      // );
       return SvgPicture.asset(
         _routeManager.routeParser.turnArrowAssetPaths[iconId.toLowerCase()],
         color: Colors.white,
@@ -303,7 +313,66 @@ class NavigationState extends State<NavigationWidget> {
       _routePointIndex = routeStartIndex;
       _userLocation = userLocation;
       _updateRoutePointsAndDistance();
+      _checkIfOnRoute();
     });
+  }
+
+  _checkIfOnRoute() {
+    if (_routePointIndex > 0) {
+      RoutePoint _previousWayPoint = _routePoints[_routePointIndex - 1];
+      double au = _previousWayPoint.distance(_userLocation);
+      double alpha =
+          (_bearingBetween(_previousWayPoint.latLng, _currentWayPoint.latLng) -
+                      _bearingBetween(_previousWayPoint.latLng, _userLocation))
+                  .abs() /
+              180 *
+              pi;
+      double distanceToRoute = sin(alpha) * au;
+      print("Distance: $distanceToRoute");
+      if (distanceToRoute >= 20) {
+        showLeftRouteDialog();
+      }
+    }
+  }
+
+  double _bearingBetween(LatLng first, LatLng second) {
+    return Geolocator.bearingBetween(
+        first.latitude, first.longitude, second.latitude, second.longitude);
+  }
+
+  showLeftRouteDialog() async {
+    if (!_leftRouteDialogOpen) {
+      _leftRouteDialogOpen = true;
+      _leftRouteDialogOpen = await showGeneralDialog<bool>(
+            barrierLabel: "Barrier",
+            barrierDismissible: true,
+            barrierColor: Colors.black.withOpacity(0.5),
+            transitionDuration: Duration(milliseconds: 100),
+            context: this.context,
+            pageBuilder: (_, __, ___) {
+              return SimpleDialog(
+                children: [
+                  SimpleDialogOption(
+                    child: Text('Stop Navigation'),
+                    onPressed: () => _closeDialogAndStopNavigation(context),
+                  ),
+                ],
+              );
+            },
+            transitionBuilder: (_, anim, __, child) {
+              return FadeTransition(
+                opacity: anim,
+                child: child,
+              );
+            },
+          ) ??
+          false;
+    }
+  }
+
+  _closeDialogAndStopNavigation(BuildContext context) {
+    Navigator.pop(context, false);
+    _stopNavigationCallback();
   }
 }
 

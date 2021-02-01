@@ -88,7 +88,7 @@ class BottomSheetState extends State<BottomSheetWidget>
     });
   }
 
-  updateRoutes(Route activeRoute, List<Route> similarRoutes) {
+  updateActiveRoute(Route activeRoute) {
     GrabSectionState grabSectionState = _grabSectionStateKey.currentState;
     SheetContentState sheetContentState = _sheetContentStateKey.currentState;
 
@@ -97,6 +97,7 @@ class BottomSheetState extends State<BottomSheetWidget>
     });
     sheetContentState.setState(() {
       sheetContentState._activeRoute = activeRoute;
+      sheetContentState._updateHeightMapData();
     });
   }
 }
@@ -312,6 +313,10 @@ class SheetContentState extends State<SheetContentWidget> {
   bool get _roadBookEmpty => _itemCount == MIN_ITEM_COUNT;
 
   SheetContentState(this._activeRoute, this.routeManager) {
+    _heightMapData = _createChartData();
+  }
+
+  _updateHeightMapData() {
     _heightMapData = _createChartData();
   }
 
