@@ -6,6 +6,7 @@ import 'package:bike_gps/widget/map_view/map_widget.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/widgets.dart' hide Route;
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:latlong/latlong.dart';
 import 'package:snapping_sheet/snapping_sheet.dart';
 
@@ -93,11 +94,9 @@ class BottomSheetState extends State<BottomSheetWidget>
 
     grabSectionState.setState(() {
       grabSectionState._activeRoute = activeRoute;
-      grabSectionState._similarRoutes = similarRoutes;
     });
     sheetContentState.setState(() {
       sheetContentState._activeRoute = activeRoute;
-      sheetContentState._similarRoutes = similarRoutes;
     });
   }
 }
@@ -118,18 +117,16 @@ class GrabSectionWidget extends StatefulWidget {
 
   @override
   GrabSectionState createState() =>
-      GrabSectionState(activeRoute, similarRoutes, controller, parent);
+      GrabSectionState(activeRoute, controller, parent);
 }
 
 class GrabSectionState extends State<GrabSectionWidget> {
   final SnappingSheetController _controller;
   final MapState parent;
   Route _activeRoute;
-  List<Route> _similarRoutes;
   bool _snappingTop = false;
 
-  GrabSectionState(
-      this._activeRoute, this._similarRoutes, this._controller, this.parent);
+  GrabSectionState(this._activeRoute, this._controller, this.parent);
 
   @override
   Widget build(BuildContext context) {
@@ -299,12 +296,11 @@ class SheetContentWidget extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() =>
-      SheetContentState(activeRoute, similarRoutes, routeManager);
+      SheetContentState(activeRoute, routeManager);
 }
 
 class SheetContentState extends State<SheetContentWidget> {
   Route _activeRoute;
-  List<Route> _similarRoutes;
   final RouteManager routeManager;
   static const MIN_ITEM_COUNT = 2;
   List<charts.Series<RoutePoint, int>> _heightMapData = [];
@@ -315,7 +311,7 @@ class SheetContentState extends State<SheetContentWidget> {
 
   bool get _roadBookEmpty => _itemCount == MIN_ITEM_COUNT;
 
-  SheetContentState(this._activeRoute, this._similarRoutes, this.routeManager) {
+  SheetContentState(this._activeRoute, this.routeManager) {
     _heightMapData = _createChartData();
   }
 
@@ -464,9 +460,15 @@ class SheetContentState extends State<SheetContentWidget> {
   }
 
   Widget _getArrowIcon(String iconId) {
-    if (routeManager.routeParser.turnArrowImages.containsKey(iconId)) {
-      return Image(
-        image: routeManager.routeParser.turnArrowImages[iconId.toLowerCase()],
+    if (routeManager.routeParser.turnArrowAssetPaths.containsKey(iconId)) {
+      // return Image(
+      //   image: routeManager.routeParser.turnArrowImages[iconId.toLowerCase()],
+      // );
+      return SvgPicture.asset(
+        routeManager.routeParser.turnArrowAssetPaths[iconId.toLowerCase()],
+        color: Colors.black,
+        matchTextDirection: true,
+        width: 48,
       );
     } else {
       return Icon(Icons.info);

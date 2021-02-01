@@ -4,6 +4,7 @@ import 'package:bike_gps/routeManager.dart';
 import 'package:bike_gps/route_parser/models/route.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/widgets.dart' hide Route;
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mapbox_gl_platform_interface/mapbox_gl_platform_interface.dart';
 
@@ -161,30 +162,49 @@ class NavigationState extends State<NavigationWidget> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: EdgeInsets.only(right: 8),
-                      child: Column(
-                        children: [
-                          _getArrowIcon(_currentWayPoint.turnSymbolId),
-                          Text(
-                            getDistanceAsString(
-                                _currentWayPointDistance.toInt()),
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18),
-                          ),
-                        ],
-                      ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _getArrowIcon(_currentWayPoint.turnSymbolId),
+                        Text(
+                          getDistanceAsString(_currentWayPointDistance.toInt()),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18),
+                        ),
+                      ],
                     ),
-                    Padding(
-                      padding: EdgeInsets.only(left: 8),
-                      child: Text(
-                        '${_currentWayPoint.name}',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 24),
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              _currentWayPoint.name,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 24),
+                            ),
+                            Text(
+                              _currentWayPoint.location,
+                              textAlign: TextAlign.center,
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 16),
+                            ),
+                            Text(
+                              _currentWayPoint.direction,
+                              textAlign: TextAlign.center,
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 16),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -213,20 +233,14 @@ class NavigationState extends State<NavigationWidget> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Padding(
-                            padding: EdgeInsets.only(right: 8.0),
-                            child: Text(
-                              "Then",
-                              style: TextStyle(color: Colors.white),
-                            ),
+                          Text(
+                            "Then",
+                            style: TextStyle(color: Colors.white, fontSize: 16),
                           ),
                           _getArrowIcon(_nextRoutePoint.turnSymbolId),
-                          Padding(
-                            padding: EdgeInsets.only(right: 8.0),
-                            child: Text(
-                              _nextRoutePoint.name,
-                              style: TextStyle(color: Colors.white),
-                            ),
+                          Text(
+                            _nextRoutePoint.name,
+                            style: TextStyle(color: Colors.white, fontSize: 16),
                           ),
                         ],
                       ),
@@ -268,9 +282,16 @@ class NavigationState extends State<NavigationWidget> {
   }
 
   Widget _getArrowIcon(String iconId) {
-    if (_routeManager.routeParser.turnArrowImages.containsKey(iconId)) {
-      return Image(
-        image: _routeManager.routeParser.turnArrowImages[iconId.toLowerCase()],
+    if (_routeManager.routeParser.turnArrowAssetPaths.containsKey(iconId)) {
+      // return Image(
+      //   image: _routeManager.routeParser.turnArrowImages[iconId.toLowerCase()],
+      // );
+      return SvgPicture.asset(
+        _routeManager.routeParser.turnArrowAssetPaths[iconId.toLowerCase()],
+        color: Colors.white,
+        matchTextDirection: true,
+        width: 48,
+        alignment: Alignment.center,
       );
     } else {
       return Icon(Icons.info);

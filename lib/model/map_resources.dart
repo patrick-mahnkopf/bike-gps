@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
 class MapResources {
-  final bool _useMapbox = true;
+  final bool _useMapbox = false;
   String mapboxAccessToken;
   Map<String, String> styleStrings = {};
 

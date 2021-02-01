@@ -44,6 +44,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
   MapboxMapController _mapController;
   bool _compassEnabled = true;
   RouteLines routeLines = RouteLines();
+  LatLngBounds _combinedBounds;
   MyLocationRenderMode _locationRenderMode = MyLocationRenderMode.COMPASS;
   List<String> assetImages = [
     'start_location.png',
@@ -133,7 +134,13 @@ class MapboxMapState extends State<MapboxMapWidget> {
     _clearAlternativeRoutes();
   }
 
-  onNavigationStopped() {
+  onNavigationStopped() async {
+    await _mapController
+        .moveCamera(CameraUpdate.newCameraPosition(CameraPosition(
+      target: await _mapController.requestMyLocationLatLng(),
+      tilt: 0,
+    )));
+    moveCameraToRouteBounds(_combinedBounds);
     _locationRenderMode = MyLocationRenderMode.COMPASS;
     _mapController.updateMyLocationTrackingMode(MyLocationTrackingMode.None);
     _redrawAlternativeRoutes();
@@ -204,9 +211,11 @@ class MapboxMapState extends State<MapboxMapWidget> {
         isMainRoute: true);
     drawRouteStartAndEndIcons(primaryRoute.startPoint, primaryRoute.endPoint);
 
-    LatLngBounds combinedBounds =
-        routeManager.routeList.getCombinedBounds(primaryRoute, similarRoutes);
-    moveCameraToRouteBounds(combinedBounds);
+    if (_combinedBounds == null) {
+      _combinedBounds =
+          routeManager.routeList.getCombinedBounds(primaryRoute, similarRoutes);
+    }
+    moveCameraToRouteBounds(_combinedBounds);
   }
 
   drawSingleRoute(Route route) {
@@ -372,6 +381,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
     _mapController.clearCircles();
     _mapController.clearSymbols();
     parent.hideBottomDrawer();
+    _combinedBounds = null;
     setState(() {
       _compassEnabled = true;
     });
