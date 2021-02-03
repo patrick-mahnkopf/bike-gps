@@ -410,7 +410,7 @@ class NavigationBottomSheet extends StatefulWidget {
 
   @override
   NavigationBottomSheetState createState() => NavigationBottomSheetState(
-    activeRoute,
+        activeRoute,
         stopNavigationCallback,
         recenterCallback,
         routeStartIndex,

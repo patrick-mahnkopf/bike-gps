@@ -421,18 +421,18 @@ class MapboxMapState extends State<MapboxMapWidget> {
     for (RouteLine routeLine in routeLines.routeLines.values) {
       if (routeLine != routeLines.activeLine) {
         routeLine.background =
-        await _mapController.addLine(routeLine.background.options);
+            await _mapController.addLine(routeLine.background.options);
         routeLine.route = await _mapController.addLine(routeLine.route.options);
         routeLine.touchArea =
-        await _mapController.addLine(routeLine.touchArea.options);
+            await _mapController.addLine(routeLine.touchArea.options);
       }
     }
     routeLines.activeLine.background =
-    await _mapController.addLine(routeLines.activeLine.background.options);
+        await _mapController.addLine(routeLines.activeLine.background.options);
     routeLines.activeLine.route =
-    await _mapController.addLine(routeLines.activeLine.route.options);
+        await _mapController.addLine(routeLines.activeLine.route.options);
     routeLines.activeLine.touchArea =
-    await _mapController.addLine(routeLines.activeLine.touchArea.options);
+        await _mapController.addLine(routeLines.activeLine.touchArea.options);
   }
 
   moveCameraToRouteBounds(LatLngBounds bounds) {
