@@ -15,6 +15,7 @@ class NavigationHandler {
   int _routeStartIndex = -1;
   LatLng _userLocation;
   RouteManager routeManager;
+  bool _navigationActive = false;
   final GlobalKey<NavigationState> _navigationStateKey = GlobalKey();
   final GlobalKey<NavigationBottomSheetState> _navigationBottomSheetStateKey =
       GlobalKey();
@@ -31,20 +32,26 @@ class NavigationHandler {
     _recenterCallback = recenterCallback;
     _userLocation = currentLocation;
     _routeStartIndex = _getClosestTrackPointIndex(currentLocation);
+    _navigationActive = true;
+  }
+
+  void stopNavigation() {
+    _navigationActive = false;
   }
 
   void onLocationChanged(UserLocation userLocation) {
-    print("NavigationHandler: onLocationChanged");
-    _userLocation = userLocation.position;
-    int closestTrackPointIndex = _getClosestTrackPointIndex(_userLocation);
-    _navigationStateKey.currentState.onLocationChanged(
-      _userLocation,
-      closestTrackPointIndex,
-    );
-    _navigationBottomSheetStateKey.currentState.onLocationChanged(
-      _userLocation,
-      closestTrackPointIndex,
-    );
+    if (_navigationActive) {
+      _userLocation = userLocation.position;
+      int closestTrackPointIndex = _getClosestTrackPointIndex(_userLocation);
+      _navigationStateKey.currentState.onLocationChanged(
+        _userLocation,
+        closestTrackPointIndex,
+      );
+      _navigationBottomSheetStateKey.currentState.onLocationChanged(
+        _userLocation,
+        closestTrackPointIndex,
+      );
+    }
   }
 
   void onCameraTrackingDismissed() {
@@ -80,6 +87,7 @@ class NavigationHandler {
         routeStartIndex: _routeStartIndex,
         userLocation: _userLocation,
         routeManager: routeManager,
+        parent: this,
       ),
       NavigationBottomSheet(
         key: _navigationBottomSheetStateKey,
@@ -88,6 +96,7 @@ class NavigationHandler {
         recenterCallback: _recenterCallback,
         routeStartIndex: _routeStartIndex,
         userLocation: _userLocation,
+        parent: this,
       ),
     ];
   }
@@ -99,6 +108,7 @@ class NavigationWidget extends StatefulWidget {
   final RouteManager routeManager;
   final LatLng userLocation;
   final Function stopNavigationCallback;
+  final NavigationHandler parent;
 
   NavigationWidget({
     @required Key key,
@@ -107,11 +117,12 @@ class NavigationWidget extends StatefulWidget {
     @required this.userLocation,
     @required this.routeManager,
     @required this.stopNavigationCallback,
+    @required this.parent,
   }) : super(key: key);
 
   @override
   NavigationState createState() => NavigationState(activeRoute, routeStartIndex,
-      userLocation, routeManager, stopNavigationCallback);
+      userLocation, routeManager, stopNavigationCallback, parent);
 }
 
 class NavigationState extends State<NavigationWidget> {
@@ -126,6 +137,7 @@ class NavigationState extends State<NavigationWidget> {
   RoutePoint _nextRoutePoint;
   int _currentWayPointIndex;
   bool _leftRouteDialogOpen = false;
+  final NavigationHandler _parent;
 
   NavigationState(
     this._activeRoute,
@@ -133,6 +145,7 @@ class NavigationState extends State<NavigationWidget> {
     this._userLocation,
     this._routeManager,
     this._stopNavigationCallback,
+    this._parent,
   ) {
     _routePoints = _activeRoute.roadBook.routePoints;
     _updateRoutePointsAndDistance();
@@ -372,6 +385,7 @@ class NavigationState extends State<NavigationWidget> {
 
   _closeDialogAndStopNavigation(BuildContext context) {
     Navigator.pop(context, false);
+    _parent.stopNavigation();
     _stopNavigationCallback();
   }
 }
@@ -382,6 +396,7 @@ class NavigationBottomSheet extends StatefulWidget {
   final Route activeRoute;
   final int routeStartIndex;
   final LatLng userLocation;
+  final NavigationHandler parent;
 
   NavigationBottomSheet({
     @required Key key,
@@ -390,21 +405,24 @@ class NavigationBottomSheet extends StatefulWidget {
     @required this.recenterCallback,
     @required this.routeStartIndex,
     @required this.userLocation,
+    @required this.parent,
   }) : super(key: key);
 
   @override
   NavigationBottomSheetState createState() => NavigationBottomSheetState(
-        activeRoute,
+    activeRoute,
         stopNavigationCallback,
         recenterCallback,
         routeStartIndex,
         userLocation,
+        parent,
       );
 }
 
 class NavigationBottomSheetState extends State<NavigationBottomSheet> {
   final Function _stopNavigationCallback;
   final Function _recenterCallback;
+  final NavigationHandler _parent;
   Route _activeRoute;
   int _routeStartIndex;
   LatLng _userLocation;
@@ -418,6 +436,7 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
     this._recenterCallback,
     this._routeStartIndex,
     this._userLocation,
+    this._parent,
   ) {
     _setDistanceLeft(_userLocation, _routeStartIndex);
   }
@@ -530,7 +549,7 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
                               alignment: Alignment.centerRight,
                               child: ElevatedButton(
                                 child: Text("Exit"),
-                                onPressed: _stopNavigationCallback,
+                                onPressed: _stopNavigation,
                                 style: ElevatedButton.styleFrom(
                                   primary: Colors.red,
                                   onPrimary: Colors.white,
@@ -557,6 +576,11 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
         ),
       ),
     );
+  }
+
+  _stopNavigation() {
+    _parent.stopNavigation();
+    _stopNavigationCallback();
   }
 
   onLocationChanged(LatLng userLocation, int routeStartIndex) {

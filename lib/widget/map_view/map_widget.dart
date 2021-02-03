@@ -8,6 +8,7 @@ import 'package:bike_gps/widget/map_view/mapbox_map_widget.dart';
 import 'package:bike_gps/widget/map_view/options_dialog_widget.dart';
 import 'package:bike_gps/widget/map_view/search_widget.dart';
 import 'package:flutter/material.dart' hide Route;
+import 'package:location/location.dart';
 import 'package:mapbox_gl_platform_interface/mapbox_gl_platform_interface.dart';
 import 'package:provider/provider.dart';
 
@@ -119,7 +120,10 @@ class MapState extends State<MapWidget> {
 
   startNavigation() async {
     MapboxMapState _mapboxMapState = _mapboxMapStateKey.currentState;
-    LatLng currentLocation = await _mapboxMapState.getCurrentLocation();
+    // LatLng currentLocation = await _mapboxMapState.getCurrentLocation();
+    LocationData locationData = await Location().getLocation();
+    LatLng currentLocation =
+        LatLng(locationData.latitude, locationData.longitude);
     _navigationHandler.startNavigation(
       activeRoute: _activeRoute,
       stopNavigationCallback: stopNavigation,

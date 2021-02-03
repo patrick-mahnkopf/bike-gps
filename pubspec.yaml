@@ -27,11 +27,10 @@ dependencies:
   tuple: ^1.0.3
   latlong: ^0.6.1
   path: ^1.7.0
-  path_provider: ^1.6.24
+  path_provider: ^1.6.27
   uni_links: ^0.4.0
-  user_location:
-    git:
-      url: https://github.com/igaurab/user_location_plugin.git
+  location: ^3.2.4
+  http: ^0.12.2
   mapbox_gl:
     git:
       url: https://github.com/tobrun/flutter-mapbox-gl
@@ -39,15 +38,15 @@ dependencies:
     git:
       url: https://github.com/otopba/flutter_geocoder.git
   material_floating_search_bar: ^0.2.6
-  provider: ^4.3.2+3
-  implicitly_animated_reorderable_list: ^0.2.5
+  provider: ^4.3.3
+  implicitly_animated_reorderable_list: ^0.3.2
   snapping_sheet: ^2.0.2
   charts_flutter: ^0.9.0
   gpx: ^1.1.1
   geolocator: ^6.1.14
   flutter_svg: ^0.19.1
   bike_gps_closed_source:
-    path: ..\bike_gps_closed_source
+    path: ../bike_gps_closed_source
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.0
