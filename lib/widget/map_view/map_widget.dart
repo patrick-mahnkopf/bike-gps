@@ -104,17 +104,17 @@ class MapState extends State<MapWidget> {
               initialQuery: _initialSearchBarQuery),
         ),
       ),
-      SafeArea(
-        child: _bottomSheetVisible
-            ? BottomSheetWidget(
+      _bottomSheetVisible
+          ? SafeArea(
+              child: BottomSheetWidget(
                 key: _bottomSheetStateKey,
                 activeRoute: _activeRoute,
                 similarRoutes: _similarRoutes,
                 routeManager: routeManager,
                 parent: this,
-              )
-            : Container(),
-      )
+              ),
+            )
+          : Container(),
     ];
   }
 

@@ -4,6 +4,7 @@ import 'package:bike_gps/routeManager.dart';
 import 'package:bike_gps/route_parser/models/route.dart';
 import 'package:bike_gps/widget/map_view/map_widget.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:flutter/cupertino.dart' hide Route;
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/widgets.dart' hide Route;
 import 'package:flutter_svg/flutter_svg.dart';
@@ -97,7 +98,6 @@ class BottomSheetState extends State<BottomSheetWidget>
     });
     sheetContentState.setState(() {
       sheetContentState._activeRoute = activeRoute;
-      sheetContentState._updateHeightMapData();
     });
   }
 }
@@ -304,7 +304,6 @@ class SheetContentState extends State<SheetContentWidget> {
   Route _activeRoute;
   final RouteManager routeManager;
   static const MIN_ITEM_COUNT = 2;
-  List<charts.Series<RoutePoint, int>> _heightMapData = [];
 
   int get _itemCount => _activeRoute.roadBook.wayPoints.length == 0
       ? MIN_ITEM_COUNT
@@ -312,13 +311,7 @@ class SheetContentState extends State<SheetContentWidget> {
 
   bool get _roadBookEmpty => _itemCount == MIN_ITEM_COUNT;
 
-  SheetContentState(this._activeRoute, this.routeManager) {
-    _heightMapData = _createChartData();
-  }
-
-  _updateHeightMapData() {
-    _heightMapData = _createChartData();
-  }
+  SheetContentState(this._activeRoute, this.routeManager);
 
   @override
   Widget build(BuildContext context) {
@@ -340,32 +333,47 @@ class SheetContentState extends State<SheetContentWidget> {
   }
 
   _getHeightMap() {
-    /* TODO create chart data only once and then just load that for performance reasons
-        async futureBuilder on initial route load maybe */
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: SizedBox(
-        width: double.infinity,
-        height: 200,
-        child: charts.LineChart(
-          _heightMapData,
-          defaultRenderer: charts.LineRendererConfig(
-            includeArea: true,
-            stacked: true,
-          ),
-          defaultInteractions: false,
-          primaryMeasureAxis: charts.NumericAxisSpec(
-            tickProviderSpec: charts.StaticNumericTickProviderSpec(
-              _getPrimaryMeasureAxisTicks(_activeRoute),
-            ),
-          ),
-          domainAxis: charts.NumericAxisSpec(
-              tickProviderSpec: charts.StaticNumericTickProviderSpec(
-            _getDomainAxisTicks(_activeRoute),
-          )),
-        ),
-      ),
-    );
+    return FutureBuilder(
+        future: _createChartData(),
+        builder: (context,
+            AsyncSnapshot<List<charts.Series<RoutePoint, int>>> snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.waiting:
+              return Theme.of(context).platform == TargetPlatform.android
+                  ? CircularProgressIndicator()
+                  : CupertinoActivityIndicator();
+            default:
+              if (snapshot.hasError) {
+                return ErrorWidget(snapshot.error);
+              } else {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 200,
+                    child: charts.LineChart(
+                      snapshot.data,
+                      defaultRenderer: charts.LineRendererConfig(
+                        includeArea: true,
+                        stacked: true,
+                      ),
+                      defaultInteractions: false,
+                      primaryMeasureAxis: charts.NumericAxisSpec(
+                        tickProviderSpec: charts.StaticNumericTickProviderSpec(
+                          _getPrimaryMeasureAxisTicks(_activeRoute),
+                        ),
+                      ),
+                      domainAxis: charts.NumericAxisSpec(
+                          tickProviderSpec:
+                              charts.StaticNumericTickProviderSpec(
+                        _getDomainAxisTicks(_activeRoute),
+                      )),
+                    ),
+                  ),
+                );
+              }
+          }
+        });
   }
 
   List<charts.TickSpec<num>> _getPrimaryMeasureAxisTicks(Route route) {
@@ -397,7 +405,7 @@ class SheetContentState extends State<SheetContentWidget> {
     return tickSpecs;
   }
 
-  List<charts.Series<RoutePoint, int>> _createChartData() {
+  Future<List<charts.Series<RoutePoint, int>>> _createChartData() async {
     return [
       new charts.Series<RoutePoint, int>(
         id: 'Active Route',

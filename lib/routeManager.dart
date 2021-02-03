@@ -50,9 +50,11 @@ class RouteManager {
     );
     if (!await File(routeFilePath).exists()) {
       File routeFile = new File(routeFilePath);
-      String routeString =
-          await rootBundle.loadString('assets/routes/$fileName');
-      routeFile.writeAsString(routeString);
+      // String routeString =
+      //     await rootBundle.loadString('assets/routes/$fileName');
+      // routeFile.writeAsString(routeString);
+      ByteData data = await rootBundle.load('assets/routes/$fileName');
+      routeFile.writeAsBytes(data.buffer.asUint8List());
     }
   }
 
