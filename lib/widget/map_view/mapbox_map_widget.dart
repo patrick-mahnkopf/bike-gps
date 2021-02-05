@@ -122,7 +122,6 @@ class MapboxMapState extends State<MapboxMapWidget> {
     _mapController.moveCamera(cameraUpdate);
     _initialLocation =
         CameraPosition(target: await _getCurrentLocation(), zoom: 14);
-    developer.log("Init Location done");
   }
 
   addImageToController(String imageAsset) async {
@@ -132,7 +131,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
     _mapController.addImage(imageName, list);
   }
 
-  onNavigationStarted() async {
+  onNavigationStarted(Route route) async {
     if (Platform.isIOS) {
       _mapController.moveCamera(CameraUpdate.newCameraPosition(CameraPosition(
         // target: await _mapController.requestMyLocationLatLng(),
@@ -153,6 +152,16 @@ class MapboxMapState extends State<MapboxMapWidget> {
     _mapController
         .updateMyLocationTrackingMode(MyLocationTrackingMode.TrackingCompass);
     _clearAlternativeRoutes();
+    if (route.roadBook.hasPathToRoute) {
+      developer.log("Map drew ORS route");
+      _drawRoute(
+        routeName: "ORS",
+        lineCoordinateList: route.roadBook.pathToRouteList,
+        isMainRoute: true,
+        isPathToRoute: true,
+      );
+      setState(() {});
+    }
   }
 
   onNavigationStopped() async {
@@ -165,6 +174,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
     _locationRenderMode = MyLocationRenderMode.COMPASS;
     _mapController.updateMyLocationTrackingMode(MyLocationTrackingMode.None);
     _redrawAlternativeRoutes();
+    _clearPathToRoute();
   }
 
   onSelectPlace(Place place) {
@@ -257,6 +267,7 @@ class MapboxMapState extends State<MapboxMapWidget> {
   _drawRoute({
     List<LatLng> lineCoordinateList,
     bool isMainRoute = false,
+    bool isPathToRoute = false,
     @required String routeName,
   }) async {
     double lineWidth = 6;
@@ -271,7 +282,6 @@ class MapboxMapState extends State<MapboxMapWidget> {
         lineOpacity: 0,
       ),
     );
-    developer.log("Drew touch area ${DateTime.now()}");
     Line backgroundLine = await _mapController.addLine(
       LineOptions(
         geometry: lineCoordinateList,
@@ -281,7 +291,6 @@ class MapboxMapState extends State<MapboxMapWidget> {
         lineGapWidth: lineWidth,
       ),
     );
-    developer.log("Drew border ${DateTime.now()}");
     Line routeLine = await _mapController.addLine(
       LineOptions(
         geometry: lineCoordinateList,
@@ -289,17 +298,13 @@ class MapboxMapState extends State<MapboxMapWidget> {
         lineColor: isMainRoute ? primaryRouteColor : secondaryRouteColor,
       ),
     );
-    if (isMainRoute) {
-      developer.log("Drew Main route ${DateTime.now()}");
-    } else {
-      developer.log("Drew Secondary route ${DateTime.now()}");
-    }
 
     routeLines.add(
       routeName: routeName,
       background: backgroundLine,
       route: routeLine,
       isActive: isMainRoute,
+      isPathToRoute: isPathToRoute,
       touchArea: touchAreaLine,
     );
   }
@@ -344,8 +349,6 @@ class MapboxMapState extends State<MapboxMapWidget> {
     } else {
       for (Line line in routeLine.getLines()) {
         _mapController.removeLine(line);
-        developer.log(
-            "Deactivate: removed ${routeLine.routeName}: ${line.options.lineWidth}");
       }
       routeLines.routeLines.remove(routeLine);
       await _drawRoute(
@@ -354,8 +357,6 @@ class MapboxMapState extends State<MapboxMapWidget> {
         isMainRoute: false,
       );
     }
-
-    developer.log("Deactivate: added ${routeLine.routeName}");
   }
 
   _activateRouteLine(RouteLine routeLine) {
@@ -369,8 +370,6 @@ class MapboxMapState extends State<MapboxMapWidget> {
     } else {
       for (Line line in routeLine.getLines()) {
         _mapController.removeLine(line);
-        developer.log(
-            "Activate: removed ${routeLine.routeName}: ${line.options.lineWidth}");
       }
       routeLines.routeLines.remove(routeLine);
       _drawRoute(
@@ -380,7 +379,6 @@ class MapboxMapState extends State<MapboxMapWidget> {
     }
 
     routeLines.activeLine = routeLine;
-    developer.log("Activate: added ${routeLine.routeName}");
   }
 
   drawRouteStartAndEndIcons(LatLng startPoint, LatLng endPoint) {
@@ -433,6 +431,13 @@ class MapboxMapState extends State<MapboxMapWidget> {
         await _mapController.addLine(routeLines.activeLine.route.options);
     routeLines.activeLine.touchArea =
         await _mapController.addLine(routeLines.activeLine.touchArea.options);
+  }
+
+  _clearPathToRoute() {
+    for (Line line in routeLines.pathToRouteLine.getLines()) {
+      _mapController.removeLine(line);
+    }
+    routeLines.pathToRouteLine = null;
   }
 
   moveCameraToRouteBounds(LatLngBounds bounds) {

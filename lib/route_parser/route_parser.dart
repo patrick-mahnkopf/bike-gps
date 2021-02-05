@@ -11,5 +11,7 @@ abstract class RouteParser {
 
   Future<Route> getRoute(File routeFile);
 
+  Route addPathToRoute(Route route, String body);
+
   List<String> getSupportedFileExtensions();
 }

@@ -6,8 +6,8 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 class Route {
   String routeName;
   String filePath;
-  List<Wpt> trackPoints;
-  List<Wpt> wayPoints;
+  List<Wpt> trackPoints = [];
+  List<Wpt> wayPoints = [];
   RoadBook roadBook;
   TourData tourData;
   TourEvaluation tourEvaluation;
@@ -110,11 +110,17 @@ class Route {
 class RoadBook {
   List<RoutePoint> routePoints = [];
   List<RoutePoint> wayPoints = [];
+  List<RoutePoint> pathToRoute = [];
 
   int get length => routePoints.length;
 
+  bool get hasPathToRoute => pathToRoute != null && pathToRoute.isNotEmpty;
+
   List<LatLng> get latLngList =>
       routePoints.map((point) => point.latLng).toList();
+
+  List<LatLng> get pathToRouteList =>
+      pathToRoute.map((point) => point.latLng).toList();
 
   List<double> get eleList => routePoints.map((point) => point.ele).toList();
 

@@ -126,16 +126,15 @@ class MapState extends State<MapWidget> {
         LatLng(locationData.latitude, locationData.longitude);
     _navigationHandler.startNavigation(
       activeRoute: _activeRoute,
-      stopNavigationCallback: stopNavigation,
-      recenterCallback: recenterMap,
+      parent: this,
       currentLocation: currentLocation,
     );
-    _mapboxMapState.onNavigationStarted();
+    _mapboxMapState.onNavigationStarted(_activeRoute);
     _activateNavigationView();
   }
 
   onLocationUpdated(UserLocation userLocation) {
-    _navigationHandler.onLocationChanged(userLocation);
+    _navigationHandler.onLocationChanged(userLocation.position);
   }
 
   onCameraTrackingDismissed() {
@@ -203,6 +202,11 @@ class MapState extends State<MapWidget> {
     _activeRoute = route;
     _similarRoutes = similarRoutes;
     _changeBottomDrawerRoute(route);
+  }
+
+  navigateToRouteStart(Route route) async {
+    _activeRoute = route;
+    await _mapboxMapStateKey.currentState.onNavigationStarted(route);
   }
 
   _changeBottomDrawerRoute(Route route) {

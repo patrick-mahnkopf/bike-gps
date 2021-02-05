@@ -4,18 +4,21 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 class RouteLines {
   Map<String, RouteLine> routeLines = {};
   RouteLine activeLine;
+  RouteLine pathToRouteLine;
 
   void add({
     @required String routeName,
     Line background,
     @required Line route,
     bool isActive = false,
+    bool isPathToRoute = false,
     Line touchArea,
   }) {
     RouteLine routeLine =
         new RouteLine(routeName, background, route, touchArea);
     routeLines[routeName] = routeLine;
-    if (isActive) activeLine = routeLine;
+    if (isActive && !isPathToRoute) activeLine = routeLine;
+    if (isPathToRoute) pathToRouteLine = routeLine;
   }
 
   String getName(Line line) {

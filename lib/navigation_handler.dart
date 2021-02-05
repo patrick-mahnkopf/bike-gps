@@ -1,17 +1,21 @@
+import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:math';
 
 import 'package:bike_gps/routeManager.dart';
 import 'package:bike_gps/route_parser/models/route.dart';
+import 'package:bike_gps/widget/map_view/map_widget.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter/widgets.dart' hide Route;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
+import 'package:location/location.dart';
 import 'package:mapbox_gl_platform_interface/mapbox_gl_platform_interface.dart';
 
 class NavigationHandler {
   Route _activeRoute;
-  Function _stopNavigationCallback;
-  Function _recenterCallback;
+  MapState _parent;
   int _routeStartIndex = -1;
   LatLng _userLocation;
   RouteManager routeManager;
@@ -24,12 +28,10 @@ class NavigationHandler {
 
   void startNavigation(
       {@required Route activeRoute,
-      @required Function stopNavigationCallback,
-      @required Function recenterCallback,
+      @required MapState parent,
       @required LatLng currentLocation}) {
     _activeRoute = activeRoute;
-    _stopNavigationCallback = stopNavigationCallback;
-    _recenterCallback = recenterCallback;
+    _parent = parent;
     _userLocation = currentLocation;
     _routeStartIndex = _getClosestTrackPointIndex(currentLocation);
     _navigationActive = true;
@@ -37,19 +39,38 @@ class NavigationHandler {
 
   void stopNavigation() {
     _navigationActive = false;
+    _parent.stopNavigation();
   }
 
-  void onLocationChanged(UserLocation userLocation) {
+  void changeNavigationRoute(Route route) async {
+    _activeRoute = route;
+    _navigationStateKey.currentState.onRouteChanged(route);
+    _navigationBottomSheetStateKey.currentState.onRouteChanged(route);
+    await _parent.navigateToRouteStart(route);
+    onLocationChanged(await _getCurrentLocation());
+  }
+
+  Future<LatLng> _getCurrentLocation() async {
+    LocationData locationData = await Location().getLocation();
+    LatLng currentLocation =
+        LatLng(locationData.latitude, locationData.longitude);
+    return currentLocation;
+  }
+
+  void recenterMap() {
+    _parent.recenterMap();
+  }
+
+  void onLocationChanged(LatLng userLocation) {
     if (_navigationActive) {
-      _userLocation = userLocation.position;
-      int closestTrackPointIndex = _getClosestTrackPointIndex(_userLocation);
+      _routeStartIndex = _getClosestTrackPointIndex(userLocation);
       _navigationStateKey.currentState.onLocationChanged(
-        _userLocation,
-        closestTrackPointIndex,
+        userLocation,
+        _routeStartIndex,
       );
       _navigationBottomSheetStateKey.currentState.onLocationChanged(
-        _userLocation,
-        closestTrackPointIndex,
+        userLocation,
+        _routeStartIndex,
       );
     }
   }
@@ -61,7 +82,12 @@ class NavigationHandler {
   int _getClosestTrackPointIndex(LatLng userLocation) {
     double shortestDistance = double.infinity;
     int index = -1;
-    List<RoutePoint> routePoints = _activeRoute.roadBook.routePoints;
+    List<RoutePoint> routePoints;
+    if (_activeRoute.roadBook.hasPathToRoute) {
+      routePoints = _activeRoute.roadBook.pathToRoute;
+    } else {
+      routePoints = _activeRoute.roadBook.routePoints;
+    }
     for (int i = 0; i < routePoints.length; i++) {
       RoutePoint routePoint = routePoints[i];
       double currentDistance = routePoint.distance(userLocation);
@@ -83,7 +109,6 @@ class NavigationHandler {
       NavigationWidget(
         key: _navigationStateKey,
         activeRoute: _activeRoute,
-        stopNavigationCallback: _stopNavigationCallback,
         routeStartIndex: _routeStartIndex,
         userLocation: _userLocation,
         routeManager: routeManager,
@@ -92,8 +117,6 @@ class NavigationHandler {
       NavigationBottomSheet(
         key: _navigationBottomSheetStateKey,
         activeRoute: _activeRoute,
-        stopNavigationCallback: _stopNavigationCallback,
-        recenterCallback: _recenterCallback,
         routeStartIndex: _routeStartIndex,
         userLocation: _userLocation,
         parent: this,
@@ -107,7 +130,6 @@ class NavigationWidget extends StatefulWidget {
   final int routeStartIndex;
   final RouteManager routeManager;
   final LatLng userLocation;
-  final Function stopNavigationCallback;
   final NavigationHandler parent;
 
   NavigationWidget({
@@ -116,20 +138,18 @@ class NavigationWidget extends StatefulWidget {
     @required this.routeStartIndex,
     @required this.userLocation,
     @required this.routeManager,
-    @required this.stopNavigationCallback,
     @required this.parent,
   }) : super(key: key);
 
   @override
-  NavigationState createState() => NavigationState(activeRoute, routeStartIndex,
-      userLocation, routeManager, stopNavigationCallback, parent);
+  NavigationState createState() => NavigationState(
+      activeRoute, routeStartIndex, userLocation, routeManager, parent);
 }
 
 class NavigationState extends State<NavigationWidget> {
-  final Route _activeRoute;
+  Route _activeRoute;
   int _routePointIndex;
   final RouteManager _routeManager;
-  final Function _stopNavigationCallback;
   LatLng _userLocation;
   double _currentWayPointDistance = 0;
   List<RoutePoint> _routePoints;
@@ -139,20 +159,25 @@ class NavigationState extends State<NavigationWidget> {
   bool _leftRouteDialogOpen = false;
   final NavigationHandler _parent;
 
-  NavigationState(
-    this._activeRoute,
-    this._routePointIndex,
-    this._userLocation,
-    this._routeManager,
-    this._stopNavigationCallback,
-    this._parent,
-  ) {
-    _routePoints = _activeRoute.roadBook.routePoints;
+  NavigationState(this._activeRoute,
+      this._routePointIndex,
+      this._userLocation,
+      this._routeManager,
+      this._parent,) {
+    if (_activeRoute.roadBook.hasPathToRoute) {
+      _routePoints = _activeRoute.roadBook.pathToRoute;
+    } else {
+      _routePoints = _activeRoute.roadBook.routePoints;
+    }
     _updateRoutePointsAndDistance();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_activeRoute.roadBook.hasPathToRoute) {
+      _currentWayPoint =
+          _activeRoute.roadBook.pathToRoute[_currentWayPointIndex + 1];
+    }
     return _currentWayPoint != null
         ? Padding(
             padding: const EdgeInsets.all(8.0),
@@ -164,47 +189,47 @@ class NavigationState extends State<NavigationWidget> {
                     padding: EdgeInsets.zero,
                     margin: EdgeInsets.zero,
                     decoration: BoxDecoration(
-                      color: Colors.green,
-                      boxShadow: [
-                        BoxShadow(
-                          blurRadius: 20.0,
-                          color: Colors.black.withOpacity(0.2),
-                        )
+                color: Colors.green,
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 20.0,
+                    color: Colors.black.withOpacity(0.2),
+                  )
+                ],
+                borderRadius: BorderRadius.only(
+                  bottomRight: Radius.circular(8),
+                  topLeft: Radius.circular(8),
+                  topRight: Radius.circular(8),
+                ),
+              ),
+              child: Padding(
+                padding:
+                EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _getArrowIcon(_currentWayPoint.turnSymbolId),
+                        Text(
+                          getDistanceAsString(
+                              _currentWayPointDistance.toInt()),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18),
+                        ),
                       ],
-                      borderRadius: BorderRadius.only(
-                        bottomRight: Radius.circular(8),
-                        topLeft: Radius.circular(8),
-                        topRight: Radius.circular(8),
-                      ),
                     ),
-                    child: Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              _getArrowIcon(_currentWayPoint.turnSymbolId),
-                              Text(
-                                getDistanceAsString(
-                                    _currentWayPointDistance.toInt()),
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18),
-                              ),
-                            ],
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
                                   Text(
                                     _currentWayPoint.name,
                                     textAlign: TextAlign.center,
@@ -213,12 +238,15 @@ class NavigationState extends State<NavigationWidget> {
                                         fontWeight: FontWeight.bold,
                                         fontSize: 24),
                                   ),
-                                  Text(
-                                    _currentWayPoint.location,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 16),
-                                  ),
+                                  _currentWayPoint.location != null
+                                      ? Text(
+                                          _currentWayPoint.location,
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16),
+                                        )
+                                      : Container(),
                                   Text(
                                     _currentWayPoint.direction,
                                     textAlign: TextAlign.center,
@@ -226,55 +254,55 @@ class NavigationState extends State<NavigationWidget> {
                                         color: Colors.white, fontSize: 16),
                                   ),
                                 ],
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                  _nextRoutePoint != null
-                      ? Container(
-                          padding: EdgeInsets.zero,
-                          margin: EdgeInsets.zero,
-                          decoration: BoxDecoration(
-                            color: Colors.green.shade800,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.4),
-                              )
-                            ],
-                            borderRadius: BorderRadius.only(
-                              bottomRight: Radius.circular(8),
-                              bottomLeft: Radius.circular(8),
-                            ),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  "Then",
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16),
-                                ),
-                                _getArrowIcon(_nextRoutePoint.turnSymbolId),
-                                Text(
-                                  _nextRoutePoint.name,
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : Container(),
-                ],
+                  ],
+                ),
               ),
             ),
-          )
+            _nextRoutePoint != null
+                ? Container(
+              padding: EdgeInsets.zero,
+              margin: EdgeInsets.zero,
+              decoration: BoxDecoration(
+                color: Colors.green.shade800,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.4),
+                  )
+                ],
+                borderRadius: BorderRadius.only(
+                  bottomRight: Radius.circular(8),
+                  bottomLeft: Radius.circular(8),
+                ),
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Then",
+                      style: TextStyle(
+                          color: Colors.white, fontSize: 16),
+                    ),
+                    _getArrowIcon(_nextRoutePoint.turnSymbolId),
+                    Text(
+                      _nextRoutePoint.name,
+                      style: TextStyle(
+                          color: Colors.white, fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            )
+                : Container(),
+          ],
+        ),
+      ),
+    )
         : Container();
   }
 
@@ -298,7 +326,7 @@ class NavigationState extends State<NavigationWidget> {
     if (_currentWayPointIndex != null &&
         _currentWayPointIndex + 1 <= _routePoints.length) {
       int _nextRoutePointIndex = _routePoints.indexWhere(
-          (routePoint) => routePoint.isWayPoint, _currentWayPointIndex + 1);
+              (routePoint) => routePoint.isWayPoint, _currentWayPointIndex + 1);
       if (_nextRoutePointIndex != -1) {
         _nextRoutePoint = _routePoints[_nextRoutePointIndex];
       } else {
@@ -330,18 +358,43 @@ class NavigationState extends State<NavigationWidget> {
     });
   }
 
+  onRouteChanged(Route route) {
+    setState(() {
+      _activeRoute = route;
+      if (route.roadBook.hasPathToRoute) {
+        _routePoints = route.roadBook.pathToRoute;
+      } else {
+        _routePoints = route.roadBook.routePoints;
+      }
+    });
+  }
+
   _checkIfOnRoute() {
     if (_routePointIndex > 0) {
-      RoutePoint _previousWayPoint = _routePoints[_routePointIndex - 1];
-      double au = _previousWayPoint.distance(_userLocation);
+      RoutePoint _previousTrackPoint = _routePoints[_routePointIndex - 1];
+      RoutePoint _currentTrackPoint = _routePoints[_routePointIndex];
+      double au = _previousTrackPoint.distance(_userLocation);
+      double alpha = (_bearingBetween(
+                      _previousTrackPoint.latLng, _currentTrackPoint.latLng) -
+                  _bearingBetween(_previousTrackPoint.latLng, _userLocation))
+              .abs() /
+          180 *
+          pi;
+      double distanceToRoute = sin(alpha) * au;
+      if (distanceToRoute >= 20) {
+        showLeftRouteDialog();
+      }
+    } else {
+      RoutePoint _currentTrackPoint = _routePoints[_routePointIndex];
+      RoutePoint _nextTrackPoint = _routePoints[_routePointIndex + 1];
+      double au = _currentTrackPoint.distance(_userLocation);
       double alpha =
-          (_bearingBetween(_previousWayPoint.latLng, _currentWayPoint.latLng) -
-                      _bearingBetween(_previousWayPoint.latLng, _userLocation))
+          (_bearingBetween(_currentTrackPoint.latLng, _nextTrackPoint.latLng) -
+                      _bearingBetween(_currentTrackPoint.latLng, _userLocation))
                   .abs() /
               180 *
               pi;
       double distanceToRoute = sin(alpha) * au;
-      print("Distance: $distanceToRoute");
       if (distanceToRoute >= 20) {
         showLeftRouteDialog();
       }
@@ -357,25 +410,29 @@ class NavigationState extends State<NavigationWidget> {
     if (!_leftRouteDialogOpen) {
       _leftRouteDialogOpen = true;
       _leftRouteDialogOpen = await showGeneralDialog<bool>(
-            barrierLabel: "Barrier",
-            barrierDismissible: true,
-            barrierColor: Colors.black.withOpacity(0.5),
-            transitionDuration: Duration(milliseconds: 100),
-            context: this.context,
-            pageBuilder: (_, __, ___) {
-              return SimpleDialog(
-                children: [
+        barrierLabel: "Barrier",
+        barrierDismissible: true,
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionDuration: Duration(milliseconds: 100),
+        context: this.context,
+        pageBuilder: (_, __, ___) {
+          return SimpleDialog(
+            children: [
                   SimpleDialogOption(
                     child: Text('Stop Navigation'),
                     onPressed: () => _closeDialogAndStopNavigation(context),
                   ),
+                  SimpleDialogOption(
+                    child: Text('Navigate to route'),
+                    onPressed: () => _navigateToRoute(context),
+                  ),
                 ],
-              );
-            },
-            transitionBuilder: (_, anim, __, child) {
-              return FadeTransition(
-                opacity: anim,
-                child: child,
+          );
+        },
+        transitionBuilder: (_, anim, __, child) {
+          return FadeTransition(
+            opacity: anim,
+            child: child,
               );
             },
           ) ??
@@ -386,13 +443,43 @@ class NavigationState extends State<NavigationWidget> {
   _closeDialogAndStopNavigation(BuildContext context) {
     Navigator.pop(context, false);
     _parent.stopNavigation();
-    _stopNavigationCallback();
+  }
+
+  _navigateToRoute(BuildContext context) async {
+    Navigator.pop(context, false);
+    http.Response response = await http.post(
+      'http://192.168.151.57:8080/ors/v2/directions/driving-car/gpx',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Accept':
+            'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8',
+      },
+      body: jsonEncode(<String, dynamic>{
+        'coordinates': [
+          [_userLocation.longitude, _userLocation.latitude],
+          [
+            _routePoints[_routePointIndex].latLng.longitude,
+            _routePoints[_routePointIndex].latLng.latitude
+          ]
+        ],
+        'extra_info': [
+          'surface',
+          'waycategory',
+          'waytype',
+          'traildifficulty',
+        ],
+        'instructions': 'true',
+        'instructions_format': 'text',
+      }),
+    );
+    // developer.log("Response: ${response.body}");
+    developer.log("ORS response: ${response.statusCode}");
+    Route route = _routeManager.addPathToRoute(_activeRoute, response.body);
+    _parent.changeNavigationRoute(route);
   }
 }
 
 class NavigationBottomSheet extends StatefulWidget {
-  final Function stopNavigationCallback;
-  final Function recenterCallback;
   final Route activeRoute;
   final int routeStartIndex;
   final LatLng userLocation;
@@ -401,8 +488,6 @@ class NavigationBottomSheet extends StatefulWidget {
   NavigationBottomSheet({
     @required Key key,
     @required this.activeRoute,
-    @required this.stopNavigationCallback,
-    @required this.recenterCallback,
     @required this.routeStartIndex,
     @required this.userLocation,
     @required this.parent,
@@ -410,18 +495,14 @@ class NavigationBottomSheet extends StatefulWidget {
 
   @override
   NavigationBottomSheetState createState() => NavigationBottomSheetState(
-        activeRoute,
-        stopNavigationCallback,
-        recenterCallback,
-        routeStartIndex,
-        userLocation,
-        parent,
-      );
+    activeRoute,
+    routeStartIndex,
+    userLocation,
+    parent,
+  );
 }
 
 class NavigationBottomSheetState extends State<NavigationBottomSheet> {
-  final Function _stopNavigationCallback;
-  final Function _recenterCallback;
   final NavigationHandler _parent;
   Route _activeRoute;
   int _routeStartIndex;
@@ -430,14 +511,10 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
   bool _recenterButtonVisible = false;
   double _distanceLeft;
 
-  NavigationBottomSheetState(
-    this._activeRoute,
-    this._stopNavigationCallback,
-    this._recenterCallback,
-    this._routeStartIndex,
-    this._userLocation,
-    this._parent,
-  ) {
+  NavigationBottomSheetState(this._activeRoute,
+      this._routeStartIndex,
+      this._userLocation,
+      this._parent,) {
     _setDistanceLeft(_userLocation, _routeStartIndex);
   }
 
@@ -452,20 +529,20 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
             children: [
               _recenterButtonVisible
                   ? Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
-                      child: FloatingActionButton.extended(
-                        onPressed: () => recenterMap(),
-                        backgroundColor: Colors.white,
-                        label: Text(
-                          "Re-center",
-                          style: TextStyle(color: Colors.blue),
-                        ),
-                        icon: Icon(
-                          Icons.navigation,
-                          color: Colors.blue,
-                        ),
-                      ),
-                    )
+                padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
+                child: FloatingActionButton.extended(
+                  onPressed: () => recenterMap(),
+                  backgroundColor: Colors.white,
+                  label: Text(
+                    "Re-center",
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                  icon: Icon(
+                    Icons.navigation,
+                    color: Colors.blue,
+                  ),
+                ),
+              )
                   : Container(),
               Container(
                 padding: EdgeInsets.zero,
@@ -490,46 +567,46 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
                   children: <Widget>[
                     _snappingBot
                         ? Stack(
-                            children: [
-                              Transform.rotate(
-                                angle: pi / 8,
-                                child: Container(
-                                  padding: EdgeInsets.zero,
-                                  width: 16,
-                                  height: 4,
-                                  margin: EdgeInsets.only(
-                                      top: 8, left: 0, right: 8),
-                                  decoration: BoxDecoration(
-                                      color: Colors.grey[300],
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(5.0))),
-                                ),
-                              ),
-                              Transform.rotate(
-                                angle: -pi / 8,
-                                child: Container(
-                                  padding: EdgeInsets.zero,
-                                  width: 16,
-                                  height: 4,
-                                  margin: EdgeInsets.only(
-                                      top: 8, left: 8, right: 0),
-                                  decoration: BoxDecoration(
-                                      color: Colors.grey[300],
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(5.0))),
-                                ),
-                              ),
-                            ],
-                          )
-                        : Container(
-                            width: 28,
+                      children: [
+                        Transform.rotate(
+                          angle: pi / 8,
+                          child: Container(
+                            padding: EdgeInsets.zero,
+                            width: 16,
                             height: 4,
-                            margin: EdgeInsets.only(top: 8),
+                            margin: EdgeInsets.only(
+                                top: 8, left: 0, right: 8),
                             decoration: BoxDecoration(
                                 color: Colors.grey[300],
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(5.0))),
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(5.0))),
                           ),
+                        ),
+                        Transform.rotate(
+                          angle: -pi / 8,
+                          child: Container(
+                            padding: EdgeInsets.zero,
+                            width: 16,
+                            height: 4,
+                            margin: EdgeInsets.only(
+                                top: 8, left: 8, right: 0),
+                            decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(5.0))),
+                          ),
+                        ),
+                      ],
+                    )
+                        : Container(
+                      width: 28,
+                      height: 4,
+                      margin: EdgeInsets.only(top: 8),
+                      decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius:
+                          BorderRadius.all(Radius.circular(5.0))),
+                    ),
                     Container(
                       padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
                       alignment: Alignment.centerLeft,
@@ -579,8 +656,9 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
   }
 
   _stopNavigation() {
+    _activeRoute.roadBook.pathToRoute = [];
+    _parent.changeNavigationRoute(_activeRoute);
     _parent.stopNavigation();
-    _stopNavigationCallback();
   }
 
   onLocationChanged(LatLng userLocation, int routeStartIndex) {
@@ -590,8 +668,12 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
   }
 
   _setDistanceLeft(LatLng userLocation, int routeStartIndex) {
-    RoutePoint closestTrackPoint =
-        _activeRoute.roadBook.routePoints[routeStartIndex];
+    RoutePoint closestTrackPoint;
+    if (_activeRoute.roadBook.hasPathToRoute) {
+      closestTrackPoint = _activeRoute.roadBook.pathToRoute[routeStartIndex];
+    } else {
+      closestTrackPoint = _activeRoute.roadBook.routePoints[routeStartIndex];
+    }
     _distanceLeft =
         (_activeRoute.routeLength - closestTrackPoint.distanceFromStart) +
             _distanceBetween(userLocation, closestTrackPoint.latLng);
@@ -599,7 +681,7 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
 
   recenterMap() {
     hideRecenterButton();
-    _recenterCallback();
+    _parent.recenterMap();
   }
 
   showRecenterButton() {
@@ -611,6 +693,12 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
   hideRecenterButton() {
     setState(() {
       _recenterButtonVisible = false;
+    });
+  }
+
+  onRouteChanged(Route route) {
+    setState(() {
+      _activeRoute = route;
     });
   }
 }

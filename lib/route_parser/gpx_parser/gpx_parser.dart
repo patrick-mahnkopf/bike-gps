@@ -34,12 +34,39 @@ class GpxParser implements RouteParser {
       filePath: filePath,
       trackPoints: trackPoints,
       wayPoints: wayPoints,
-      roadBook: _getRoadBook(trackPoints, wayPoints, fileBaseName),
+      roadBook: _getRoadBook(trackPoints, wayPoints),
     );
   }
 
-  RoadBook _getRoadBook(
-      List<Wpt> trackPoints, List<Wpt> wayPoints, String name) {
+  @override
+  Route addPathToRoute(Route route, String body) {
+    Gpx routeGpx = GpxReader().fromString(body);
+    List<Wpt> trackPoints = routeGpx.rtes[0].rtepts;
+    for (int i = 0; i < trackPoints.length; i++) {
+      Wpt point = trackPoints[i];
+      double distanceFromStart;
+      if (i == 0) {
+        distanceFromStart = 0;
+      } else {
+        distanceFromStart =
+            route.roadBook.pathToRoute[i - 1].distanceFromStart +
+                _distanceBetween(trackPoints[i - 1], trackPoints[i]);
+      }
+
+      route.roadBook.pathToRoute.add(RoutePoint(
+        latLng: LatLng(point.lat, point.lon),
+        ele: point.ele,
+        name: point.name,
+        distanceFromStart: distanceFromStart,
+        isWayPoint: true,
+        direction: point.desc,
+        turnSymbolId: point.extensions['type'],
+      ));
+    }
+    return route;
+  }
+
+  RoadBook _getRoadBook(List<Wpt> trackPoints, List<Wpt> wayPoints) {
     RoadBook roadBook = RoadBook();
     //TODO use combinedPoints or remove it
     // List<Wpt> combinedPoints = _getCombinedPoints(trackPoints, wayPoints);

@@ -137,4 +137,8 @@ class RouteManager {
     }
     return similarRoutes;
   }
+
+  Route addPathToRoute(Route route, String response) {
+    return routeParser.addPathToRoute(route, response);
+  }
 }
