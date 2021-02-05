@@ -159,11 +159,13 @@ class NavigationState extends State<NavigationWidget> {
   bool _leftRouteDialogOpen = false;
   final NavigationHandler _parent;
 
-  NavigationState(this._activeRoute,
-      this._routePointIndex,
-      this._userLocation,
-      this._routeManager,
-      this._parent,) {
+  NavigationState(
+    this._activeRoute,
+    this._routePointIndex,
+    this._userLocation,
+    this._routeManager,
+    this._parent,
+  ) {
     if (_activeRoute.roadBook.hasPathToRoute) {
       _routePoints = _activeRoute.roadBook.pathToRoute;
     } else {
@@ -189,47 +191,47 @@ class NavigationState extends State<NavigationWidget> {
                     padding: EdgeInsets.zero,
                     margin: EdgeInsets.zero,
                     decoration: BoxDecoration(
-                color: Colors.green,
-                boxShadow: [
-                  BoxShadow(
-                    blurRadius: 20.0,
-                    color: Colors.black.withOpacity(0.2),
-                  )
-                ],
-                borderRadius: BorderRadius.only(
-                  bottomRight: Radius.circular(8),
-                  topLeft: Radius.circular(8),
-                  topRight: Radius.circular(8),
-                ),
-              ),
-              child: Padding(
-                padding:
-                EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        _getArrowIcon(_currentWayPoint.turnSymbolId),
-                        Text(
-                          getDistanceAsString(
-                              _currentWayPointDistance.toInt()),
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18),
-                        ),
+                      color: Colors.green,
+                      boxShadow: [
+                        BoxShadow(
+                          blurRadius: 20.0,
+                          color: Colors.black.withOpacity(0.2),
+                        )
                       ],
+                      borderRadius: BorderRadius.only(
+                        bottomRight: Radius.circular(8),
+                        topLeft: Radius.circular(8),
+                        topRight: Radius.circular(8),
+                      ),
                     ),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
+                    child: Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              _getArrowIcon(_currentWayPoint.turnSymbolId),
+                              Text(
+                                getDistanceAsString(
+                                    _currentWayPointDistance.toInt()),
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18),
+                              ),
+                            ],
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
                                   Text(
                                     _currentWayPoint.name,
                                     textAlign: TextAlign.center,
@@ -254,55 +256,55 @@ class NavigationState extends State<NavigationWidget> {
                                         color: Colors.white, fontSize: 16),
                                   ),
                                 ],
-                        ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  _nextRoutePoint != null
+                      ? Container(
+                          padding: EdgeInsets.zero,
+                          margin: EdgeInsets.zero,
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade800,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.4),
+                              )
+                            ],
+                            borderRadius: BorderRadius.only(
+                              bottomRight: Radius.circular(8),
+                              bottomLeft: Radius.circular(8),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  "Then",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16),
+                                ),
+                                _getArrowIcon(_nextRoutePoint.turnSymbolId),
+                                Text(
+                                  _nextRoutePoint.name,
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : Container(),
+                ],
               ),
             ),
-            _nextRoutePoint != null
-                ? Container(
-              padding: EdgeInsets.zero,
-              margin: EdgeInsets.zero,
-              decoration: BoxDecoration(
-                color: Colors.green.shade800,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.4),
-                  )
-                ],
-                borderRadius: BorderRadius.only(
-                  bottomRight: Radius.circular(8),
-                  bottomLeft: Radius.circular(8),
-                ),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "Then",
-                      style: TextStyle(
-                          color: Colors.white, fontSize: 16),
-                    ),
-                    _getArrowIcon(_nextRoutePoint.turnSymbolId),
-                    Text(
-                      _nextRoutePoint.name,
-                      style: TextStyle(
-                          color: Colors.white, fontSize: 16),
-                    ),
-                  ],
-                ),
-              ),
-            )
-                : Container(),
-          ],
-        ),
-      ),
-    )
+          )
         : Container();
   }
 
@@ -326,7 +328,7 @@ class NavigationState extends State<NavigationWidget> {
     if (_currentWayPointIndex != null &&
         _currentWayPointIndex + 1 <= _routePoints.length) {
       int _nextRoutePointIndex = _routePoints.indexWhere(
-              (routePoint) => routePoint.isWayPoint, _currentWayPointIndex + 1);
+          (routePoint) => routePoint.isWayPoint, _currentWayPointIndex + 1);
       if (_nextRoutePointIndex != -1) {
         _nextRoutePoint = _routePoints[_nextRoutePointIndex];
       } else {
@@ -410,14 +412,14 @@ class NavigationState extends State<NavigationWidget> {
     if (!_leftRouteDialogOpen) {
       _leftRouteDialogOpen = true;
       _leftRouteDialogOpen = await showGeneralDialog<bool>(
-        barrierLabel: "Barrier",
-        barrierDismissible: true,
-        barrierColor: Colors.black.withOpacity(0.5),
-        transitionDuration: Duration(milliseconds: 100),
-        context: this.context,
-        pageBuilder: (_, __, ___) {
-          return SimpleDialog(
-            children: [
+            barrierLabel: "Barrier",
+            barrierDismissible: true,
+            barrierColor: Colors.black.withOpacity(0.5),
+            transitionDuration: Duration(milliseconds: 100),
+            context: this.context,
+            pageBuilder: (_, __, ___) {
+              return SimpleDialog(
+                children: [
                   SimpleDialogOption(
                     child: Text('Stop Navigation'),
                     onPressed: () => _closeDialogAndStopNavigation(context),
@@ -427,12 +429,12 @@ class NavigationState extends State<NavigationWidget> {
                     onPressed: () => _navigateToRoute(context),
                   ),
                 ],
-          );
-        },
-        transitionBuilder: (_, anim, __, child) {
-          return FadeTransition(
-            opacity: anim,
-            child: child,
+              );
+            },
+            transitionBuilder: (_, anim, __, child) {
+              return FadeTransition(
+                opacity: anim,
+                child: child,
               );
             },
           ) ??
@@ -495,11 +497,11 @@ class NavigationBottomSheet extends StatefulWidget {
 
   @override
   NavigationBottomSheetState createState() => NavigationBottomSheetState(
-    activeRoute,
-    routeStartIndex,
-    userLocation,
-    parent,
-  );
+        activeRoute,
+        routeStartIndex,
+        userLocation,
+        parent,
+      );
 }
 
 class NavigationBottomSheetState extends State<NavigationBottomSheet> {
@@ -511,10 +513,12 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
   bool _recenterButtonVisible = false;
   double _distanceLeft;
 
-  NavigationBottomSheetState(this._activeRoute,
-      this._routeStartIndex,
-      this._userLocation,
-      this._parent,) {
+  NavigationBottomSheetState(
+    this._activeRoute,
+    this._routeStartIndex,
+    this._userLocation,
+    this._parent,
+  ) {
     _setDistanceLeft(_userLocation, _routeStartIndex);
   }
 
@@ -529,20 +533,20 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
             children: [
               _recenterButtonVisible
                   ? Padding(
-                padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
-                child: FloatingActionButton.extended(
-                  onPressed: () => recenterMap(),
-                  backgroundColor: Colors.white,
-                  label: Text(
-                    "Re-center",
-                    style: TextStyle(color: Colors.blue),
-                  ),
-                  icon: Icon(
-                    Icons.navigation,
-                    color: Colors.blue,
-                  ),
-                ),
-              )
+                      padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
+                      child: FloatingActionButton.extended(
+                        onPressed: () => recenterMap(),
+                        backgroundColor: Colors.white,
+                        label: Text(
+                          "Re-center",
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                        icon: Icon(
+                          Icons.navigation,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    )
                   : Container(),
               Container(
                 padding: EdgeInsets.zero,
@@ -567,46 +571,46 @@ class NavigationBottomSheetState extends State<NavigationBottomSheet> {
                   children: <Widget>[
                     _snappingBot
                         ? Stack(
-                      children: [
-                        Transform.rotate(
-                          angle: pi / 8,
-                          child: Container(
-                            padding: EdgeInsets.zero,
-                            width: 16,
-                            height: 4,
-                            margin: EdgeInsets.only(
-                                top: 8, left: 0, right: 8),
-                            decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                borderRadius: BorderRadius.all(
-                                    Radius.circular(5.0))),
-                          ),
-                        ),
-                        Transform.rotate(
-                          angle: -pi / 8,
-                          child: Container(
-                            padding: EdgeInsets.zero,
-                            width: 16,
-                            height: 4,
-                            margin: EdgeInsets.only(
-                                top: 8, left: 8, right: 0),
-                            decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                borderRadius: BorderRadius.all(
-                                    Radius.circular(5.0))),
-                          ),
-                        ),
-                      ],
-                    )
+                            children: [
+                              Transform.rotate(
+                                angle: pi / 8,
+                                child: Container(
+                                  padding: EdgeInsets.zero,
+                                  width: 16,
+                                  height: 4,
+                                  margin: EdgeInsets.only(
+                                      top: 8, left: 0, right: 8),
+                                  decoration: BoxDecoration(
+                                      color: Colors.grey[300],
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(5.0))),
+                                ),
+                              ),
+                              Transform.rotate(
+                                angle: -pi / 8,
+                                child: Container(
+                                  padding: EdgeInsets.zero,
+                                  width: 16,
+                                  height: 4,
+                                  margin: EdgeInsets.only(
+                                      top: 8, left: 8, right: 0),
+                                  decoration: BoxDecoration(
+                                      color: Colors.grey[300],
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(5.0))),
+                                ),
+                              ),
+                            ],
+                          )
                         : Container(
-                      width: 28,
-                      height: 4,
-                      margin: EdgeInsets.only(top: 8),
-                      decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius:
-                          BorderRadius.all(Radius.circular(5.0))),
-                    ),
+                            width: 28,
+                            height: 4,
+                            margin: EdgeInsets.only(top: 8),
+                            decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(5.0))),
+                          ),
                     Container(
                       padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
                       alignment: Alignment.centerLeft,
