@@ -34,6 +34,7 @@ dependencies:
   mapbox_gl:
     git:
       url: https://github.com/tobrun/flutter-mapbox-gl
+      rev: AnnotationSelection
   geocoder:
     git:
       url: https://github.com/otopba/flutter_geocoder.git
