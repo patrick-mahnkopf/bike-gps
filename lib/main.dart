@@ -1,6 +1,6 @@
-import 'package:bike_gps/routeManager.dart';
-import 'package:bike_gps/route_parser/gpx_parser/gpx_parser.dart';
-import 'package:bike_gps/widget/home_widget.dart';
+import 'package:bike_gps/modules/home/home.dart';
+import 'package:bike_gps/modules/route_manager/route_manager.dart';
+import 'package:bike_gps/modules/route_parser/route_parser.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());

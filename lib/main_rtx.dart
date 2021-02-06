@@ -1,6 +1,5 @@
-import 'package:bike_gps/model/additional_widget.dart';
-import 'package:bike_gps/routeManager.dart';
-import 'package:bike_gps/widget/home_widget.dart';
+import 'package:bike_gps/modules/home/home.dart';
+import 'package:bike_gps/modules/route_manager/route_manager.dart';
 import 'package:bike_gps_closed_source/bike_gps_closed_source.dart';
 import 'package:flutter/material.dart';
 

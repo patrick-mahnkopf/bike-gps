@@ -1,0 +1,211 @@
+import 'package:bike_gps/modules/map/map.dart';
+import 'package:bike_gps/modules/navigation/navigation.dart';
+import 'package:bike_gps/modules/route_manager/route_manager.dart';
+import 'package:bike_gps/modules/route_parser/route_parser.dart';
+import 'package:bike_gps/modules/search/search.dart';
+import 'package:flutter/material.dart' hide Route;
+import 'package:location/location.dart';
+import 'package:mapbox_gl_platform_interface/mapbox_gl_platform_interface.dart';
+import 'package:provider/provider.dart';
+
+class MapWidget extends StatefulWidget {
+  final RouteManager routeManager;
+  final MapResources mapResources;
+
+  const MapWidget({
+    @required this.routeManager,
+    @required this.mapResources,
+  });
+
+  @override
+  State createState() => MapState(routeManager, mapResources);
+}
+
+class MapState extends State<MapWidget> {
+  final RouteManager routeManager;
+  final MapResources mapResources;
+  bool _bottomSheetVisible = false;
+  Route _activeRoute;
+  List<Route> _similarRoutes;
+  bool _routeSelectionViewActive = true;
+  bool _navigationViewActive = false;
+  String _initialSearchBarQuery = '';
+  NavigationHandler _navigationHandler;
+
+  final GlobalKey<MapboxMapState> _mapboxMapStateKey = GlobalKey();
+  final GlobalKey<SearchWidgetState> _searchWidgetStateKey = GlobalKey();
+  final GlobalKey<BottomSheetState> _bottomSheetStateKey = GlobalKey();
+
+  MapState(this.routeManager, this.mapResources) {
+    _navigationHandler = NavigationHandler(routeManager: routeManager);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Scaffold(
+          resizeToAvoidBottomInset: false,
+          body: MapboxMapWidget(
+            key: _mapboxMapStateKey,
+            routeManager: routeManager,
+            mapResources: mapResources,
+            searchWidgetStateKey: _searchWidgetStateKey,
+            parent: this,
+          ),
+        ),
+        ..._getActiveWidgets(),
+      ],
+    );
+  }
+
+  List<Widget> _getActiveWidgets() {
+    if (_routeSelectionViewActive) {
+      return _getRouteSelectionWidgets();
+    } else if (_navigationViewActive) {
+      return _navigationHandler.getNavigationWidgets();
+    }
+    return [];
+  }
+
+  List<Widget> _getRouteSelectionWidgets() {
+    return [
+      SafeArea(
+        child: Padding(
+          padding: EdgeInsets.only(top: 64, right: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: FloatingActionButton(
+                  mini: true,
+                  onPressed: () => _mapboxMapStateKey.currentState
+                      .showStyleSelectionDialog(),
+                  child: Icon(Icons.layers),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      SafeArea(
+        child: ChangeNotifierProvider(
+          create: (_) => SearchModel(),
+          child: SearchWidget(
+              key: _searchWidgetStateKey,
+              mapboxMapStateKey: _mapboxMapStateKey,
+              parent: this,
+              routeManager: routeManager,
+              initialQuery: _initialSearchBarQuery),
+        ),
+      ),
+      _bottomSheetVisible
+          ? SafeArea(
+              child: BottomSheetWidget(
+                key: _bottomSheetStateKey,
+                activeRoute: _activeRoute,
+                similarRoutes: _similarRoutes,
+                routeManager: routeManager,
+                parent: this,
+              ),
+            )
+          : Container(),
+    ];
+  }
+
+  startNavigation() async {
+    MapboxMapState _mapboxMapState = _mapboxMapStateKey.currentState;
+    // LatLng currentLocation = await _mapboxMapState.getCurrentLocation();
+    LocationData locationData = await Location().getLocation();
+    LatLng currentLocation =
+        LatLng(locationData.latitude, locationData.longitude);
+    _navigationHandler.startNavigation(
+      activeRoute: _activeRoute,
+      parent: this,
+      currentLocation: currentLocation,
+    );
+    _mapboxMapState.onNavigationStarted(_activeRoute);
+    _activateNavigationView();
+  }
+
+  onLocationUpdated(UserLocation userLocation) {
+    _navigationHandler.onLocationChanged(userLocation.position);
+  }
+
+  onCameraTrackingDismissed() {
+    _navigationHandler.onCameraTrackingDismissed();
+  }
+
+  stopNavigation() {
+    _initialSearchBarQuery = _activeRoute.routeName;
+    _activateRouteSelectionView();
+    _mapboxMapStateKey.currentState.onNavigationStopped();
+  }
+
+  recenterMap() {
+    _mapboxMapStateKey.currentState.setNavigationTrackingMode();
+  }
+
+  _activateRouteSelectionView() {
+    setState(() {
+      _routeSelectionViewActive = true;
+      _navigationViewActive = false;
+    });
+  }
+
+  _activateNavigationView() {
+    setState(() {
+      _navigationViewActive = true;
+      _routeSelectionViewActive = false;
+    });
+  }
+
+  openOptionsMenu() {
+    showGeneralDialog(
+      barrierLabel: "Barrier",
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      transitionDuration: Duration(milliseconds: 100),
+      context: context,
+      pageBuilder: (_, __, ___) {
+        return OptionsDialogWidget();
+      },
+      transitionBuilder: (_, anim, __, child) {
+        return FadeTransition(
+          opacity: anim,
+          child: child,
+        );
+      },
+    );
+  }
+
+  showBottomDrawer(Route route, List<Route> similarRoutes) {
+    setState(() {
+      _activeRoute = route;
+      _similarRoutes = similarRoutes;
+      _bottomSheetVisible = true;
+    });
+  }
+
+  hideBottomDrawer() {
+    setState(() {
+      _bottomSheetVisible = false;
+    });
+  }
+
+  changeActiveRoute(Route route, List<Route> similarRoutes) {
+    _activeRoute = route;
+    _similarRoutes = similarRoutes;
+    _changeBottomDrawerRoute(route);
+  }
+
+  navigateToRouteStart(Route route) async {
+    _activeRoute = route;
+    await _mapboxMapStateKey.currentState.onNavigationStarted(route);
+  }
+
+  _changeBottomDrawerRoute(Route route) {
+    _bottomSheetStateKey.currentState.updateActiveRoute(route);
+  }
+}

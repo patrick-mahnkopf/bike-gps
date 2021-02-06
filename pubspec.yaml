@@ -30,7 +30,7 @@ dependencies:
   path_provider: ^1.6.27
   uni_links: ^0.4.0
   location: ^3.2.4
-  http: ^0.12.2
+  http: ^0.12.0
   mapbox_gl:
     git:
       url: https://github.com/tobrun/flutter-mapbox-gl
@@ -44,8 +44,10 @@ dependencies:
   snapping_sheet: ^2.0.2
   charts_flutter: ^0.9.0
   gpx: ^1.1.1
-  geolocator: ^6.1.14
+  geolocator: ^6.2.0
   flutter_svg: ^0.19.1
+  fluro: ^1.7.8
+  rxdart: ^0.25.0
   bike_gps_closed_source:
     path: ../bike_gps_closed_source
   # The following adds the Cupertino Icons font to your application.
@@ -69,10 +71,13 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-     - assets/
-     - assets/map/
-     - assets/images/
-     - assets/routes/
+    - assets/routes\
+    - assets/html\
+    - assets/images\
+    - assets\
+    - assets/i18n\
+    - assets/fonts\
+    - assets/map\
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
