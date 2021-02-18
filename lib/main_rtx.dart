@@ -1,13 +1,30 @@
-import 'package:bike_gps/modules/home/home.dart';
-import 'package:bike_gps/modules/route_manager/route_manager.dart';
-import 'package:bike_gps_closed_source/bike_gps_closed_source.dart';
 import 'package:flutter/material.dart';
 
-void main() => runApp(MyApp());
+import 'features/presentation/screens/map_screen.dart';
+
+// ignore: avoid_void_async
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // await dependency_injection.init();
+  // await additionalDependencyInit();
+  runApp(MyApp());
+}
+
+// Future<FunctionResult> additionalDependencyInit() async {
+//   // TODO Change to RtxParser
+//   try {
+//     dependency_injection.getIt.registerLazySingleton<TourParser>(() =>
+//         GpxParser(
+//             constants: dependency_injection.getIt(),
+//             locationHelper: dependency_injection.getIt()));
+//     return FunctionResultSuccess();
+//   } on Exception catch (error, stacktrace) {
+//     return FunctionResultFailure(
+//         error: error, stackTrace: stacktrace, name: 'additionalDependencyInit');
+//   }
+// }
 
 class MyApp extends StatelessWidget {
-  final RouteManager routeManager = new RouteManager(new RtxParser());
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -15,25 +32,11 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: buildHomeWidget(),
+      routes: {
+        '/': (context) {
+          return const MapScreen();
+        }
+      },
     );
-  }
-
-  Home buildHomeWidget() {
-    return Home(
-        routeManager: routeManager, additionalWidgetList: getRtxWidgets());
-  }
-
-  List<AdditionalWidget> getRtxWidgets() {
-    List<AdditionalWidget> additionalWidgets = [];
-
-    additionalWidgets.add(AdditionalWidget(
-      insertionIndex: 1,
-      widget: AccountWidget(),
-      bottomNavigationBarItemLabel: 'Account',
-      bottomNavigationBarItemIcon: Icon(Icons.account_circle),
-    ));
-
-    return additionalWidgets;
   }
 }

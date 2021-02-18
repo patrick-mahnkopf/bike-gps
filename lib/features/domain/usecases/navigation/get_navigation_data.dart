@@ -1,0 +1,130 @@
+import 'package:bike_gps/core/error/failure.dart';
+import 'package:bike_gps/core/helpers/distance_helper.dart';
+import 'package:bike_gps/core/usecases/usecase.dart';
+import 'package:bike_gps/features/domain/entities/tour/entities.dart';
+import 'package:dartz/dartz.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
+
+class GetNavigationData extends UseCase<NavigationData, Params> {
+  final DistanceHelper distanceHelper;
+
+  GetNavigationData({this.distanceHelper});
+
+  @override
+  Future<Either<Failure, NavigationData>> call(Params params) {
+    try {
+      return Future.value(right(_getNavigationData(
+          tour: params.tour, userLocation: params.userLocation)));
+    } catch (_) {
+      return Future.value(left(NavigationDataFailure()));
+    }
+  }
+
+  NavigationData _getNavigationData(
+      {@required Tour tour, @required LatLng userLocation}) {
+    final int closestTrackPointIndex =
+        _getClosestTrackPointIndex(tour, userLocation);
+    final double distanceToTourEnd =
+        _getDistanceToTourEnd(tour, closestTrackPointIndex, userLocation);
+    final List<TrackPoint> trackPoints = tour.trackPoints;
+
+    WayPoint currentWayPoint;
+    WayPoint nextWayPoint;
+    double currentWayPointDistance = 0;
+    int currentWayPointIndex;
+    for (int i = closestTrackPointIndex; i < trackPoints.length; i++) {
+      if (i == closestTrackPointIndex) {
+        currentWayPointDistance += distanceHelper.distanceBetweenLatLngs(
+            userLocation, trackPoints[i].latLng);
+      } else {
+        currentWayPointDistance += distanceHelper.distanceBetweenLatLngs(
+            trackPoints[i - 1].latLng, trackPoints[i].latLng);
+      }
+      if (trackPoints[i].isWayPoint) {
+        currentWayPoint = trackPoints[i].wayPoint;
+        currentWayPointIndex = i;
+        break;
+      }
+    }
+
+    if (currentWayPointIndex != null &&
+        currentWayPointIndex + 1 <= trackPoints.length) {
+      final int nextWayPointIndex = trackPoints.indexWhere(
+          (trackPoint) => trackPoint.isWayPoint, currentWayPointIndex + 1);
+      if (nextWayPointIndex != -1) {
+        nextWayPoint = trackPoints[nextWayPointIndex].wayPoint;
+      } else {
+        nextWayPoint = null;
+      }
+    }
+    return NavigationData(
+        currentWayPoint: currentWayPoint,
+        nextWayPoint: nextWayPoint,
+        currentWayPointDistance: currentWayPointDistance,
+        distanceToTourEnd: distanceToTourEnd);
+  }
+
+  int _getClosestTrackPointIndex(Tour tour, LatLng userLocation) {
+    final List<TrackPoint> trackPoints = tour.trackPoints;
+
+    double shortestDistance = double.infinity;
+    int index = -1;
+    for (int i = 0; i < trackPoints.length; i++) {
+      final TrackPoint trackPoint = trackPoints[i];
+      final double currentDistance = distanceHelper.distanceBetweenLatLngs(
+          trackPoint.latLng, userLocation);
+
+      if (currentDistance < shortestDistance) {
+        shortestDistance = currentDistance;
+        index = i;
+      }
+    }
+
+    if (index != 0 &&
+        distanceHelper.distanceBetweenLatLngs(
+                trackPoints[index + 1].latLng, userLocation) <
+            distanceHelper.distanceBetweenLatLngs(
+                trackPoints[index - 1].latLng, userLocation)) {
+      index++;
+    }
+    return index;
+  }
+
+  double _getDistanceToTourEnd(
+      Tour tour, int closestTrackPointIndex, LatLng userLocation) {
+    final TrackPoint closestTrackPoint =
+        tour.trackPoints[closestTrackPointIndex];
+    return (tour.tourLength - closestTrackPoint.distanceFromStart) +
+        distanceHelper.distanceBetweenLatLngs(
+            userLocation, closestTrackPoint.latLng);
+  }
+}
+
+class Params extends Equatable {
+  final Tour tour;
+  final LatLng userLocation;
+
+  const Params({@required this.tour, @required this.userLocation});
+
+  @override
+  List<Object> get props => [tour, userLocation];
+}
+
+class NavigationData extends Equatable {
+  final WayPoint currentWayPoint;
+  final double currentWayPointDistance;
+  final WayPoint nextWayPoint;
+  final double distanceToTourEnd;
+
+  const NavigationData(
+      {@required this.currentWayPoint,
+      @required this.nextWayPoint,
+      @required this.currentWayPointDistance,
+      @required this.distanceToTourEnd});
+
+  @override
+  List<Object> get props =>
+      [currentWayPoint, currentWayPointDistance, nextWayPoint];
+}

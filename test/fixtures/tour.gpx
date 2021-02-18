@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns="https://raw.githubusercontent.com/GIScience/openrouteservice-schema/master/gpx/v2/ors-gpx.xsd" version="1.0" creator="openrouteservice">
+   <metadata>
+      <name>openrouteservice routing</name>
+      <desc>This is a directions instructions file as GPX, generated from openrouteservice</desc>
+      <author>
+         <name>openrouteservice</name>
+         <email id="support" domain="openrouteservice.org" />
+         <link href="https://openrouteservice.org/">
+            <text>https://openrouteservice.org/</text>
+            <type>text/html</type>
+         </link>
+      </author>
+      <copyright author="openrouteservice.org, OpenStreetMap contributors">
+         <year>2021</year>
+         <license>LGPL 3.0</license>
+      </copyright>
+      <time>2021-02-03T21:17:21.826Z</time>
+      <bounds maxLat="1.1" maxLon="1.1" minLat="0.1" minLon="0.1" />
+      <extensions>
+         <system-message />
+      </extensions>
+   </metadata>
+   <rte>
+      <rtept lat="1.0" lon="1.0">
+         <name>test name 1</name>
+         <desc>test desc 1</desc>
+         <extensions>
+            <distance>10.1</distance>
+            <duration>10.1</duration>
+            <type>11</type>
+            <step>0</step>
+         </extensions>
+      </rtept>
+      <rtept lat="0.9" lon="0.9">
+         <name>test name 2</name>
+         <desc>test desc 2</desc>
+         <extensions>
+            <distance>11.1</distance>
+            <duration>11.1</duration>
+            <type>11</type>
+            <step>0</step>
+         </extensions>
+      </rtept>
+      <extensions>
+         <distance>2196.2</distance>
+         <duration>174.7</duration>
+         <ascent>0.0</ascent>
+         <descent>0.0</descent>
+         <avgspeed>45.3</avgspeed>
+         <bounds maxLat="52.344188" maxLon="9.771605" minLat="52.334831" minLon="9.755204" />
+      </extensions>
+   </rte>
+   <extensions>
+      <attribution>openrouteservice.org, OpenStreetMap contributors</attribution>
+      <engine>6.3.6</engine>
+      <build_date>2021-02-02T10:18:04Z</build_date>
+      <profile>driving-car</profile>
+      <language>en</language>
+      <distance-units>m</distance-units>
+      <instructions>true</instructions>
+      <elevation>false</elevation>
+   </extensions>
+</gpx>
