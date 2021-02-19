@@ -7,6 +7,7 @@ import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
+import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
 part 'navigation_event.dart';
@@ -32,9 +33,11 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       NavigationLoaded event) async* {
     yield NavigationLoading();
     try {
+      final LatLng userLocation =
+          LatLng(event.userLocation.latitude, event.userLocation.longitude);
       final Either<Failure, NavigationData> navigationDataEither =
           await _getNavigationData(
-              Params(tour: event.tour, userLocation: event.userLocation));
+              Params(tour: event.tour, userLocation: userLocation));
       yield* _eitherLoadSuccessOrLoadFailureState(navigationDataEither);
     } on Exception catch (error) {
       yield NavigationLoadFailure(message: error.toString());

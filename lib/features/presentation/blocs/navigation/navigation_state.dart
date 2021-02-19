@@ -16,23 +16,30 @@ class NavigationLoadSuccess extends NavigationState {
   final WayPoint nextWayPoint;
   final double currentWayPointDistance;
   final double distanceToTourEnd;
+  final LatLng userLocation;
+  final NavigationData navigationData;
 
-  const NavigationLoadSuccess(
-      {@required this.currentWayPoint,
-      @required this.nextWayPoint,
-      @required this.currentWayPointDistance,
-      @required this.distanceToTourEnd});
+  const NavigationLoadSuccess({
+    @required this.currentWayPoint,
+    @required this.nextWayPoint,
+    @required this.currentWayPointDistance,
+    @required this.distanceToTourEnd,
+    this.userLocation,
+    this.navigationData,
+  });
 
   @override
   String toString() =>
-      'NavigationLoadSuccess { currentWayPoint: $currentWayPoint, nextWayPoint: $nextWayPoint, currentWayPointDistance: $currentWayPointDistance, distanceToTourEnd: $distanceToTourEnd,  }';
+      'NavigationLoadSuccess { currentWayPoint: $currentWayPoint, nextWayPoint: $nextWayPoint, currentWayPointDistance: $currentWayPointDistance, distanceToTourEnd: $distanceToTourEnd, userLocation: $userLocation, navigationData: $navigationData }';
 
   @override
   List<Object> get props => [
         currentWayPoint,
         nextWayPoint,
         currentWayPointDistance,
-        distanceToTourEnd
+        distanceToTourEnd,
+        userLocation,
+        navigationData
       ];
 }
 

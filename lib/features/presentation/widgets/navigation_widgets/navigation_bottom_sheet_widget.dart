@@ -1,12 +1,12 @@
 import 'dart:math';
 
+import 'package:bike_gps/features/presentation/blocs/map/map_bloc.dart';
+import 'package:bike_gps/features/presentation/blocs/mapbox/mapbox_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../../../core/helpers/helpers.dart';
 import '../../../../injection_container.dart';
-import '../../../blocs/map/map_bloc.dart';
-import '../../../blocs/mapbox/mapbox_bloc.dart';
 
 class NavigationBottomSheetWidget extends StatelessWidget {
   final double distanceToTourEnd;

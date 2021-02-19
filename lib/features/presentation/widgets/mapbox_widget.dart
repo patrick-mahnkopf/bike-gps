@@ -1,11 +1,11 @@
 import 'dart:math';
 
+import 'package:bike_gps/features/presentation/blocs/mapbox/mapbox_bloc.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
 import '../../../core/controllers/controllers.dart';
 import '../../../injection_container.dart';
-import '../../blocs/mapbox/mapbox_bloc.dart';
 
 class MapboxWidget extends StatelessWidget {
   final MapboxController mapboxController;

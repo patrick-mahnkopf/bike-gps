@@ -1,29 +1,25 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
+import 'package:get_it/get_it.dart';
 // **************************************************************************
 // InjectableConfigGenerator
 // **************************************************************************
 
 import 'package:http/http.dart';
-import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:location/location.dart';
 
-import 'core/helpers/color_helper.dart';
-import 'core/helpers/constants_helper.dart';
-import 'core/helpers/distance_helper.dart';
-import 'injection_container.dart';
+import 'core/helpers/helpers.dart';
+import 'features/data/data_sources/tour/data_sources.dart';
+import 'features/data/data_sources/tour_parser/data_sources.dart';
+import 'features/data/repositories/tour/repositories.dart';
+import 'features/domain/repositories/repositories.dart';
+import 'features/domain/usecases/navigation/get_navigation_data.dart';
 import 'features/presentation/blocs/map/map_bloc.dart';
 import 'features/presentation/blocs/mapbox/mapbox_bloc.dart';
 import 'features/presentation/blocs/navigation/navigation_bloc.dart';
 import 'features/presentation/blocs/tour/tour_bloc.dart';
-import 'features/data/data_sources/tour/tour_local_data_source.dart';
-import 'features/data/data_sources/tour/data_sources.dart' as bike_gps1;
-import 'features/data/data_sources/tour_parser/data_sources.dart';
-import 'features/data/data_sources/tour/tour_remote_data_source.dart';
-import 'features/domain/repositories/tour_repository.dart';
-import 'features/data/repositories/tour/tour_repository_impl.dart';
-import 'core/helpers/turn_symbol_helper.dart';
+import 'injection_container.dart';
 
 /// adds generated dependencies
 /// to the provided [GetIt] instance
@@ -44,21 +40,18 @@ Future<GetIt> $initGetIt(
   gh.factory<Location>(() => resolvedLocation);
   gh.factory<MapBloc>(() => MapBloc());
   gh.factory<MapboxBloc>(() => MapboxBloc());
-  gh.factory<NavigationBloc>(() => NavigationBloc(locationHelper: get()));
-  gh.factory<NextWayPointsContainer>(() => NextWayPointsContainer(
-        currentWayPoint: get(),
-        nextWayPoint: get(),
-        currentWayPointDistance: get<double>(),
-      ));
-  gh.factory<TourBloc>(() => TourBloc(tourRepository: get()));
+  gh.factory<NavigationBloc>(
+      () => NavigationBloc(getNavigationData: get<GetNavigationData>()));
+  gh.factory<TourBloc>(() => TourBloc(tourRepository: get<TourRepository>()));
   gh.factory<TourLocalDataSource>(
       () => TourLocalDataSourceImpl(tourParser: get<TourParser>()));
   gh.factory<TourRemoteDataSource>(() => TourRemoteDataSourceImpl(
       tourParser: get<TourParser>(), client: get<Client>()));
   gh.factory<TourRepository>(() => TourRepositoryImpl(
-      localDataSource: get<bike_gps1.TourLocalDataSource>(),
-      remoteDataSource: get<bike_gps1.TourRemoteDataSource>()));
-  gh.factory<TurnSymbolHelper>(() => TurnSymbolHelper());
+      localDataSource: get<TourLocalDataSource>(),
+      remoteDataSource: get<TourRemoteDataSource>()));
+  gh.factory<TurnSymbolHelper>(
+      () => TurnSymbolHelper(turnSymbolAssetPaths: get<Map<String, String>>()));
   return get;
 }
 

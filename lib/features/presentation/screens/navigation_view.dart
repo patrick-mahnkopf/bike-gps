@@ -17,9 +17,18 @@ class NavigationView extends StatelessWidget {
   Widget build(BuildContext context) {
     getIt<Location>().onLocationChanged.listen((LocationData currentLocation) {
       final TourState tourState = getIt<TourBloc>().state;
+      final NavigationState navigationState = getIt<NavigationBloc>().state;
       if (tourState is TourLoadSuccess) {
-        getIt<NavigationBloc>().add(NavigationLoaded(
-            userLocation: currentLocation, tour: tourState.tour));
+        if (navigationState is NavigationLoadSuccess) {
+          getIt<NavigationBloc>().add(NavigationLoaded(
+              userLocation: currentLocation,
+              tour: tourState.tour,
+              navigationData: navigationState.navigationData,
+              previousLocation: navigationState.userLocation));
+        } else {
+          getIt<NavigationBloc>().add(NavigationLoaded(
+              userLocation: currentLocation, tour: tourState.tour));
+        }
       }
     });
 

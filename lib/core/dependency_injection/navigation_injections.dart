@@ -7,7 +7,7 @@ Future<FunctionResult> navigationInjectionsInit(GetIt getIt) async {
   try {
     // Bloc
     getIt.registerLazySingleton<NavigationBloc>(
-        () => NavigationBloc(locationHelper: getIt()));
+        () => NavigationBloc(getNavigationData: getIt()));
     return FunctionResultSuccess();
   } on Exception catch (error, stacktrace) {
     return FunctionResultFailure(

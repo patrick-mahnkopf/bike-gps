@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bike_gps/core/error/failure.dart';
 import 'package:bike_gps/core/helpers/distance_helper.dart';
 import 'package:bike_gps/core/usecases/usecase.dart';
@@ -17,7 +19,8 @@ class GetNavigationData extends UseCase<NavigationData, Params> {
     try {
       return Future.value(right(_getNavigationData(
           tour: params.tour, userLocation: params.userLocation)));
-    } catch (_) {
+    } on Exception catch (error) {
+      log(error.toString());
       return Future.value(left(NavigationDataFailure()));
     }
   }
@@ -72,9 +75,9 @@ class GetNavigationData extends UseCase<NavigationData, Params> {
     double shortestDistance = double.infinity;
     int index = -1;
     for (int i = 0; i < trackPoints.length; i++) {
-      final TrackPoint trackPoint = trackPoints[i];
+      final TrackPoint currentTrackPoint = trackPoints[i];
       final double currentDistance = distanceHelper.distanceBetweenLatLngs(
-          trackPoint.latLng, userLocation);
+          currentTrackPoint.latLng, userLocation);
 
       if (currentDistance < shortestDistance) {
         shortestDistance = currentDistance;
@@ -82,12 +85,21 @@ class GetNavigationData extends UseCase<NavigationData, Params> {
       }
     }
 
-    if (index != 0 &&
-        distanceHelper.distanceBetweenLatLngs(
-                trackPoints[index + 1].latLng, userLocation) <
-            distanceHelper.distanceBetweenLatLngs(
-                trackPoints[index - 1].latLng, userLocation)) {
-      index++;
+    final bool currentIsLastPointInTour = index == trackPoints.length;
+    if (!currentIsLastPointInTour) {
+      final TrackPoint currentTrackPoint = trackPoints[index];
+      final TrackPoint nextTrackPoint = trackPoints[index + 1];
+
+      final double userDistanceToNextWayPoint = distanceHelper
+          .distanceBetweenLatLngs(userLocation, nextTrackPoint.latLng);
+      final double distanceBetweenCurrentAndNextWayPoint =
+          distanceHelper.distanceBetweenLatLngs(
+              currentTrackPoint.latLng, nextTrackPoint.latLng);
+
+      // User passed closest way point, should thus return the next one
+      if (userDistanceToNextWayPoint < distanceBetweenCurrentAndNextWayPoint) {
+        index++;
+      }
     }
     return index;
   }
