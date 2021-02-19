@@ -1,1 +1,0 @@
-https://demo2.kbs.uni-hannover.de/styles/osm-bright/style.json
