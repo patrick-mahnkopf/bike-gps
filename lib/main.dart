@@ -47,7 +47,7 @@ Future<FunctionResult> _additionalDependencyInit() async {
 
 Future<FunctionResult> _systemInit() async {
   try {
-    await getIt.isReady<ConstantsHelper>();
+    // await getIt.isReady<ConstantsHelper>();
     final ConstantsHelper constants = getIt<ConstantsHelper>();
     if (!await Directory(constants.tourDirectoryPath).exists()) {
       await Directory(constants.tourDirectoryPath).create(recursive: true);
@@ -76,7 +76,7 @@ MaterialApp _getMaterialApp() {
         '/': (context) {
           return BlocProvider(
             create: (context) => getIt<MapBloc>(),
-            child: const MapScreen(),
+            child: MapScreen(),
           );
         }
       });

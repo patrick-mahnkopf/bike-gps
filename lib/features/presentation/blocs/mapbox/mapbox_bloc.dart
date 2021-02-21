@@ -1,13 +1,16 @@
 import 'dart:async';
 
-import 'package:bike_gps/core/controllers/controllers.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
+import 'package:injectable/injectable.dart';
+
+import '../../../../core/controllers/controllers.dart';
 
 part 'mapbox_event.dart';
 part 'mapbox_state.dart';
 
+@lazySingleton
 class MapboxBloc extends Bloc<MapboxEvent, MapboxState> {
   MapboxBloc() : super(MapboxInitial());
 

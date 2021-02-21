@@ -1,9 +1,9 @@
 import 'dart:developer';
 
-import 'package:bike_gps/core/error/exception.dart';
 import 'package:flutter/widgets.dart';
 import 'package:injectable/injectable.dart';
 
+import '../../../../core/error/exception.dart';
 import '../../models/tour/models.dart';
 import '../tour_parser/data_sources.dart';
 

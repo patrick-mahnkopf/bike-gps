@@ -1,0 +1,27 @@
+<svg id="Ebene_1" viewBox="0 0 21.36 22.06" xmlns="http://www.w3.org/2000/svg">
+    <polygon fill="none" fill-rule="evenodd"
+        points="10.68 1.99 0 1.99 0 21.97 10.68 21.97 21.36 21.97 21.36 1.99 10.68 1.99" />
+    <path d="M85.42,106.79a3.25,3.25,0,1,0-3.25-3.25A3.25,3.25,0,0,0,85.42,106.79Z" fill="#231f20"
+        stroke="#231f20" stroke-width="0.45" transform="translate(-75.5 -84.96)" />
+    <polygon fill="none" fill-rule="evenodd"
+        points="16.76 6.21 1.96 6.21 1.96 7.68 17.88 7.68 16.76 6.21" />
+    <polygon fill="none" fill-rule="evenodd"
+        points="16.76 9.15 17.88 7.68 1.96 7.68 1.96 9.15 16.76 9.15" />
+    <line fill="none" stroke="#231f20" stroke-width="0.45" x1="16.76" x2="1.96" y1="6.21"
+        y2="6.21" />
+    <line fill="none" stroke="#231f20" stroke-width="0.45" x1="1.96" x2="16.76" y1="9.15"
+        y2="9.15" />
+    <rect fill="none" height="12.36" width="1.47" x="8.44" y="6.22" />
+    <rect fill="none" height="12.36" width="1.47" x="9.92" y="6.22" />
+    <line fill="none" stroke="#231f20" stroke-width="0.45" x1="8.44" x2="8.44" y1="6.22"
+        y2="18.58" />
+    <line fill="none" stroke="#231f20" stroke-width="0.45" x1="11.39" x2="11.39" y1="18.58"
+        y2="6.22" />
+    <polygon fill="#231f20"
+        points="19.07 7.71 15.82 4.45 15.82 6.22 8.45 6.22 8.45 21.07 11.39 21.07 11.39 9.18 15.82 9.18 15.82 10.96 19.07 7.71"
+        stroke="#231f20" stroke-width="0.45" />
+    <line fill="none" stroke="#231f20" stroke-width="0.45" x1="12.86" x2="6.54" y1="6.48"
+        y2="0.16" />
+    <line fill="none" stroke="#231f20" stroke-width="0.45" x1="4.45" x2="9.47" y1="2.25"
+        y2="7.27" />
+</svg>

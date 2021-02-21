@@ -1,11 +1,13 @@
+// Dart imports:
 import 'dart:math';
 
-import 'package:bike_gps/features/presentation/blocs/mapbox/mapbox_bloc.dart';
+// Flutter imports:
 import 'package:flutter/widgets.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
 import '../../../core/controllers/controllers.dart';
 import '../../../injection_container.dart';
+import '../blocs/mapbox/mapbox_bloc.dart';
 
 class MapboxWidget extends StatelessWidget {
   final MapboxController mapboxController;
@@ -16,6 +18,16 @@ class MapboxWidget extends StatelessWidget {
     getIt<MapboxBloc>().add(MapboxLoaded(
         mapboxController: mapboxController.copyWith(
             mapboxMapController: mapboxMapController)));
+  }
+
+  void _onMyLocationTrackingModeChanged() {
+    final MapboxBloc mapboxBloc = getIt<MapboxBloc>();
+    final MapboxState mapboxState = mapboxBloc.state;
+    if (mapboxState is MapboxLoadSuccess) {
+      mapboxBloc.add(MapboxLoaded(
+          mapboxController: mapboxState.controller
+              .copyWith(myLocationTrackingMode: MyLocationTrackingMode.None)));
+    }
   }
 
   @override
@@ -30,7 +42,8 @@ class MapboxWidget extends StatelessWidget {
       compassViewPosition: CompassViewPosition.BottomRight,
       compassViewMargins: const Point(32, 32),
       myLocationEnabled: true,
-      myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass,
+      myLocationTrackingMode: mapboxController.myLocationTrackingMode,
+      onCameraTrackingDismissed: _onMyLocationTrackingModeChanged,
     );
   }
 }

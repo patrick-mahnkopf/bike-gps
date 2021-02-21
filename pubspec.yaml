@@ -80,6 +80,7 @@ flutter:
     - assets/tours/
     - assets/html/
     - assets/images/
+    - assets/images/turnArrows/
     - assets/
     - assets/i18n/
     - assets/fonts/

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../../../../core/helpers/helpers.dart';
+import '../../../../../core/widgets/custom_widgets.dart';
 import '../../../../domain/entities/tour/entities.dart';
 
 class UpperNavigationWidget extends StatelessWidget {
@@ -44,6 +45,7 @@ class UpperNavigationWidget extends StatelessWidget {
         child: Row(
           children: [
             Column(
+              mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 turnSymbolHelper.getTurnSymbolFromId(
@@ -61,26 +63,10 @@ class UpperNavigationWidget extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      currentWayPoint.name,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 24),
-                    ),
-                    Text(
-                      currentWayPoint.location,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                    Text(
-                      currentWayPoint.direction,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
-                    ),
+                    ..._getCurrentWayPointWidgets(),
                   ],
                 ),
               ),
@@ -89,5 +75,27 @@ class UpperNavigationWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<Widget> _getCurrentWayPointWidgets() {
+    final List<Widget> widgets = [];
+    if (currentWayPoint.location != null && currentWayPoint.location != '') {
+      widgets.add(CustomContainerTextWidget(
+        text: currentWayPoint.location,
+      ));
+    }
+    if (currentWayPoint.direction != null && currentWayPoint.direction != '') {
+      widgets.add(CustomContainerTextWidget(
+        text: currentWayPoint.direction,
+      ));
+    }
+    if (widgets.isEmpty &&
+        currentWayPoint.name != null &&
+        currentWayPoint.name != '') {
+      widgets.add(CustomContainerTextWidget(
+        text: currentWayPoint.name,
+      ));
+    }
+    return widgets;
   }
 }

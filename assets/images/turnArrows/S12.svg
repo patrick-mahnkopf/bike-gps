@@ -1,0 +1,31 @@
+<svg id="Ebene_1" viewBox="0 0 21.36 19.98" xmlns="http://www.w3.org/2000/svg">
+    <polygon fill="none" fill-rule="evenodd"
+        points="10.68 0 0 0 0 19.98 10.68 19.98 21.36 19.98 21.36 0 10.68 0" />
+    <polygon fill="#231f20" points="2.89 4.89 7.49 0.29 2.89 0.29 2.89 4.89" stroke="#231f20"
+        stroke-width="0.15" />
+    <path
+        d="M83.64,77.07a6.47,6.47,0,0,0-3,5.43h0V88.6h3V82.51A3.54,3.54,0,0,1,87.18,79V76A6.4,6.4,0,0,0,83.64,77.07Z"
+        fill="none" fill-rule="evenodd" transform="translate(-73.5 -72.02)" />
+    <path
+        d="M87.18,76a6.4,6.4,0,0,0-3.54,1,6.47,6.47,0,0,0-3,5.43h0V88.6h3V82.51A3.54,3.54,0,0,1,87.18,79"
+        fill="none" fill-rule="evenodd" stroke="#231f20" stroke-width="0.45"
+        transform="translate(-73.5 -72.02)" />
+    <path
+        d="M90.72,77.07a6.35,6.35,0,0,1,1.16,1c-.33.33-.65.67-1,1l-1.09,1.13A3.52,3.52,0,0,0,87.18,79V76A6.4,6.4,0,0,1,90.72,77.07Z"
+        fill="none" fill-rule="evenodd" transform="translate(-73.5 -72.02)" />
+    <path d="M82.16,91.71a3.25,3.25,0,1,0-3.25-3.25A3.24,3.24,0,0,0,82.16,91.71Z" fill="#231f20"
+        stroke="#231f20" stroke-width="0.15" transform="translate(-73.5 -72.02)" />
+    <path
+        d="M83.51,81.18l1-1,.06-.06a3.5,3.5,0,0,0-1,2.43V88.6h-3V82.51h0a6.39,6.39,0,0,1,.85-3.19Z"
+        transform="translate(-73.5 -72.02)" />
+    <path d="M81.54,79.31,77,75l1-1,1-1,4.44,4.22A6.4,6.4,0,0,0,81.54,79.31Z" stroke="#231f20"
+        stroke-width="0.45" transform="translate(-73.5 -72.02)" />
+    <path d="M84.75,79.94l-.14.14Z" stroke="#231f20" stroke-width="0.45"
+        transform="translate(-73.5 -72.02)" />
+    <path d="M83.51,81.18l-2-1.87a6.4,6.4,0,0,1,2-2.17l2,2-.84.84-.14.14-.06.06Z" stroke="#231f20"
+        stroke-width="0.45" transform="translate(-73.5 -72.02)" />
+    <path d="M87.18,76a6.45,6.45,0,0,1,4.7,2" fill="none" fill-rule="evenodd" stroke="#231f20"
+        stroke-width="0.45" transform="translate(-73.5 -72.02)" />
+    <path d="M89.82,80.17A3.52,3.52,0,0,0,87.18,79" fill="none" fill-rule="evenodd" stroke="#231f20"
+        stroke-width="0.45" transform="translate(-73.5 -72.02)" />
+</svg>

@@ -1,10 +1,10 @@
-import 'package:bike_gps/core/error/exception.dart';
-import 'package:bike_gps/core/error/failure.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/widgets.dart';
 import 'package:injectable/injectable.dart';
 import 'package:mapbox_gl_platform_interface/mapbox_gl_platform_interface.dart';
 
+import '../../../../core/error/exception.dart';
+import '../../../../core/error/failure.dart';
 import '../../../domain/entities/tour/entities.dart';
 import '../../../domain/repositories/tour_repository.dart';
 import '../../data_sources/tour/data_sources.dart';

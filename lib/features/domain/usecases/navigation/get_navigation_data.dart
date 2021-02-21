@@ -1,14 +1,17 @@
 import 'dart:developer';
 
-import 'package:bike_gps/core/error/failure.dart';
-import 'package:bike_gps/core/helpers/distance_helper.dart';
-import 'package:bike_gps/core/usecases/usecase.dart';
-import 'package:bike_gps/features/domain/entities/tour/entities.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
+import 'package:injectable/injectable.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
+import '../../../../core/error/failure.dart';
+import '../../../../core/helpers/distance_helper.dart';
+import '../../../../core/usecases/usecase.dart';
+import '../../entities/tour/entities.dart';
+
+@lazySingleton
 class GetNavigationData extends UseCase<NavigationData, Params> {
   final DistanceHelper distanceHelper;
 

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TurnSymbolHelper turnSymbolHelper;
+  ConstantsHelper constantsHelper;
   final Map<String, String> tTurnSymbolAssetPaths = {
     'testid': 'test/assets/turnArrows/A01.svg'
   };
@@ -23,8 +24,10 @@ void main() {
   const Icon tInfoIcon = Icon(Icons.info);
 
   setUp(() async {
-    turnSymbolHelper =
-        TurnSymbolHelper(turnSymbolAssetPaths: tTurnSymbolAssetPaths);
+    constantsHelper = ConstantsHelper(
+        applicationDocumentsDirectoryPath: '',
+        turnSymbolAssetPaths: tTurnSymbolAssetPaths);
+    turnSymbolHelper = TurnSymbolHelper(constantsHelper: constantsHelper);
   });
 
   bool svgPicturesEqual(SvgPicture first, SvgPicture second) {

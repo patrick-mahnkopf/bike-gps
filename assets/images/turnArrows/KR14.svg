@@ -1,0 +1,35 @@
+<svg id="Ebene_1" viewBox="0 0 21.35 23.46" xmlns="http://www.w3.org/2000/svg">
+    <polygon fill="none" fill-rule="evenodd"
+        points="10.68 3.47 0 3.47 0 23.46 10.68 23.46 21.36 23.46 21.36 3.47 10.68 3.47" />
+    <path d="M98.47,87.41" fill="none" stroke="#000" transform="translate(-81.47 -78.99)" />
+    <path d="M90.61,98.89a3.25,3.25,0,1,0-3.24-3.25A3.25,3.25,0,0,0,90.61,98.89Z" fill="#231f20"
+        stroke="#231f20" stroke-width="0.15" transform="translate(-81.47 -78.99)" />
+    <path
+        d="M94.5,86.68a4,4,0,0,0-.66-1.14m4.26,1.14-3.6,0-7.13-1.12a3.88,3.88,0,0,0-.64,1.12H83.14m0,2.95h3.59A4.15,4.15,0,0,0,89.14,92v3.6m5.36-6,3.6,0-6,6V92a4.15,4.15,0,0,0,2.41-2.41m-5.36-1.17v-.6a1.52,1.52,0,0,1,1.18-1.18h.6a1.51,1.51,0,0,1,1.17,1.18v.6a1.5,1.5,0,0,1-1.18,1.17h-.58A1.49,1.49,0,0,1,89.14,88.46Z"
+        fill="none" stroke="#000" stroke-width="0.45" transform="translate(-81.47 -78.99)" />
+    <path d="M89.76,84a4.84,4.84,0,0,1,1.82,0" fill="none" stroke="#000" stroke-width="0.45"
+        transform="translate(-81.47 -78.99)" />
+    <path d="M93.78,85.74l2-2.83m-2.33-1.8-2.07,2.94m-3.31-2.42" fill="none" stroke="#000"
+        stroke-width="0.45" transform="translate(-81.47 -78.99)" />
+    <path
+        d="M94.66,86.76h-.13l-2.41,1.17v.6a1.52,1.52,0,0,1-1.18,1.18h-.59l-1.18,2.41v3.59h3V92.12a4.15,4.15,0,0,0,2.41-2.41h.11"
+        stroke="#000" stroke-width="0.45" transform="translate(-81.47 -78.99)" />
+    <polygon points="7.99 1.28 2.49 4.77 3.5 0.27 7.99 1.28" stroke="#231f20" stroke-width="0.45" />
+    <path d="M89.92,84.12,88,81.21m-2.47,1.61,1.89,2.91M84,87.88" fill="none" stroke="#000"
+        stroke-width="0.45" transform="translate(-81.47 -78.99)" />
+    <path d="M91.6,83.86l-.14.2h0l-.34,2.66.5.33A1.51,1.51,0,0,1,92,88.69l-.32.48h0L93,91.49"
+        stroke="#000" stroke-width="0.45" transform="translate(-81.47 -78.99)" />
+    <path d="M94.62,89a4.22,4.22,0,0,0-.69-3.34l.1-.16" stroke="#000" stroke-width="0.45"
+        transform="translate(-81.47 -78.99)" />
+    <path d="M94.68,88.45a4.89,4.89,0,0,1-.43,1.77" fill="none" stroke="#000" stroke-width="0.45"
+        transform="translate(-81.47 -78.99)" />
+    <line fill="none" stroke="#231f20" stroke-width="0.45" x1="16.8" x2="11.01" y1="7.77"
+        y2="7.77" />
+    <line fill="none" stroke="#231f20" stroke-width="0.45" x1="11.01" x2="16.8" y1="10.72"
+        y2="10.72" />
+    <path
+        d="M93.09,84.74a4.17,4.17,0,0,0-3.34-.68l-2-3-1.23.81-1.23.81,2,3h0l2.31,1.37.5-.33a1.5,1.5,0,0,1,1.63.34l.32.49h0l2.66-.35"
+        stroke="#000" stroke-width="0.45" transform="translate(-81.47 -78.99)" />
+    <path d="M93,84.66a4.8,4.8,0,0,1,1.06,1.48" fill="none" stroke="#000" stroke-width="0.45"
+        transform="translate(-81.47 -78.99)" />
+</svg>

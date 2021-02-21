@@ -14,8 +14,8 @@ class NavigationLoaded extends NavigationEvent {
   final NavigationData navigationData;
 
   const NavigationLoaded(
-      {@required this.userLocation,
-      @required this.tour,
+      {@required this.tour,
+      this.userLocation,
       this.previousLocation,
       this.navigationData});
 
@@ -26,4 +26,14 @@ class NavigationLoaded extends NavigationEvent {
   @override
   String toString() =>
       'NavigationLoaded { userLocation: $userLocation, tour: $tour, previousLocation: $previousLocation, navigationData: $navigationData }';
+}
+
+class NavigationStopped extends NavigationEvent {
+  final String name = 'NavigationStopped';
+
+  @override
+  List<Object> get props => [name];
+
+  @override
+  String toString() => 'NavigationStopped';
 }

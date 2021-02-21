@@ -1,0 +1,33 @@
+<svg id="Ebene_1" viewBox="0 0 21.36 19.98" xmlns="http://www.w3.org/2000/svg">
+    <polygon fill="none" fill-rule="evenodd"
+        points="10.68 0 21.36 0 21.36 19.98 10.68 19.98 0 19.98 0 0 10.68 0" />
+    <rect fill="none" height="1.47" transform="translate(-114.06 -14.84) rotate(-38.8)" width="6.84"
+        x="75.63" y="95.02" />
+    <rect fill="none" height="1.47" transform="translate(-114.57 -14.01) rotate(-38.8)" width="6.84"
+        x="76.56" y="96.17" />
+    <line fill="none" stroke="#231f20" stroke-width="0.45" x1="9.75" x2="4.42" y1="7.54"
+        y2="11.83" />
+    <line fill="none" stroke="#231f20" stroke-width="0.45" x1="6.27" x2="11.6" y1="14.12"
+        y2="9.84" />
+    <rect fill="none" height="1.47" transform="translate(-110.2 -12.45) rotate(-38.8)" width="6.84"
+        x="80.96" y="90.74" />
+    <rect fill="none" height="1.47" transform="translate(-110.71 -11.62) rotate(-38.8)" width="6.84"
+        x="81.89" y="91.89" />
+    <line fill="none" stroke="#231f20" stroke-width="0.45" x1="15.08" x2="9.75" y1="3.26"
+        y2="7.54" />
+    <line fill="none" stroke="#231f20" stroke-width="0.45" x1="11.6" x2="16.93" y1="9.84"
+        y2="5.56" />
+    <rect fill="none" height="11.5" width="1.47" x="9.19" y="4.84" />
+    <rect fill="none" height="11.5" width="1.47" x="10.67" y="4.84" />
+    <line fill="none" stroke="#231f20" stroke-width="0.45" x1="9.19" x2="9.19" y1="4.84"
+        y2="16.34" />
+    <line fill="none" stroke="#231f20" stroke-width="0.45" x1="12.14" x2="12.14" y1="16.34"
+        y2="4.84" />
+    <polygon fill="#231f20" fill-rule="evenodd"
+        points="10.67 3.66 12.14 3.66 12.14 15.8 10.67 15.8 9.19 15.8 9.19 3.66 10.67 3.66"
+        stroke="#231f20" stroke-width="0.45" />
+    <path d="M82.17,105.09a3.25,3.25,0,1,1,3.25-3.25A3.25,3.25,0,0,1,82.17,105.09Z" fill="#231f20"
+        stroke="#231f20" stroke-width="0.15" transform="translate(-71.5 -85.5)" />
+    <polygon fill="#231f20" points="13.93 3.68 7.41 3.68 10.67 0.42 13.93 3.68" stroke="#231f20"
+        stroke-width="0.15" />
+</svg>

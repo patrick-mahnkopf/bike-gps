@@ -40,10 +40,6 @@ class LowerNavigationWidget extends StatelessWidget {
             ),
             turnSymbolHelper.getTurnSymbolFromId(
                 iconId: nextWayPoint.turnSymboldId),
-            Text(
-              nextWayPoint.name,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-            ),
           ],
         ),
       ),

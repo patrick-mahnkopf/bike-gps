@@ -21,12 +21,7 @@ abstract class TourParser {
 }
 
 class GpxParser extends TourParser {
-  double ascent = 0;
-  double descent = 0;
   final List<String> fileExtensionPriority = ['.gpx', '.xml'];
-  double tourLength = 0;
-  List<TrackPointModel> trackPoints = [];
-  List<WayPointModel> wayPoints = [];
 
   GpxParser(
       {@required ConstantsHelper constants,
@@ -49,31 +44,11 @@ class GpxParser extends TourParser {
       @required String tourName,
       @required String filePath}) async {
     final Gpx tourGpx = GpxReader().fromString(tourFileContent);
-    _getTrackPoints(tourGpx);
-    final TourModel tour = TourModel(
-      name: tourName,
-      filePath: filePath,
-      trackPoints: trackPoints,
-      wayPoints: wayPoints,
-      bounds: _getBounds(tourGpx, trackPoints),
-      ascent: ascent,
-      descent: descent,
-      tourLength: tourLength,
-    );
-    return tour;
-  }
-
-  Future<File> _getTourFile(String name) async {
-    final String filePath = p.join(constants.tourDirectoryPath, name);
-    for (final String fileExtension in fileExtensionPriority) {
-      if (await File(filePath + fileExtension).exists()) {
-        return File(filePath + fileExtension);
-      }
-    }
-    return null;
-  }
-
-  void _getTrackPoints(Gpx tourGpx) {
+    double ascent = 0;
+    double descent = 0;
+    double tourLength = 0;
+    final List<TrackPointModel> trackPoints = [];
+    final List<WayPointModel> wayPoints = [];
     // TODO enrich with RouteService data when online, especially surface and wayPoint turn info
     double previousDistanceFromStart = 0;
     final List<Wpt> combinedTourPoints = _getCombinedPoints(tourGpx);
@@ -129,6 +104,26 @@ class GpxParser extends TourParser {
         ));
       }
     }
+    return TourModel(
+      name: tourName,
+      filePath: filePath,
+      trackPoints: trackPoints,
+      wayPoints: wayPoints,
+      bounds: _getBounds(tourGpx, trackPoints),
+      ascent: ascent,
+      descent: descent,
+      tourLength: tourLength,
+    );
+  }
+
+  Future<File> _getTourFile(String name) async {
+    final String filePath = p.join(constants.tourDirectoryPath, name);
+    for (final String fileExtension in fileExtensionPriority) {
+      if (await File(filePath + fileExtension).exists()) {
+        return File(filePath + fileExtension);
+      }
+    }
+    return null;
   }
 
   bool _isWaypoint(Wpt point) {

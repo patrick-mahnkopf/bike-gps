@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider/path_provider.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   ConstantsHelper constantsHelper;
 
   setUp(() async {

@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import 'package:bike_gps/core/error/exception.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart';
 import 'package:injectable/injectable.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
+import '../../../../core/error/exception.dart';
 import '../../models/tour/models.dart';
 import '../tour_parser/data_sources.dart';
 

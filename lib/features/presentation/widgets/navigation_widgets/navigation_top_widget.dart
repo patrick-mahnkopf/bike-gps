@@ -25,18 +25,23 @@ class NavigationTopWidget extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: SafeArea(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            UpperNavigationWidget(
-              currentWayPoint: currentWayPoint,
-              nextWayPoint: nextWayPoint,
-              currentWayPointDistance: currentWayPointDistance,
-              locationHelper: getIt<DistanceHelper>(),
-              turnSymbolHelper: getIt<TurnSymbolHelper>(),
+            Flexible(
+              child: UpperNavigationWidget(
+                currentWayPoint: currentWayPoint,
+                nextWayPoint: nextWayPoint,
+                currentWayPointDistance: currentWayPointDistance,
+                locationHelper: getIt<DistanceHelper>(),
+                turnSymbolHelper: getIt<TurnSymbolHelper>(),
+              ),
             ),
-            LowerNavigationWidget(
-              nextWayPoint: nextWayPoint,
-              turnSymbolHelper: getIt<TurnSymbolHelper>(),
+            Flexible(
+              child: LowerNavigationWidget(
+                nextWayPoint: nextWayPoint,
+                turnSymbolHelper: getIt<TurnSymbolHelper>(),
+              ),
             ),
           ],
         ),

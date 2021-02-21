@@ -1,18 +1,22 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:injectable/injectable.dart';
 
-@injectable
-class TurnSymbolHelper {
-  final Map<String, String> turnSymbolAssetPaths;
+import 'constants_helper.dart';
 
-  TurnSymbolHelper({@required this.turnSymbolAssetPaths});
+@singleton
+class TurnSymbolHelper {
+  final ConstantsHelper constantsHelper;
+
+  TurnSymbolHelper({@required this.constantsHelper});
 
   Widget getTurnSymbolFromId({@required String iconId, Color color}) {
-    if (turnSymbolAssetPaths.containsKey(iconId.toLowerCase())) {
+    if (constantsHelper.turnSymbolAssetPaths
+        .containsKey(iconId.toLowerCase())) {
       return SvgPicture.asset(
-        turnSymbolAssetPaths[iconId.toLowerCase()],
+        constantsHelper.turnSymbolAssetPaths[iconId.toLowerCase()],
         color: color ?? Colors.white,
         width: 48,
       );

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'features/presentation/screens/map_screen.dart';
 
-// ignore: avoid_void_async
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // await dependency_injection.init();
@@ -34,7 +33,7 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         '/': (context) {
-          return const MapScreen();
+          return MapScreen();
         }
       },
     );

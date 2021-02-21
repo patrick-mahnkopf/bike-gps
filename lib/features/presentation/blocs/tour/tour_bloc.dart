@@ -1,13 +1,14 @@
 import 'dart:async';
 
-import 'package:bike_gps/core/error/failure.dart';
-import 'package:bike_gps/features/domain/entities/tour/entities.dart';
-import 'package:bike_gps/features/domain/repositories/repositories.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 import 'package:injectable/injectable.dart';
+
+import '../../../../core/error/failure.dart';
+import '../../../domain/entities/tour/entities.dart';
+import '../../../domain/repositories/repositories.dart';
 
 part 'tour_event.dart';
 part 'tour_state.dart';
@@ -15,7 +16,7 @@ part 'tour_state.dart';
 const String parserFailureMessage = 'Parser Failure';
 const String serverFailureMessage = 'Server Failure';
 
-@injectable
+@lazySingleton
 class TourBloc extends Bloc<TourEvent, TourState> {
   final TourRepository tourRepository;
 

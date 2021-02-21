@@ -15,7 +15,8 @@ class MapboxLoadSuccess extends MapboxState {
   const MapboxLoadSuccess({@required this.controller});
 
   @override
-  String toString() => 'MapboxLoadSuccess { controller: $controller }';
+  String toString() =>
+      'MapboxLoadSuccess { controller: $controller, mapboxMapController: ${controller.mapboxMapController} }';
 
   @override
   List<Object> get props => [controller];

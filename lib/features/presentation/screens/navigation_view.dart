@@ -1,13 +1,9 @@
-import 'package:bike_gps/features/presentation/blocs/navigation/navigation_bloc.dart';
-import 'package:bike_gps/features/presentation/blocs/tour/tour_bloc.dart';
+import 'package:bike_gps/features/presentation/widgets/navigation_widgets/navigation_bottom_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:location/location.dart';
 
-import '../../../core/helpers/helpers.dart';
-import '../../../injection_container.dart';
-import '../widgets/navigation_widgets/navigation_bottom_sheet_widget.dart';
+import '../blocs/navigation/navigation_bloc.dart';
 import '../widgets/navigation_widgets/navigation_top_widget.dart';
 
 class NavigationView extends StatelessWidget {
@@ -15,25 +11,8 @@ class NavigationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    getIt<Location>().onLocationChanged.listen((LocationData currentLocation) {
-      final TourState tourState = getIt<TourBloc>().state;
-      final NavigationState navigationState = getIt<NavigationBloc>().state;
-      if (tourState is TourLoadSuccess) {
-        if (navigationState is NavigationLoadSuccess) {
-          getIt<NavigationBloc>().add(NavigationLoaded(
-              userLocation: currentLocation,
-              tour: tourState.tour,
-              navigationData: navigationState.navigationData,
-              previousLocation: navigationState.userLocation));
-        } else {
-          getIt<NavigationBloc>().add(NavigationLoaded(
-              userLocation: currentLocation, tour: tourState.tour));
-        }
-      }
-    });
-
     return SafeArea(
-      child: Column(
+      child: Stack(
         children: [
           BlocBuilder<NavigationBloc, NavigationState>(
             builder: (context, state) {
@@ -51,9 +30,8 @@ class NavigationView extends StatelessWidget {
           BlocBuilder<NavigationBloc, NavigationState>(
             builder: (context, state) {
               if (state is NavigationLoadSuccess) {
-                return NavigationBottomSheetWidget(
+                return NavigationBottomWidget(
                   distanceToTourEnd: state.distanceToTourEnd,
-                  locationHelper: getIt<DistanceHelper>(),
                 );
               } else {
                 return Container();
