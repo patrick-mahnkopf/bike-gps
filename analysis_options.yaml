@@ -4,3 +4,8 @@ analyzer:
     missing_required_param: error
     parameter_assignments: error
     missing_return: error
+  exclude:
+    - lib/injection_container.config.dart
+analyze:
+  exclude:
+    - lib/injection_container.config.dart

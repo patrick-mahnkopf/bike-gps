@@ -12,3 +12,5 @@ class ParserFailure extends Failure {}
 class ArgumentFailure extends Failure {}
 
 class NavigationDataFailure extends Failure {}
+
+class FileFailure extends Failure {}

@@ -21,9 +21,12 @@ import 'features/presentation/blocs/map/map_bloc.dart';
 import 'features/presentation/blocs/mapbox/mapbox_bloc.dart';
 import 'core/controllers/mapbox_controller.dart';
 import 'features/presentation/blocs/navigation/navigation_bloc.dart';
+import 'features/presentation/blocs/search/search_bloc.dart';
+import 'core/helpers/search_history_helper.dart';
 import 'features/presentation/blocs/tour/tour_bloc.dart';
 import 'core/helpers/tour_conversion_helper.dart';
 import 'core/helpers/helpers.dart' as bike_gps2;
+import 'core/helpers/tour_list_helper.dart';
 import 'features/data/data_sources/tour/tour_local_data_source.dart';
 import 'features/data/data_sources/tour/data_sources.dart' as bike_gps1;
 import 'features/data/data_sources/tour_parser/data_sources.dart';
@@ -60,15 +63,24 @@ Future<GetIt> $initGetIt(
   gh.factory<MapboxBloc>(() => MapboxBloc());
   gh.factory<NavigationBloc>(
       () => NavigationBloc(getNavigationData: get<GetNavigationData>()));
+  gh.factory<SearchHistoryHelper>(() => SearchHistoryHelper());
   gh.factory<TourBloc>(
       () => TourBloc(tourRepository: get<bike_gps1.TourRepository>()));
-  gh.factory<TourLocalDataSource>(
-      () => TourLocalDataSourceImpl(tourParser: get<TourParser>()));
+  gh.factory<TourListHelper>(() => TourListHelper(
+      constantsHelper: get<ConstantsHelper>(), tourParser: get<TourParser>()));
+  gh.factory<TourLocalDataSource>(() => TourLocalDataSourceImpl(
+        tourParser: get<TourParser>(),
+        constantsHelper: get<ConstantsHelper>(),
+        tourListHelper: get<TourListHelper>(),
+      ));
   gh.factory<TourRemoteDataSource>(() => TourRemoteDataSourceImpl(
       tourParser: get<TourParser>(), client: get<Client>()));
   gh.factory<TourRepository>(() => TourRepositoryImpl(
       localDataSource: get<bike_gps1.TourLocalDataSource>(),
       remoteDataSource: get<bike_gps1.TourRemoteDataSource>()));
+  gh.factory<SearchBloc>(() => SearchBloc(
+      tourListHelper: get<TourListHelper>(),
+      searchHistoryHelper: get<SearchHistoryHelper>()));
 
   // Eager singletons must be registered in the right order
   final resolvedConstantsHelper = await ConstantsHelper.create();

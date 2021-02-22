@@ -17,9 +17,8 @@ class NavigationView extends StatelessWidget {
   Widget build(BuildContext context) {
     getIt<Location>().onLocationChanged.listen((LocationData currentLocation) {
       final TourState tourState = BlocProvider.of<TourBloc>(context).state;
-      final MapBloc mapBloc = BlocProvider.of<MapBloc>(context);
       if (tourState is TourLoadSuccess &&
-          mapBloc.state is NavigationViewActive) {
+          BlocProvider.of<MapBloc>(context).state is NavigationViewActive) {
         BlocProvider.of<NavigationBloc>(context).add(NavigationLoaded(
             userLocation: currentLocation,
             tour: tourState.tour,

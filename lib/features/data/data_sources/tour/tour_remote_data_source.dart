@@ -31,7 +31,7 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
     final String tourFileContent = await _getTourFileContentFromRouteService(
         userLocation: userLocation, tourStart: tourStart);
     return tourParser.getTourFromFileContent(
-        tourFileContent: tourFileContent, tourName: 'ORS', filePath: '');
+        tourFileContent: tourFileContent, tourName: 'ORS');
   }
 
   Future<String> _getTourFileContentFromRouteService(

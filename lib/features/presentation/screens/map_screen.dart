@@ -1,4 +1,5 @@
 import 'package:bike_gps/features/presentation/blocs/height_map/height_map_bloc.dart';
+import 'package:bike_gps/features/presentation/blocs/search/search_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,6 +20,7 @@ class MapScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: MultiBlocProvider(
         providers: [
           BlocProvider(
@@ -34,22 +36,22 @@ class MapScreen extends StatelessWidget {
           BlocProvider(
             create: (_) => getIt<HeightMapBloc>(),
           ),
+          BlocProvider(
+            create: (_) => getIt<SearchBloc>(),
+          ),
         ],
         child: Stack(
           children: [
-            Scaffold(
-              resizeToAvoidBottomInset: false,
-              body: BlocBuilder<MapboxBloc, MapboxState>(
-                builder: (context, state) {
-                  if (state is MapboxLoadSuccess) {
-                    return MapboxWidget(
-                      mapboxController: getIt<MapboxController>(),
-                    );
-                  } else {
-                    return const LoadingIndicator();
-                  }
-                },
-              ),
+            BlocBuilder<MapboxBloc, MapboxState>(
+              builder: (context, state) {
+                if (state is MapboxLoadSuccess) {
+                  return MapboxWidget(
+                    mapboxController: getIt<MapboxController>(),
+                  );
+                } else {
+                  return const LoadingIndicator();
+                }
+              },
             ),
             BlocBuilder<MapBloc, MapState>(
               builder: (context, state) {

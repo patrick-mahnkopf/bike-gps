@@ -98,8 +98,7 @@ class MapboxController {
 
   void recenterMap(BuildContext context) {
     final MapboxBloc mapboxBloc = BlocProvider.of<MapboxBloc>(context);
-    final MapboxState mapboxState = mapboxBloc.state;
-    if (mapboxState is MapboxLoadSuccess && mapboxMapController != null) {
+    if (mapboxBloc.state is MapboxLoadSuccess && mapboxMapController != null) {
       mapboxMapController
           .updateMyLocationTrackingMode(MyLocationTrackingMode.TrackingCompass);
       mapboxBloc.add(MapboxLoaded(
@@ -109,8 +108,7 @@ class MapboxController {
   }
 
   bool canRecenterMap(BuildContext context) {
-    final MapboxState mapboxState = BlocProvider.of<MapboxBloc>(context).state;
-    return mapboxState is MapboxLoadSuccess &&
+    return BlocProvider.of<MapboxBloc>(context).state is MapboxLoadSuccess &&
         mapboxMapController != null &&
         myLocationTrackingMode != MyLocationTrackingMode.TrackingCompass;
   }

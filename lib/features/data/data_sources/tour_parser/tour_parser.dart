@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bike_gps/features/data/models/tour/tour_info_model.dart';
 import 'package:flutter/widgets.dart';
 import 'package:gpx/gpx.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -14,35 +15,36 @@ abstract class TourParser {
 
   TourParser({@required this.constants, @required this.distanceHelper});
 
-  Future<TourModel> getTour({@required String name});
+  Future<TourModel> getTour({@required File file});
 
   Future<TourModel> getTourFromFileContent(
-      {@required String tourFileContent, String tourName, String filePath});
+      {@required String tourFileContent, String tourName});
+
+  Future<TourInfoModel> getTourInfo({@required File file});
+
+  List<String> get fileExtensionPriority;
 }
 
 class GpxParser extends TourParser {
-  final List<String> fileExtensionPriority = ['.gpx', '.xml'];
-
   GpxParser(
       {@required ConstantsHelper constants,
       @required DistanceHelper distanceHelper})
       : super(constants: constants, distanceHelper: distanceHelper);
 
   @override
-  Future<TourModel> getTour({String name}) async {
-    final File tourFile = await _getTourFile(name);
-    final String tourFileContent = await tourFile.readAsString();
+  List<String> get fileExtensionPriority => ['.gpx', '.xml'];
+
+  @override
+  Future<TourModel> getTour({File file}) async {
+    final String tourFileContent = await file.readAsString();
+    final String tourName = p.basenameWithoutExtension(file.path);
     return getTourFromFileContent(
-        tourFileContent: tourFileContent,
-        filePath: tourFile.path,
-        tourName: name);
+        tourFileContent: tourFileContent, tourName: tourName);
   }
 
   @override
   Future<TourModel> getTourFromFileContent(
-      {@required String tourFileContent,
-      @required String tourName,
-      @required String filePath}) async {
+      {@required String tourFileContent, @required String tourName}) async {
     final Gpx tourGpx = GpxReader().fromString(tourFileContent);
     double ascent = 0;
     double descent = 0;
@@ -106,7 +108,6 @@ class GpxParser extends TourParser {
     }
     return TourModel(
       name: tourName,
-      filePath: filePath,
       trackPoints: trackPoints,
       wayPoints: wayPoints,
       bounds: _getBounds(tourGpx, trackPoints),
@@ -116,14 +117,17 @@ class GpxParser extends TourParser {
     );
   }
 
-  Future<File> _getTourFile(String name) async {
-    final String filePath = p.join(constants.tourDirectoryPath, name);
-    for (final String fileExtension in fileExtensionPriority) {
-      if (await File(filePath + fileExtension).exists()) {
-        return File(filePath + fileExtension);
-      }
-    }
-    return null;
+  @override
+  Future<TourInfoModel> getTourInfo({File file}) async {
+    // TODO make more efficient by not parsing entire file
+    final TourModel tourModel = await getTour(file: file);
+    final String fileHash = await constants.getFileHash(file.path);
+
+    return TourInfoModel(
+        name: tourModel.name,
+        filePath: file.path,
+        bounds: tourModel.bounds,
+        fileHash: fileHash);
   }
 
   bool _isWaypoint(Wpt point) {

@@ -9,7 +9,6 @@ class Tour extends Equatable {
   final LatLngBounds bounds;
   final double descent;
   final double highestPoint;
-  final String filePath;
   final String name;
   final double tourLength;
   final List<TrackPoint> trackPoints;
@@ -17,7 +16,6 @@ class Tour extends Equatable {
 
   Tour(
       {@required this.name,
-      @required this.filePath,
       @required this.trackPoints,
       @required this.wayPoints,
       @required this.ascent,
@@ -30,18 +28,10 @@ class Tour extends Equatable {
                 current.elevation > highest ? current.elevation : highest);
 
   @override
-  List<Object> get props => [
-        name,
-        filePath,
-        trackPoints,
-        wayPoints,
-        ascent,
-        descent,
-        tourLength,
-        bounds
-      ];
+  List<Object> get props =>
+      [name, trackPoints, wayPoints, ascent, descent, tourLength, bounds];
 
   @override
   String toString() =>
-      'Tour: { name: $name, filePath: $filePath, ascent: $ascent, descent: $descent, tourLength: $tourLength, bounds: $bounds }';
+      'Tour: { name: $name, ascent: $ascent, descent: $descent, tourLength: $tourLength, bounds: $bounds }';
 }

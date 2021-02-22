@@ -1,5 +1,8 @@
 import 'dart:developer';
+import 'dart:io';
 
+import 'package:bike_gps/core/helpers/constants_helper.dart';
+import 'package:bike_gps/core/helpers/tour_list_helper.dart';
 import 'package:flutter/widgets.dart';
 import 'package:injectable/injectable.dart';
 
@@ -14,13 +17,19 @@ abstract class TourLocalDataSource {
 @Injectable(as: TourLocalDataSource)
 class TourLocalDataSourceImpl implements TourLocalDataSource {
   final TourParser tourParser;
+  final ConstantsHelper constantsHelper;
+  final TourListHelper tourListHelper;
 
-  TourLocalDataSourceImpl({@required this.tourParser});
+  TourLocalDataSourceImpl(
+      {@required this.tourParser,
+      @required this.constantsHelper,
+      @required this.tourListHelper});
 
   @override
   Future<TourModel> getTour({@required String name}) async {
     try {
-      final TourModel tourModel = await tourParser.getTour(name: name);
+      final File tourFile = tourListHelper.getFile(name);
+      final TourModel tourModel = await tourParser.getTour(file: tourFile);
       if (tourModel == null) {
         throw ParserException();
       } else {

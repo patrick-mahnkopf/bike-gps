@@ -47,7 +47,6 @@ void main() {
           northeast: const LatLng(52.344188, 9.771605),
           southwest: const LatLng(52.334831, 9.755204)),
       descent: 1,
-      filePath: "testPath",
       name: "testName",
       tourLength: 3,
       trackPoints: const [],
@@ -75,7 +74,6 @@ void main() {
   void setUpTourParserGetTourFromFileContentSuccess() {
     when(mockTourParser.getTourFromFileContent(
             tourFileContent: anyNamed('tourFileContent'),
-            filePath: anyNamed('filePath'),
             tourName: anyNamed('tourName')))
         .thenAnswer((_) async => Future.value(tTourModel));
   }

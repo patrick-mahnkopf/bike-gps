@@ -23,7 +23,6 @@ void main() {
       bounds: LatLngBounds(
           northeast: const LatLng(1, 1), southwest: const LatLng(0, 0)),
       descent: 1,
-      filePath: "testPath",
       name: "testName",
       tourLength: 3,
       trackPoints: const [],

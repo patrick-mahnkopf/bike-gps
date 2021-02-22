@@ -71,7 +71,6 @@ void main() {
       bounds: LatLngBounds(
           northeast: const LatLng(2, 0), southwest: const LatLng(0, 0)),
       descent: 2,
-      filePath: '',
       name: '',
       tourLength: 2 * degreeDistance,
       wayPoints: const [tFirstWayPoint, tSecondWayPoint, tThirdWayPoint]);
