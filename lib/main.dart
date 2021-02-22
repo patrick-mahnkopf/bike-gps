@@ -76,7 +76,7 @@ MaterialApp _getMaterialApp() {
         '/': (context) {
           return BlocProvider(
             create: (context) => getIt<MapBloc>(),
-            child: MapScreen(),
+            child: const MapScreen(),
           );
         }
       });

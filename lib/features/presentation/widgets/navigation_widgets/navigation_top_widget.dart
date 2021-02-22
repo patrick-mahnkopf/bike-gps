@@ -34,13 +34,13 @@ class NavigationTopWidget extends StatelessWidget {
                 nextWayPoint: nextWayPoint,
                 currentWayPointDistance: currentWayPointDistance,
                 locationHelper: getIt<DistanceHelper>(),
-                turnSymbolHelper: getIt<TurnSymbolHelper>(),
+                turnSymbolHelper: getIt<TourConversionHelper>(),
               ),
             ),
             Flexible(
               child: LowerNavigationWidget(
                 nextWayPoint: nextWayPoint,
-                turnSymbolHelper: getIt<TurnSymbolHelper>(),
+                turnSymbolHelper: getIt<TourConversionHelper>(),
               ),
             ),
           ],

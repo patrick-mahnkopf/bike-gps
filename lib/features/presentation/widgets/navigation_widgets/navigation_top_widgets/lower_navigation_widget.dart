@@ -6,7 +6,7 @@ import '../../../../domain/entities/tour/entities.dart';
 
 class LowerNavigationWidget extends StatelessWidget {
   final WayPoint nextWayPoint;
-  final TurnSymbolHelper turnSymbolHelper;
+  final TourConversionHelper turnSymbolHelper;
 
   const LowerNavigationWidget(
       {Key key, @required this.nextWayPoint, @required this.turnSymbolHelper})

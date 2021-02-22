@@ -1,6 +1,7 @@
 import 'package:bike_gps/features/presentation/blocs/mapbox/mapbox_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -95,19 +96,20 @@ class MapboxController {
         zoom: 14);
   }
 
-  void recenterMap() {
-    final MapboxState mapboxState = getIt<MapboxBloc>().state;
+  void recenterMap(BuildContext context) {
+    final MapboxBloc mapboxBloc = BlocProvider.of<MapboxBloc>(context);
+    final MapboxState mapboxState = mapboxBloc.state;
     if (mapboxState is MapboxLoadSuccess && mapboxMapController != null) {
       mapboxMapController
           .updateMyLocationTrackingMode(MyLocationTrackingMode.TrackingCompass);
-      getIt<MapboxBloc>().add(MapboxLoaded(
+      mapboxBloc.add(MapboxLoaded(
           mapboxController: copyWith(
               myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass)));
     }
   }
 
-  bool get canRecenterMap {
-    final MapboxState mapboxState = getIt<MapboxBloc>().state;
+  bool canRecenterMap(BuildContext context) {
+    final MapboxState mapboxState = BlocProvider.of<MapboxBloc>(context).state;
     return mapboxState is MapboxLoadSuccess &&
         mapboxMapController != null &&
         myLocationTrackingMode != MyLocationTrackingMode.TrackingCompass;

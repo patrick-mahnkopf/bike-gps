@@ -8,13 +8,14 @@ class Tour extends Equatable {
   final double ascent;
   final LatLngBounds bounds;
   final double descent;
+  final double highestPoint;
   final String filePath;
   final String name;
   final double tourLength;
   final List<TrackPoint> trackPoints;
   final List<WayPoint> wayPoints;
 
-  const Tour(
+  Tour(
       {@required this.name,
       @required this.filePath,
       @required this.trackPoints,
@@ -22,7 +23,11 @@ class Tour extends Equatable {
       @required this.ascent,
       @required this.descent,
       @required this.tourLength,
-      @required this.bounds});
+      @required this.bounds})
+      : highestPoint = trackPoints.fold(
+            double.negativeInfinity,
+            (highest, current) =>
+                current.elevation > highest ? current.elevation : highest);
 
   @override
   List<Object> get props => [

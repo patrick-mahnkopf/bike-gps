@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         '/': (context) {
-          return MapScreen();
+          return const MapScreen();
         }
       },
     );

@@ -44,11 +44,12 @@ class RecenterMapWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<MapboxBloc, MapboxState>(
       builder: (context, state) {
-        if (state is MapboxLoadSuccess && state.controller.canRecenterMap) {
+        if (state is MapboxLoadSuccess &&
+            state.controller.canRecenterMap(context)) {
           return Padding(
             padding: const EdgeInsets.all(8),
             child: FloatingActionButton.extended(
-              onPressed: () => state.controller.recenterMap(),
+              onPressed: () => state.controller.recenterMap(context),
               backgroundColor: Colors.white,
               label: const Text(
                 "Re-center",
@@ -142,6 +143,7 @@ class BottomSheetWidget extends StatelessWidget {
           content: grabSectionContent,
         ),
         sheetBelow: SnappingSheetContent(
+          heightBehavior: const SnappingSheetHeight.fixed(),
           child: sheetContent,
         ),
       ),
@@ -158,32 +160,36 @@ class BottomSheetGrabSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.bottomCenter,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
-        child: RoundedContainer(
-          content: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Consumer<BottomSheetSnapController>(
-                builder: (context, snapController, child) {
-                  if (snapController.snappingTop) {
-                    return GrabIconArrow();
-                  } else {
-                    return GrabIconStraight();
-                  }
-                },
-              ),
-              content,
-              Container(
-                height: 2.0,
-                margin: const EdgeInsets.only(left: 20, right: 20),
-                color: Colors.grey[300],
-              ),
-            ],
-          ),
+      child: RoundedContainer(
+        content: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Consumer<BottomSheetSnapController>(
+              builder: (context, snapController, child) {
+                if (snapController.snappingTop) {
+                  return GrabIconArrow();
+                } else {
+                  return GrabIconStraight();
+                }
+              },
+            ),
+            content,
+            DividerLine(),
+          ],
         ),
       ),
+    );
+  }
+}
+
+class DividerLine extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 2.0,
+      margin: const EdgeInsets.only(left: 20, right: 20),
+      color: Colors.grey[300],
     );
   }
 }

@@ -10,22 +10,20 @@ abstract class NavigationEvent extends Equatable {
 class NavigationLoaded extends NavigationEvent {
   final LocationData userLocation;
   final Tour tour;
-  final LatLng previousLocation;
-  final NavigationData navigationData;
+  final BuildContext context;
 
-  const NavigationLoaded(
-      {@required this.tour,
-      this.userLocation,
-      this.previousLocation,
-      this.navigationData});
+  const NavigationLoaded({
+    @required this.tour,
+    @required this.context,
+    this.userLocation,
+  });
 
   @override
-  List<Object> get props =>
-      [userLocation, tour, previousLocation, navigationData];
+  List<Object> get props => [userLocation, tour];
 
   @override
   String toString() =>
-      'NavigationLoaded { userLocation: $userLocation, tour: $tour, previousLocation: $previousLocation, navigationData: $navigationData }';
+      'NavigationLoaded { userLocation: $userLocation, tour: $tour }';
 }
 
 class NavigationStopped extends NavigationEvent {

@@ -10,7 +10,7 @@ class UpperNavigationWidget extends StatelessWidget {
   final double currentWayPointDistance;
   final DistanceHelper locationHelper;
   final WayPoint nextWayPoint;
-  final TurnSymbolHelper turnSymbolHelper;
+  final TourConversionHelper turnSymbolHelper;
 
   const UpperNavigationWidget(
       {Key key,

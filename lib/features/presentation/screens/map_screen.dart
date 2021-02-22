@@ -1,7 +1,7 @@
+import 'package:bike_gps/features/presentation/blocs/height_map/height_map_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:location/location.dart';
 
 import '../../../core/controllers/controllers.dart';
 import '../../../core/widgets/custom_widgets.dart';
@@ -14,17 +14,7 @@ import '../widgets/mapbox_widget.dart';
 import 'screens.dart';
 
 class MapScreen extends StatelessWidget {
-  MapScreen({Key key}) : super(key: key) {
-    getIt<Location>().onLocationChanged.listen((LocationData currentLocation) {
-      final TourState tourState = getIt<TourBloc>().state;
-      final MapBloc mapBloc = getIt<MapBloc>();
-      if (tourState is TourLoadSuccess &&
-          mapBloc.state is NavigationViewActive) {
-        getIt<NavigationBloc>().add(NavigationLoaded(
-            userLocation: currentLocation, tour: tourState.tour));
-      }
-    });
-  }
+  const MapScreen({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +30,9 @@ class MapScreen extends StatelessWidget {
           ),
           BlocProvider(
             create: (_) => getIt<NavigationBloc>(),
+          ),
+          BlocProvider(
+            create: (_) => getIt<HeightMapBloc>(),
           ),
         ],
         child: Stack(
@@ -61,19 +54,23 @@ class MapScreen extends StatelessWidget {
             BlocBuilder<MapBloc, MapState>(
               builder: (context, state) {
                 if (state is NavigationViewActive) {
-                  final MapboxState mapboxState = getIt<MapboxBloc>().state;
+                  final MapboxState mapboxState =
+                      BlocProvider.of<MapboxBloc>(context).state;
                   if (mapboxState is MapboxLoadSuccess &&
                       mapboxState.controller != null) {
-                    mapboxState.controller.recenterMap();
+                    mapboxState.controller.recenterMap(context);
                   }
-                  final TourState tourState = getIt<TourBloc>().state;
+                  final TourState tourState =
+                      BlocProvider.of<TourBloc>(context).state;
                   if (tourState is TourLoadSuccess) {
-                    getIt<NavigationBloc>()
-                        .add(NavigationLoaded(tour: tourState.tour));
+                    BlocProvider.of<NavigationBloc>(context).add(
+                        NavigationLoaded(
+                            tour: tourState.tour, context: context));
                   }
                   return const NavigationView();
                 } else {
-                  final NavigationBloc navigationBloc = getIt<NavigationBloc>();
+                  final NavigationBloc navigationBloc =
+                      BlocProvider.of<NavigationBloc>(context);
                   if (navigationBloc.state is NavigationLoadSuccess) {
                     navigationBloc.add(NavigationStopped());
                   }

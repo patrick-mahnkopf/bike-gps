@@ -10,7 +10,7 @@ import '../../../../core/controllers/controllers.dart';
 part 'mapbox_event.dart';
 part 'mapbox_state.dart';
 
-@lazySingleton
+@injectable
 class MapboxBloc extends Bloc<MapboxEvent, MapboxState> {
   MapboxBloc() : super(MapboxInitial());
 

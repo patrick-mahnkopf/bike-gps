@@ -141,20 +141,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.0-nullsafety.1"
-  charts_common:
+  charts_common_cf:
     dependency: transitive
     description:
-      name: charts_common
+      name: charts_common_cf
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.0"
-  charts_flutter:
+    version: "0.10.3+cf"
+  charts_flutter_cf:
     dependency: "direct main"
     description:
-      name: charts_flutter
+      name: charts_flutter_cf
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.0"
+    version: "0.10.3+cf"
   checked_yaml:
     dependency: transitive
     description:

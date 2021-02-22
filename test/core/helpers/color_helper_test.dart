@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final MaterialColor materialColor = Colors.blue;
-  final Color color = Colors.black;
+  const MaterialColor materialColor = Colors.blue;
+  const Color color = Colors.black;
   ColorHelper colorHelper;
 
   setUp(() {

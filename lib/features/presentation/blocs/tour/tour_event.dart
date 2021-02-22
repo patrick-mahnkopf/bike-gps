@@ -9,8 +9,9 @@ abstract class TourEvent extends Equatable {
 
 class TourLoaded extends TourEvent {
   final String tourName;
+  final BuildContext context;
 
-  const TourLoaded({@required this.tourName});
+  const TourLoaded({@required this.tourName, @required this.context});
 
   @override
   List<Object> get props => [tourName];

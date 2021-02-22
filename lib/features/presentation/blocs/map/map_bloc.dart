@@ -7,7 +7,7 @@ import 'package:injectable/injectable.dart';
 part 'map_event.dart';
 part 'map_state.dart';
 
-@lazySingleton
+@injectable
 class MapBloc extends Bloc<MapEvent, MapState> {
   MapBloc() : super(TourSelectionViewActive());
 

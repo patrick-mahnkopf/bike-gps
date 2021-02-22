@@ -3,10 +3,10 @@ import 'dart:math';
 
 // Flutter imports:
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
 import '../../../core/controllers/controllers.dart';
-import '../../../injection_container.dart';
 import '../blocs/mapbox/mapbox_bloc.dart';
 
 class MapboxWidget extends StatelessWidget {
@@ -14,14 +14,15 @@ class MapboxWidget extends StatelessWidget {
 
   const MapboxWidget({Key key, this.mapboxController}) : super(key: key);
 
-  void _onMapCreated(MapboxMapController mapboxMapController) {
-    getIt<MapboxBloc>().add(MapboxLoaded(
+  void _onMapCreated(
+      MapboxMapController mapboxMapController, BuildContext context) {
+    BlocProvider.of<MapboxBloc>(context).add(MapboxLoaded(
         mapboxController: mapboxController.copyWith(
             mapboxMapController: mapboxMapController)));
   }
 
-  void _onMyLocationTrackingModeChanged() {
-    final MapboxBloc mapboxBloc = getIt<MapboxBloc>();
+  void _onMyLocationTrackingModeChanged(BuildContext context) {
+    final MapboxBloc mapboxBloc = BlocProvider.of<MapboxBloc>(context);
     final MapboxState mapboxState = mapboxBloc.state;
     if (mapboxState is MapboxLoadSuccess) {
       mapboxBloc.add(MapboxLoaded(
@@ -38,12 +39,14 @@ class MapboxWidget extends StatelessWidget {
       compassEnabled: mapboxController.compassEnabled,
       initialCameraPosition: mapboxController.initialCameraPosition,
       myLocationRenderMode: mapboxController.locationRenderMode,
-      onMapCreated: _onMapCreated,
+      onMapCreated: (mapboxMapController) =>
+          _onMapCreated(mapboxMapController, context),
       compassViewPosition: CompassViewPosition.BottomRight,
       compassViewMargins: const Point(32, 32),
       myLocationEnabled: true,
       myLocationTrackingMode: mapboxController.myLocationTrackingMode,
-      onCameraTrackingDismissed: _onMyLocationTrackingModeChanged,
+      onCameraTrackingDismissed: () =>
+          _onMyLocationTrackingModeChanged(context),
     );
   }
 }

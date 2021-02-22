@@ -1,6 +1,7 @@
 import 'package:bike_gps/core/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/helpers/helpers.dart';
 import '../../../../injection_container.dart';
@@ -63,7 +64,7 @@ class GrabSectionContent extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton(
-                onPressed: () => stopNavigation(),
+                onPressed: () => stopNavigation(context),
                 style: ElevatedButton.styleFrom(
                   primary: Colors.red,
                   onPrimary: Colors.white,
@@ -80,7 +81,7 @@ class GrabSectionContent extends StatelessWidget {
     );
   }
 
-  void stopNavigation() {
-    getIt<MapBloc>().add(TourSelectionViewActivated());
+  void stopNavigation(BuildContext context) {
+    BlocProvider.of<MapBloc>(context).add(TourSelectionViewActivated());
   }
 }

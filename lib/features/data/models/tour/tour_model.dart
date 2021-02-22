@@ -4,7 +4,7 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 import '../../../domain/entities/tour/entities.dart';
 
 class TourModel extends Tour {
-  const TourModel({
+  TourModel({
     @required String name,
     @required String filePath,
     @required List<TrackPoint> trackPoints,

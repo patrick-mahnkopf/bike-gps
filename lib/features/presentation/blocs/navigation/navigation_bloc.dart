@@ -5,6 +5,7 @@ import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -17,7 +18,7 @@ import '../../../domain/usecases/navigation/get_navigation_data.dart';
 part 'navigation_event.dart';
 part 'navigation_state.dart';
 
-@lazySingleton
+@injectable
 class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
   final GetNavigationData _getNavigationData;
   NavigationBloc({@required GetNavigationData getNavigationData})
@@ -48,9 +49,10 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
         final LocationData locationData = await getIt<Location>().getLocation();
         userLocation = LatLng(locationData.latitude, locationData.longitude);
       }
-      final MapboxState mapboxState = getIt<MapboxBloc>().state;
+      final MapboxBloc mapboxBloc = BlocProvider.of<MapboxBloc>(event.context);
+      final MapboxState mapboxState = mapboxBloc.state;
       if (mapboxState is MapboxLoadSuccess) {
-        getIt<MapboxBloc>().add(MapboxLoaded(
+        mapboxBloc.add(MapboxLoaded(
             mapboxController: mapboxState.controller.copyWith(
                 myLocationTrackingMode:
                     MyLocationTrackingMode.TrackingCompass)));

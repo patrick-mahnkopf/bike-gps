@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  TurnSymbolHelper turnSymbolHelper;
+  TourConversionHelper turnSymbolHelper;
   ConstantsHelper constantsHelper;
   final Map<String, String> tTurnSymbolAssetPaths = {
     'testid': 'test/assets/turnArrows/A01.svg'
@@ -27,7 +27,7 @@ void main() {
     constantsHelper = ConstantsHelper(
         applicationDocumentsDirectoryPath: '',
         turnSymbolAssetPaths: tTurnSymbolAssetPaths);
-    turnSymbolHelper = TurnSymbolHelper(constantsHelper: constantsHelper);
+    turnSymbolHelper = TourConversionHelper(constantsHelper: constantsHelper);
   });
 
   bool svgPicturesEqual(SvgPicture first, SvgPicture second) {

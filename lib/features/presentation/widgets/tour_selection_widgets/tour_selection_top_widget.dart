@@ -1,15 +1,16 @@
 import 'package:bike_gps/features/presentation/blocs/tour/tour_bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../injection_container.dart';
 import 'tour_selection_top_widgets/search_bar_widget.dart';
 
 class TourSelectionTopWidget extends StatelessWidget {
-  void showStyleSelectionDialog() {
+  void showStyleSelectionDialog(BuildContext context) {
     // TODO Add styleSelectionDialog
 
-    getIt<TourBloc>().add(const TourLoaded(tourName: 'Eilenriede'));
+    BlocProvider.of<TourBloc>(context)
+        .add(TourLoaded(tourName: 'Eilenriede', context: context));
   }
 
   @override
@@ -23,7 +24,7 @@ class TourSelectionTopWidget extends StatelessWidget {
             padding: const EdgeInsets.only(top: 64, right: 8),
             child: FloatingActionButton(
               mini: true,
-              onPressed: () => showStyleSelectionDialog(),
+              onPressed: () => showStyleSelectionDialog(context),
               child: const Icon(Icons.layers),
             ),
           ),
