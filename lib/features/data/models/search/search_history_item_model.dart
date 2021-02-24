@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
 class SearchHistoryItemModel extends SearchResultModel {
-  SearchHistoryItemModel(
+  const SearchHistoryItemModel(
       {@required String name,
       @required String country,
       @required LatLng coordinates,
@@ -65,8 +65,8 @@ class SearchHistoryItemModel extends SearchResultModel {
           'state': state,
           'country': country,
           'coordinates': {
-            '0': coordinates.longitude,
-            '1': coordinates.latitude,
+            '0': coordinates.latitude,
+            '1': coordinates.longitude,
           },
         },
       };

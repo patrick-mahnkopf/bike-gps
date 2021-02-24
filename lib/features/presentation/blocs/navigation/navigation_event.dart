@@ -10,11 +10,9 @@ abstract class NavigationEvent extends Equatable {
 class NavigationLoaded extends NavigationEvent {
   final LocationData userLocation;
   final Tour tour;
-  final BuildContext context;
 
   const NavigationLoaded({
     @required this.tour,
-    @required this.context,
     this.userLocation,
   });
 

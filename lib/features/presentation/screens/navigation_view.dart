@@ -20,9 +20,7 @@ class NavigationView extends StatelessWidget {
       if (tourState is TourLoadSuccess &&
           BlocProvider.of<MapBloc>(context).state is NavigationViewActive) {
         BlocProvider.of<NavigationBloc>(context).add(NavigationLoaded(
-            userLocation: currentLocation,
-            tour: tourState.tour,
-            context: context));
+            userLocation: currentLocation, tour: tourState.tour));
       }
     });
     return SafeArea(

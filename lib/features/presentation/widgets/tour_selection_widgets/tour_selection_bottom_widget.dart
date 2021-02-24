@@ -1,4 +1,5 @@
 import 'package:bike_gps/core/widgets/custom_widgets.dart';
+import 'package:bike_gps/features/presentation/blocs/height_map/height_map_bloc.dart';
 import 'package:bike_gps/features/presentation/blocs/tour/tour_bloc.dart';
 import 'package:bike_gps/features/presentation/widgets/tour_selection_widgets/tour_selection_bottom_widgets/tour_selection_bottom_sheet_widget.dart';
 import 'package:flutter/cupertino.dart';
@@ -12,6 +13,8 @@ class TourSelectionBottomWidget extends StatelessWidget {
     return BlocBuilder<TourBloc, TourState>(
       builder: (context, state) {
         if (state is TourLoadSuccess) {
+          BlocProvider.of<HeightMapBloc>(context)
+              .add(HeightMapLoaded(tour: state.tour));
           return Stack(
             children: [
               Align(

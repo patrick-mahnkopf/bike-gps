@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 import 'package:injectable/injectable.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
 
 import '../../../../core/controllers/controllers.dart';
 
@@ -34,6 +35,12 @@ class MapboxBloc extends Bloc<MapboxEvent, MapboxState> {
     if (state is MapboxInitial) {
       event.mapboxController.mapboxMapController.onLineTapped
           .add(event.mapboxController.onLineTapped);
+    }
+    if (event.cameraUpdate != null) {
+      await event.mapboxController.mapboxMapController
+          .moveCamera(event.cameraUpdate);
+      event.mapboxController.mapboxMapController
+          .updateMyLocationTrackingMode(MyLocationTrackingMode.TrackingCompass);
     }
     yield MapboxLoadSuccess(controller: event.mapboxController);
   }

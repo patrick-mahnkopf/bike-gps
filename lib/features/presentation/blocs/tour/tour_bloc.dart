@@ -1,9 +1,8 @@
 import 'dart:async';
 
+import 'package:bike_gps/core/controllers/controllers.dart';
 import 'package:bike_gps/features/domain/usecases/tour/get_path_to_tour.dart';
 import 'package:bike_gps/features/domain/usecases/tour/get_tour.dart';
-import 'package:bike_gps/features/presentation/blocs/height_map/height_map_bloc.dart';
-import 'package:bike_gps/features/presentation/blocs/mapbox/mapbox_bloc.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
@@ -46,7 +45,8 @@ class TourBloc extends Bloc<TourEvent, TourState> {
     try {
       final Either<Failure, Tour> failureOrTour =
           await getTour(TourParams(name: event.tourName));
-      yield* _eitherLoadSuccessOrLoadFailureState(failureOrTour, event.context);
+      yield* _eitherLoadSuccessOrLoadFailureState(
+          failureOrTour, event.mapboxController);
     } on Exception catch (error) {
       yield TourLoadFailure(message: error.toString());
       rethrow;
@@ -54,18 +54,12 @@ class TourBloc extends Bloc<TourEvent, TourState> {
   }
 
   Stream<TourState> _eitherLoadSuccessOrLoadFailureState(
-      Either<Failure, Tour> failureOrTour, BuildContext context) async* {
+      Either<Failure, Tour> failureOrTour,
+      MapboxController mapboxController) async* {
     yield failureOrTour.fold(
       (failure) => TourLoadFailure(message: _mapFailureToMessage(failure)),
       (tour) {
-        BlocProvider.of<HeightMapBloc>(context)
-            .add(HeightMapLoaded(tour: tour));
-        final MapboxState mapboxState =
-            BlocProvider.of<MapboxBloc>(context).state;
-        if (mapboxState is MapboxLoadSuccess) {
-          // TODO include alternative tours
-          mapboxState.controller.onSelectTour(tour, context);
-        }
+        mapboxController.onSelectTour(tour);
         return TourLoadSuccess(tour: tour);
       },
     );

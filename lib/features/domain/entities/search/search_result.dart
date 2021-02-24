@@ -1,7 +1,8 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
-class SearchResult {
+class SearchResult extends Equatable {
   final String name;
   final String street;
   final String city;
@@ -10,7 +11,7 @@ class SearchResult {
   final LatLng coordinates;
   final bool isTour;
 
-  SearchResult(
+  const SearchResult(
       {@required this.name,
       @required this.country,
       @required this.coordinates,
@@ -42,4 +43,8 @@ class SearchResult {
     if (hasCity) return city;
     return state;
   }
+
+  @override
+  List<Object> get props =>
+      [name, street, city, state, country, coordinates, isTour];
 }

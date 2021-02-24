@@ -7,8 +7,6 @@ import 'package:bike_gps/features/domain/entities/search/search_result.dart';
 import 'package:bike_gps/features/domain/usecases/search/add_to_search_history.dart';
 import 'package:bike_gps/features/domain/usecases/search/get_search_history.dart';
 import 'package:bike_gps/features/domain/usecases/search/get_search_results.dart';
-import 'package:bike_gps/features/presentation/blocs/mapbox/mapbox_bloc.dart';
-import 'package:bike_gps/features/presentation/blocs/tour/tour_bloc.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
@@ -108,21 +106,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
   Stream<SearchState> _mapQuerySubmittedToState(QuerySubmitted event) async* {
     yield QueryLoading();
-    try {
-      searchBarController.close();
-      final MapboxState mapboxState =
-          BlocProvider.of<MapboxBloc>(event.context).state;
-      if (mapboxState is MapboxLoadSuccess) {
-        if (event.searchResult.isTour) {
-          BlocProvider.of<TourBloc>(event.context).add(TourLoaded(
-              context: event.context, tourName: event.searchResult.name));
-        } else {
-          await mapboxState.controller.onSelectPlace(event.searchResult);
-        }
-      }
-    } on Exception catch (exception) {
-      yield QueryLoadFailure(message: exception.toString());
-    }
     searchBarController.query = event.searchResult.name;
     final SearchHistoryItemModel searchHistoryItemModel =
         SearchHistoryItemModel.fromSearchResult(

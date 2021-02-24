@@ -22,12 +22,14 @@ class MapboxInitialized extends MapboxEvent {
 
 class MapboxLoaded extends MapboxEvent {
   final MapboxController mapboxController;
+  final CameraUpdate cameraUpdate;
 
-  const MapboxLoaded({@required this.mapboxController});
-
-  @override
-  List<Object> get props => [mapboxController];
+  const MapboxLoaded({@required this.mapboxController, this.cameraUpdate});
 
   @override
-  String toString() => 'MapboxLoaded { mapboxController: $mapboxController }';
+  List<Object> get props => [mapboxController, cameraUpdate];
+
+  @override
+  String toString() =>
+      'MapboxLoaded { mapboxController: $mapboxController, cameraUpdate: $cameraUpdate }';
 }

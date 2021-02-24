@@ -2,10 +2,8 @@ import 'package:bike_gps/core/function_results/function_result.dart';
 import 'package:bike_gps/core/helpers/constants_helper.dart';
 import 'package:bike_gps/features/domain/entities/search/entities.dart';
 import 'package:bike_gps/features/domain/entities/tour/entities.dart';
-import 'package:bike_gps/features/presentation/blocs/mapbox/mapbox_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -106,22 +104,22 @@ class MapboxController {
         zoom: 14);
   }
 
-  void recenterMap(BuildContext context) {
-    final MapboxBloc mapboxBloc = BlocProvider.of<MapboxBloc>(context);
-    if (mapboxBloc.state is MapboxLoadSuccess && mapboxMapController != null) {
-      mapboxMapController
-          .updateMyLocationTrackingMode(MyLocationTrackingMode.TrackingCompass);
-      mapboxBloc.add(MapboxLoaded(
-          mapboxController: copyWith(
-              myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass)));
-    }
-  }
+  // void recenterMap(BuildContext context) {
+  //   final MapboxBloc mapboxBloc = BlocProvider.of<MapboxBloc>(context);
+  //   if (mapboxBloc.state is MapboxLoadSuccess && mapboxMapController != null) {
+  //     mapboxMapController
+  //         .updateMyLocationTrackingMode(MyLocationTrackingMode.TrackingCompass);
+  //     mapboxBloc.add(MapboxLoaded(
+  //         mapboxController: copyWith(
+  //             myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass)));
+  //   }
+  // }
 
-  bool canRecenterMap(BuildContext context) {
-    return BlocProvider.of<MapboxBloc>(context).state is MapboxLoadSuccess &&
-        mapboxMapController != null &&
-        myLocationTrackingMode != MyLocationTrackingMode.TrackingCompass;
-  }
+  // bool canRecenterMap(BuildContext context) {
+  //   return BlocProvider.of<MapboxBloc>(context).state is MapboxLoadSuccess &&
+  //       mapboxMapController != null &&
+  //       myLocationTrackingMode != MyLocationTrackingMode.TrackingCompass;
+  // }
 
   Future<FunctionResult> onSelectPlace(SearchResult searchResult) async {
     try {
@@ -138,12 +136,14 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
-  Future<FunctionResult> onSelectTour(Tour tour, BuildContext context) async {
+  Future<FunctionResult> onSelectTour(Tour tour) async {
     try {
       tourLines.add(await _drawTour(tour: tour, isMainTour: true));
-      final CameraUpdate cameraUpdate =
-          CameraUpdate.newLatLngBounds(tour.bounds);
-      _animateCamera(cameraUpdate);
+      await _drawTourStartAndEndIcons(
+        tour.trackPoints.first.latLng,
+        tour.trackPoints.last.latLng,
+      );
+      animateCameraToTourBounds(tour);
     } on Exception catch (exception, stacktrace) {
       return FunctionResultFailure(
           error: exception,
@@ -151,6 +151,13 @@ class MapboxController {
           name: 'Mapbox Controller onSelectTour');
     }
     return FunctionResultSuccess();
+  }
+
+  void animateCameraToTourBounds(Tour tour) {
+    mapboxMapController
+        .updateMyLocationTrackingMode(MyLocationTrackingMode.None);
+    final CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(tour.bounds);
+    _animateCamera(cameraUpdate);
   }
 
   Future<TourLine> _drawTour({
@@ -203,8 +210,43 @@ class MapboxController {
     );
   }
 
+  Future<FunctionResult> _drawTourStartAndEndIcons(
+      LatLng startPoint, LatLng endPoint) async {
+    mapboxMapController.addSymbol(SymbolOptions(
+      iconImage: 'start_location',
+      iconSize: 0.1,
+      iconOffset: const Offset(0, 15),
+      iconAnchor: 'bottom',
+      geometry: startPoint,
+      textField: 'Start',
+      textOffset: const Offset(0, -1.6),
+      textAnchor: 'bottom',
+    ));
+    mapboxMapController.addSymbol(SymbolOptions(
+      iconImage: 'end_location',
+      iconSize: 0.12,
+      iconOffset: const Offset(0, 15),
+      iconAnchor: 'bottom',
+      geometry: endPoint,
+      textField: 'End',
+      textOffset: const Offset(0, -1.7),
+      textAnchor: 'bottom',
+    ));
+    return FunctionResultSuccess();
+  }
+
   void onLineTapped(Line line) {
     // TODO implement onLineTapped
+  }
+
+  void onTourDismissed() {
+    _clearActiveDrawings();
+  }
+
+  void _clearActiveDrawings() {
+    mapboxMapController.clearLines();
+    mapboxMapController.clearCircles();
+    mapboxMapController.clearSymbols();
   }
 
   void _moveCamera(CameraUpdate cameraUpdate) {

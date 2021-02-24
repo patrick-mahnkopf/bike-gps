@@ -109,7 +109,7 @@ class GrabSectionContent extends StatelessWidget {
                     icon: const Icon(Icons.navigation),
                     label: const Text("Start"),
                     onPressed: () => BlocProvider.of<MapBloc>(context)
-                        .add(NavigationViewActivated(context: context)),
+                        .add(NavigationViewActivated()),
                     style: ElevatedButton.styleFrom(
                       primary: Colors.blue,
                       onPrimary: Colors.white,

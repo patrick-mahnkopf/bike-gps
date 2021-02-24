@@ -2,12 +2,15 @@ import 'dart:developer';
 
 import 'package:bike_gps/core/widgets/custom_widgets.dart';
 import 'package:bike_gps/features/domain/entities/search/entities.dart';
+import 'package:bike_gps/features/presentation/blocs/mapbox/mapbox_bloc.dart';
 import 'package:bike_gps/features/presentation/blocs/search/search_bloc.dart';
+import 'package:bike_gps/features/presentation/blocs/tour/tour_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/transitions.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 
 class SearchBarWidget extends StatelessWidget {
@@ -49,7 +52,7 @@ class SearchBarWidget extends StatelessWidget {
                   } else {
                     return CircularButton(
                       icon: const Icon(Icons.close),
-                      onPressed: () => _onQueryCleared(searchBloc),
+                      onPressed: () => _onQueryCleared(searchBloc, context),
                     );
                   }
                 },
@@ -71,9 +74,18 @@ class SearchBarWidget extends StatelessWidget {
     );
   }
 
-  void _onQueryCleared(SearchBloc searchBloc) {
+  void _onQueryCleared(SearchBloc searchBloc, BuildContext context) {
     searchBloc.add(const QueryChanged(query: ''));
     searchBloc.searchBarController.close();
+    final MapboxState mapboxState = BlocProvider.of<MapboxBloc>(context).state;
+    if (mapboxState is MapboxLoadSuccess) {
+      mapboxState.controller.onTourDismissed();
+    }
+    final TourBloc tourBloc = BlocProvider.of<TourBloc>(context);
+    final TourState tourState = tourBloc.state;
+    if (tourState is TourLoadSuccess) {
+      tourBloc.add(TourRemoved());
+    }
   }
 
   void _getSearchResultAndSubmit(
@@ -238,18 +250,35 @@ void _onSubmitted(
   if (state is QueryLoadSuccess) {
     searchBloc.add(QuerySubmitted(
         searchResult: searchResult,
-        context: context,
         query: state.query,
         searchResults: state.searchResults));
   } else if (state is QueryEmpty) {
     searchBloc.add(QuerySubmitted(
         searchResult: searchResult,
-        context: context,
         query: '',
         searchResults: state.searchHistory));
   } else {
     log('Tried submitting query before loading finished',
         name: 'SearchBar', time: DateTime.now());
   }
-  searchBloc.searchBarController.hide();
+  searchBloc.searchBarController.close();
+  final MapboxBloc mapboxBloc = BlocProvider.of<MapboxBloc>(context);
+  final MapboxState mapboxState = mapboxBloc.state;
+  if (mapboxState is MapboxLoadSuccess) {
+    mapboxState.controller.mapboxMapController
+        .updateMyLocationTrackingMode(MyLocationTrackingMode.None);
+    mapboxBloc.add(MapboxLoaded(
+        mapboxController: mapboxState.controller
+            .copyWith(myLocationTrackingMode: MyLocationTrackingMode.None)));
+    if (searchResult.isTour) {
+      if (mapboxState is MapboxLoadSuccess) {
+        // TODO include alternative tours
+        BlocProvider.of<TourBloc>(context).add(TourLoaded(
+            tourName: searchResult.name,
+            mapboxController: mapboxState.controller));
+      }
+    } else {
+      mapboxState.controller.onSelectPlace(searchResult);
+    }
+  }
 }

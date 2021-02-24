@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:bike_gps/core/error/exception.dart';
 import 'package:bike_gps/core/function_results/function_result.dart';
@@ -33,14 +34,15 @@ class SearchResultLocalDataSourceImpl implements SearchResultLocalDataSource {
       if (historyContent != '') {
         final List searchResults = jsonDecode(historyContent) as List;
         for (final dynamic searchResult in searchResults) {
-          searchHistory.add(SearchHistoryItemModel.fromJson(
-              searchResult as Map<String, dynamic>,
-              tourListHelper: tourListHelper));
+          searchHistory.add(
+            SearchHistoryItemModel.fromJson(
+                searchResult as Map<String, dynamic>,
+                tourListHelper: tourListHelper),
+          );
         }
       }
       return searchHistory;
     } on Exception {
-      rethrow;
       throw FileException();
     }
   }
@@ -79,9 +81,9 @@ class SearchResultLocalDataSourceImpl implements SearchResultLocalDataSource {
       List<SearchHistoryItemModel> searchHistory) {
     if (searchHistory.length > searchHistoryMaxLength) {
       final int amountOfEntriesToRemove =
-          searchHistoryMaxLength - searchHistory.length;
+          max(0, searchHistory.length - searchHistoryMaxLength);
       return searchHistory.sublist(
-          0, searchHistory.length - amountOfEntriesToRemove);
+          0, searchHistory.length - 1 - amountOfEntriesToRemove);
     } else {
       return searchHistory;
     }

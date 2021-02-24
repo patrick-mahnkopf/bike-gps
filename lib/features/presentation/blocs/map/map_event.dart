@@ -8,25 +8,17 @@ abstract class MapEvent extends Equatable {
 }
 
 class TourSelectionViewActivated extends MapEvent {
-  final BuildContext context;
-
-  const TourSelectionViewActivated({@required this.context});
+  @override
+  List<Object> get props => [];
 
   @override
-  List<Object> get props => [context];
-
-  @override
-  String toString() => 'TourSelectionViewActivated { context: $context}';
+  String toString() => 'TourSelectionViewActivated { }';
 }
 
 class NavigationViewActivated extends MapEvent {
-  final BuildContext context;
-
-  const NavigationViewActivated({@required this.context});
+  @override
+  List<Object> get props => [];
 
   @override
-  List<Object> get props => [context];
-
-  @override
-  String toString() => 'NavigationViewActivated { context: $context}';
+  String toString() => 'NavigationViewActivated { }';
 }

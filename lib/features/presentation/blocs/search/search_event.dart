@@ -29,22 +29,20 @@ class QueryChanged extends SearchEvent {
 
 class QuerySubmitted extends SearchEvent {
   final SearchResult searchResult;
-  final BuildContext context;
   final String query;
   final List<SearchResult> searchResults;
 
   const QuerySubmitted(
       {@required this.searchResult,
-      @required this.context,
       @required this.query,
       @required this.searchResults});
 
   @override
-  List<Object> get props => [searchResult, context, query, searchResults];
+  List<Object> get props => [searchResult, query, searchResults];
 
   @override
   String toString() =>
-      'QuerySubmitted { searchResult: $searchResult, context: $context, query: $query, searchResults: $searchResults }';
+      'QuerySubmitted { searchResult: $searchResult, query: $query, searchResults: $searchResults }';
 }
 
 class SearchBarDismissed extends SearchEvent {

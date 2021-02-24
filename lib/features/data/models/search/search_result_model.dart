@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
 class SearchResultModel extends SearchResult {
-  SearchResultModel(
+  const SearchResultModel(
       {@required String name,
       @required String country,
       @required LatLng coordinates,

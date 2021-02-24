@@ -9,15 +9,16 @@ abstract class TourEvent extends Equatable {
 
 class TourLoaded extends TourEvent {
   final String tourName;
-  final BuildContext context;
+  final MapboxController mapboxController;
 
-  const TourLoaded({@required this.tourName, @required this.context});
-
-  @override
-  List<Object> get props => [tourName];
+  const TourLoaded({@required this.tourName, @required this.mapboxController});
 
   @override
-  String toString() => 'TourLoaded { tourName: $tourName }';
+  List<Object> get props => [tourName, mapboxController];
+
+  @override
+  String toString() =>
+      'TourLoaded { tourName: $tourName, mapboxController: $mapboxController }';
 }
 
 class TourRemoved extends TourEvent {}

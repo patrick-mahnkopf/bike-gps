@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:bike_gps/features/presentation/blocs/mapbox/mapbox_bloc.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
@@ -48,14 +47,6 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       } else {
         final LocationData locationData = await getIt<Location>().getLocation();
         userLocation = LatLng(locationData.latitude, locationData.longitude);
-      }
-      final MapboxBloc mapboxBloc = BlocProvider.of<MapboxBloc>(event.context);
-      final MapboxState mapboxState = mapboxBloc.state;
-      if (mapboxState is MapboxLoadSuccess) {
-        mapboxBloc.add(MapboxLoaded(
-            mapboxController: mapboxState.controller.copyWith(
-                myLocationTrackingMode:
-                    MyLocationTrackingMode.TrackingCompass)));
       }
       final Either<Failure, NavigationData> navigationDataEither =
           await _getNavigationData(

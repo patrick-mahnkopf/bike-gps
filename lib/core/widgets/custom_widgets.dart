@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:bike_gps/features/presentation/blocs/mapbox/mapbox_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:provider/provider.dart';
 import 'package:snapping_sheet/snapping_sheet.dart';
 
@@ -42,14 +43,17 @@ class CustomContainerTextWidget extends StatelessWidget {
 class RecenterMapWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final MapboxBloc mapboxBloc = BlocProvider.of<MapboxBloc>(context);
     return BlocBuilder<MapboxBloc, MapboxState>(
       builder: (context, state) {
         if (state is MapboxLoadSuccess &&
-            state.controller.canRecenterMap(context)) {
+            state.controller.mapboxMapController != null &&
+            state.controller.myLocationTrackingMode !=
+                MyLocationTrackingMode.TrackingCompass) {
           return Padding(
             padding: const EdgeInsets.all(8),
             child: FloatingActionButton.extended(
-              onPressed: () => state.controller.recenterMap(context),
+              onPressed: () => _recenterMap(mapboxBloc, state),
               backgroundColor: Colors.white,
               label: const Text(
                 "Re-center",
@@ -66,6 +70,14 @@ class RecenterMapWidget extends StatelessWidget {
         }
       },
     );
+  }
+
+  void _recenterMap(MapboxBloc mapboxBloc, MapboxLoadSuccess state) {
+    state.controller.mapboxMapController
+        .updateMyLocationTrackingMode(MyLocationTrackingMode.TrackingCompass);
+    mapboxBloc.add(MapboxLoaded(
+        mapboxController: state.controller.copyWith(
+            myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass)));
   }
 }
 
