@@ -63,8 +63,7 @@ class SearchBarWidget extends StatelessWidget {
             ],
             progress: state is QueryLoading,
             debounceDelay: const Duration(milliseconds: 500),
-            onQueryChanged: (query) =>
-                searchBloc.add(QueryChanged(query: query)),
+            onQueryChanged: (query) => _onQueryChanged(query, searchBloc),
             scrollPadding: EdgeInsets.zero,
             transition: CircularFloatingSearchBarTransition(),
             builder: (context, _) => ExpandableBody(),
@@ -72,6 +71,19 @@ class SearchBarWidget extends StatelessWidget {
         },
       ),
     );
+  }
+
+  void _onQueryChanged(String query, SearchBloc searchBloc) {
+    final SearchState searchState = searchBloc.state;
+    if (searchState is QueryLoadSuccess) {
+      if (searchState.query != query) {
+        searchBloc.add(QueryChanged(query: query));
+      }
+    } else if (searchState is QueryEmpty) {
+      if (query != '') {
+        searchBloc.add(QueryChanged(query: query));
+      }
+    }
   }
 
   void _onQueryCleared(SearchBloc searchBloc, BuildContext context) {
@@ -255,7 +267,7 @@ void _onSubmitted(
   } else if (state is QueryEmpty) {
     searchBloc.add(QuerySubmitted(
         searchResult: searchResult,
-        query: '',
+        query: searchResult.name,
         searchResults: state.searchHistory));
   } else {
     log('Tried submitting query before loading finished',

@@ -51,15 +51,16 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       final Either<Failure, NavigationData> navigationDataEither =
           await _getNavigationData(
               Params(tour: event.tour, userLocation: userLocation));
-      yield* _eitherLoadSuccessOrLoadFailureState(navigationDataEither);
+      yield* _eitherLoadSuccessOrLoadFailureState(
+          navigationDataEither, userLocation);
     } on Exception catch (error) {
       yield NavigationLoadFailure(message: error.toString());
     }
   }
 
   Stream<NavigationState> _eitherLoadSuccessOrLoadFailureState(
-    Either<Failure, NavigationData> failureOrNavigationData,
-  ) async* {
+      Either<Failure, NavigationData> failureOrNavigationData,
+      LatLng userLocation) async* {
     yield failureOrNavigationData.fold(
       (failure) => const NavigationLoadFailure(
           message: 'Could not load navigation data'),
@@ -67,7 +68,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
           currentWayPoint: navigationData.currentWayPoint,
           currentWayPointDistance: navigationData.currentWayPointDistance,
           nextWayPoint: navigationData.nextWayPoint,
-          distanceToTourEnd: navigationData.distanceToTourEnd),
+          distanceToTourEnd: navigationData.distanceToTourEnd,
+          currentPosition: userLocation),
     );
   }
 

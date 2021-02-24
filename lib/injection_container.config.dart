@@ -84,9 +84,12 @@ Future<GetIt> $initGetIt(
   gh.lazySingleton<GetPathToTour>(
       () => GetPathToTour(repository: get<TourRepository>()));
   gh.lazySingleton<GetTour>(() => GetTour(repository: get<TourRepository>()));
-  gh.factory<SearchResultLocalDataSource>(() => SearchResultLocalDataSourceImpl(
-      constantsHelper: get<ConstantsHelper>(),
-      tourListHelper: get<TourListHelper>()));
+  final resolvedSearchResultLocalDataSource =
+      await SearchResultLocalDataSourceImpl.create(
+          constantsHelper: get<ConstantsHelper>(),
+          tourListHelper: get<TourListHelper>());
+  gh.factory<SearchResultLocalDataSource>(
+      () => resolvedSearchResultLocalDataSource);
   gh.factory<SearchResultRemoteDataSource>(() =>
       SearchResultRemoteDataSourceImpl(
           tourListHelper: get<TourListHelper>(), getTour: get<GetTour>()));

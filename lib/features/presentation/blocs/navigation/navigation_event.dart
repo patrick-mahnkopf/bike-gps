@@ -8,7 +8,7 @@ abstract class NavigationEvent extends Equatable {
 }
 
 class NavigationLoaded extends NavigationEvent {
-  final LocationData userLocation;
+  final LatLng userLocation;
   final Tour tour;
 
   const NavigationLoaded({
@@ -21,7 +21,7 @@ class NavigationLoaded extends NavigationEvent {
 
   @override
   String toString() =>
-      'NavigationLoaded { userLocation: $userLocation, tour: $tour }';
+      'NavigationLoaded { userLocation: $userLocation, tour: ${tour.name} }';
 }
 
 class NavigationStopped extends NavigationEvent {

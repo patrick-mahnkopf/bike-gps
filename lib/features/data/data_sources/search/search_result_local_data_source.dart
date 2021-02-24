@@ -16,6 +16,7 @@ abstract class SearchResultLocalDataSource {
       {@required SearchHistoryItemModel searchHistoryItemModel});
 }
 
+@preResolve
 @Injectable(as: SearchResultLocalDataSource)
 class SearchResultLocalDataSourceImpl implements SearchResultLocalDataSource {
   final ConstantsHelper constantsHelper;
@@ -24,6 +25,15 @@ class SearchResultLocalDataSourceImpl implements SearchResultLocalDataSource {
 
   SearchResultLocalDataSourceImpl(
       {@required this.constantsHelper, @required this.tourListHelper});
+
+  @factoryMethod
+  static Future<SearchResultLocalDataSourceImpl> create(
+      {@required ConstantsHelper constantsHelper,
+      @required TourListHelper tourListHelper}) async {
+    await tourListHelper.initializeTourList();
+    return SearchResultLocalDataSourceImpl(
+        constantsHelper: constantsHelper, tourListHelper: tourListHelper);
+  }
 
   @override
   Future<List<SearchHistoryItemModel>> getSearchHistory() async {

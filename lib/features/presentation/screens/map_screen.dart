@@ -3,6 +3,7 @@ import 'package:bike_gps/features/presentation/blocs/search/search_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
 import '../../../core/controllers/controllers.dart';
@@ -60,56 +61,81 @@ class MapScreen extends StatelessWidget {
                   final SearchBloc searchBloc =
                       BlocProvider.of<SearchBloc>(context);
                   final SearchState searchState = searchBloc.state;
+
+                  final MapboxBloc mapboxBloc =
+                      BlocProvider.of<MapboxBloc>(context);
+                  final MapboxState mapboxState = mapboxBloc.state;
+
+                  final TourState tourState =
+                      BlocProvider.of<TourBloc>(context).state;
+
+                  final MapState mapState =
+                      BlocProvider.of<MapBloc>(context).state;
+
+                  final NavigationBloc navigationBloc =
+                      BlocProvider.of<NavigationBloc>(context);
+
                   if (searchState is QueryLoadSuccess) {
                     searchBloc.add(SearchBarDismissed(
                         query: searchState.query,
                         searchResults: searchState.searchResults));
                   }
-                  final MapboxBloc mapboxBloc =
-                      BlocProvider.of<MapboxBloc>(context);
-                  final MapboxState mapboxState = mapboxBloc.state;
-                  if (mapboxState is MapboxLoadSuccess &&
-                      mapboxState.controller != null) {
-                    mapboxState.controller.mapboxMapController
-                        .updateMyLocationTrackingMode(
-                            MyLocationTrackingMode.TrackingCompass);
-                    mapboxBloc.add(MapboxLoaded(
-                        mapboxController: mapboxState.controller.copyWith(
-                            myLocationTrackingMode:
-                                MyLocationTrackingMode.TrackingCompass)));
-                  }
-                  final TourState tourState =
-                      BlocProvider.of<TourBloc>(context).state;
+
                   if (tourState is TourLoadSuccess) {
-                    BlocProvider.of<NavigationBloc>(context)
-                        .add(NavigationLoaded(
-                      tour: tourState.tour,
-                    ));
-                    final MapboxBloc mapboxBloc =
-                        BlocProvider.of<MapboxBloc>(context);
-                    final MapboxState mapboxState = mapboxBloc.state;
-                    if (mapboxState is MapboxLoadSuccess) {
+                    if (mapboxState is MapboxLoadSuccess &&
+                        mapboxState.controller != null) {
+                      mapboxState.controller.mapboxMapController
+                          .updateMyLocationTrackingMode(
+                              MyLocationTrackingMode.TrackingCompass);
                       mapboxBloc.add(MapboxLoaded(
-                          mapboxController: mapboxState.controller,
+                          mapboxController: mapboxState.controller.copyWith(
+                              myLocationTrackingMode:
+                                  MyLocationTrackingMode.TrackingCompass),
                           cameraUpdate: CameraUpdate.zoomTo(14)));
                     }
+
+                    navigationBloc.add(NavigationLoaded(
+                      tour: tourState.tour,
+                    ));
                   }
+
+                  getIt<Location>()
+                      .onLocationChanged
+                      .listen((LocationData currentLocation) {
+                    if (tourState is TourLoadSuccess &&
+                        mapState is NavigationViewActive) {
+                      final NavigationState navigationState =
+                          navigationBloc.state;
+                      final LatLng currentLatLng = LatLng(
+                          currentLocation.latitude, currentLocation.longitude);
+                      if (navigationState is NavigationLoadSuccess) {
+                        if (currentLatLng != navigationState.currentPosition) {
+                          navigationBloc.add(NavigationLoaded(
+                              userLocation: currentLatLng,
+                              tour: tourState.tour));
+                        }
+                      }
+                    }
+                  });
                   return const NavigationView();
                 } else {
                   final SearchBloc searchBloc =
                       BlocProvider.of<SearchBloc>(context);
                   final SearchState searchState = searchBloc.state;
+                  final NavigationBloc navigationBloc =
+                      BlocProvider.of<NavigationBloc>(context);
+
                   if (searchState is SearchBarInactive) {
                     searchBloc.add(SearchBarRecovered(
                         previousQuery: searchState.previousQuery,
                         previousSearchResults:
                             searchState.previousSearchResults));
                   }
-                  final NavigationBloc navigationBloc =
-                      BlocProvider.of<NavigationBloc>(context);
+
                   if (navigationBloc.state is NavigationLoadSuccess) {
                     navigationBloc.add(NavigationStopped());
                   }
+
                   return const TourSelectionView();
                 }
               },

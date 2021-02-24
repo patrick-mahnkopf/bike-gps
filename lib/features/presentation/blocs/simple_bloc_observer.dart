@@ -7,13 +7,13 @@ import 'package:bloc/bloc.dart';
 class SimpleBlocObserver extends BlocObserver {
   @override
   void onEvent(Bloc bloc, Object event) {
-    log(event.toString(), name: 'SimpleBlocObserver', time: DateTime.now());
+    log('Event: $event', name: 'SimpleBlocObserver', time: DateTime.now());
     super.onEvent(bloc, event);
   }
 
   @override
   void onTransition(Bloc bloc, Transition transition) {
-    log(transition.toString(),
+    log('Transition: { currentState: ${transition.currentState},\nevent: ${transition.event},\nnextState: ${transition.nextState},\n }',
         name: 'SimpleBlocObserver', time: DateTime.now());
     super.onTransition(bloc, transition);
   }

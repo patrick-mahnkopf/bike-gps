@@ -59,5 +59,5 @@ class SearchBarInactive extends SearchState {
 
   @override
   String toString() =>
-      'SearchBarHidden { previousQuery: $previousQuery, previousSearchResults: $previousSearchResults }';
+      'SearchBarInactive { previousQuery: $previousQuery, previousSearchResults: $previousSearchResults }';
 }

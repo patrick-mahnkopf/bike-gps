@@ -139,6 +139,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       SearchBarRecovered event) async* {
     yield QueryLoading();
     if (event.previousQuery != null && event.previousQuery != '') {
+      searchBarController.query = event.previousQuery;
       yield QueryLoadSuccess(
           query: event.previousQuery,
           searchResults: event.previousSearchResults);

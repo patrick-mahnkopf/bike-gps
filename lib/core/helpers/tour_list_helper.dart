@@ -42,6 +42,21 @@ class TourListHelper {
     });
   }
 
+  Future<List<TourInfo>> initializeTourList() async {
+    final List<FileSystemEntity> tourFiles =
+        Directory(constantsHelper.tourDirectoryPath).listSync();
+    final List<TourInfo> initialTourList = [];
+    for (final FileSystemEntity entity in tourFiles) {
+      if (await shouldAddTourToList(entity)) {
+        final TourInfo tourInfo =
+            await tourParser.getTourInfo(file: entity as File);
+        initialTourList.add(tourInfo);
+        add(tourInfo);
+      }
+    }
+    return initialTourList;
+  }
+
   Future<bool> shouldAddTourToList(FileSystemEntity entity) async {
     if (entity is File) {
       final String fileBasename = p.basenameWithoutExtension(entity.path);
