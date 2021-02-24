@@ -7,7 +7,25 @@ abstract class MapboxState extends Equatable {
   List<Object> get props => [];
 }
 
-class MapboxInitial extends MapboxState {}
+class MapboxPreInitial extends MapboxState {
+  @override
+  String toString() => 'MapboxPreInitial { }';
+
+  @override
+  List<Object> get props => [];
+}
+
+class MapboxInitial extends MapboxState {
+  final MapboxController controller;
+
+  const MapboxInitial({@required this.controller});
+
+  @override
+  String toString() => 'MapboxInitial { controller: $controller }';
+
+  @override
+  List<Object> get props => [controller];
+}
 
 class MapboxLoadSuccess extends MapboxState {
   final MapboxController controller;

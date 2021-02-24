@@ -1,7 +1,8 @@
+import 'package:bike_gps/core/helpers/distance_helper.dart';
+import 'package:bike_gps/core/helpers/tour_conversion_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-import '../../../../../core/helpers/helpers.dart';
 import '../../../../../core/widgets/custom_widgets.dart';
 import '../../../../domain/entities/tour/entities.dart';
 

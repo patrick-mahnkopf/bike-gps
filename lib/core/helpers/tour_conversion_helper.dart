@@ -6,7 +6,7 @@ import 'package:injectable/injectable.dart';
 
 import 'constants_helper.dart';
 
-@singleton
+@injectable
 class TourConversionHelper {
   final ConstantsHelper constantsHelper;
 

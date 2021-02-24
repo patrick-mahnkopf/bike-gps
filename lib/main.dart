@@ -22,9 +22,9 @@ Future<FunctionResult> main() async {
 Future<FunctionResult> _init() async {
   try {
     await configureDependencies();
-    await _additionalDependencyInit();
+    // await _additionalDependencyInit();
     await getIt.allReady();
-    await _systemInit();
+    // await _systemInit();
     return FunctionResultSuccess();
   } on Exception catch (error, stacktrace) {
     return FunctionResultFailure(
@@ -47,10 +47,13 @@ Future<FunctionResult> _additionalDependencyInit() async {
 
 Future<FunctionResult> _systemInit() async {
   try {
-    // await getIt.isReady<ConstantsHelper>();
+    await getIt.isReady<ConstantsHelper>();
     final ConstantsHelper constants = getIt<ConstantsHelper>();
     if (!await Directory(constants.tourDirectoryPath).exists()) {
       await Directory(constants.tourDirectoryPath).create(recursive: true);
+    }
+    if (!await File(constants.searchHistoryPath).exists()) {
+      await File(constants.searchHistoryPath).create();
     }
     return FunctionResultSuccess();
   } on Exception catch (error, stacktrace) {

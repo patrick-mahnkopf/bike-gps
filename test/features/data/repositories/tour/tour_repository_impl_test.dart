@@ -1,8 +1,9 @@
 import 'package:bike_gps/core/error/exception.dart';
 import 'package:bike_gps/core/error/failure.dart';
-import 'package:bike_gps/features/data/data_sources/tour/data_sources.dart';
+import 'package:bike_gps/features/data/data_sources/tour/tour_local_data_source.dart';
+import 'package:bike_gps/features/data/data_sources/tour/tour_remote_data_source.dart';
 import 'package:bike_gps/features/data/models/tour/models.dart';
-import 'package:bike_gps/features/data/repositories/tour/repositories.dart';
+import 'package:bike_gps/features/data/repositories/tour/tour_repository_impl.dart';
 import 'package:bike_gps/features/domain/entities/tour/entities.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';

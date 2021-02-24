@@ -1,5 +1,5 @@
 import 'package:bike_gps/features/domain/entities/tour/entities.dart';
-import 'package:bike_gps/features/domain/repositories/repositories.dart';
+import 'package:bike_gps/features/domain/repositories/tour/tour_repository.dart';
 import 'package:bike_gps/features/domain/usecases/tour/get_path_to_tour.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -38,8 +38,8 @@ void main() {
             tourStart: anyNamed('tourStart')))
         .thenAnswer((_) async => Right(tTour));
     //act
-    final result = await usecase(
-        const Params(userLocation: tUserLocation, tourStart: tTourStart));
+    final result = await usecase(const PathToTourParams(
+        userLocation: tUserLocation, tourStart: tTourStart));
     //assert
     expect(result, Right(tTour));
     verify(mockTourRepository.getPathToTour(

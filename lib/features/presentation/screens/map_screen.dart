@@ -25,7 +25,7 @@ class MapScreen extends StatelessWidget {
         providers: [
           BlocProvider(
             create: (_) => getIt<MapboxBloc>()
-              ..add(MapboxLoaded(mapboxController: getIt())),
+              ..add(MapboxInitialized(mapboxController: getIt())),
           ),
           BlocProvider(
             create: (_) => getIt<TourBloc>(),
@@ -44,7 +44,7 @@ class MapScreen extends StatelessWidget {
           children: [
             BlocBuilder<MapboxBloc, MapboxState>(
               builder: (context, state) {
-                if (state is MapboxLoadSuccess) {
+                if (state is MapboxInitial || state is MapboxLoadSuccess) {
                   return MapboxWidget(
                     mapboxController: getIt<MapboxController>(),
                   );

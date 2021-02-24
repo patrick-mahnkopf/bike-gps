@@ -7,7 +7,12 @@ class TourInfoModel extends TourInfo {
       {@required String name,
       @required LatLngBounds bounds,
       @required String filePath,
-      @required String fileHash})
+      @required String fileHash,
+      @required LatLng firstPoint})
       : super(
-            name: name, bounds: bounds, filePath: filePath, fileHash: fileHash);
+            name: name,
+            bounds: bounds,
+            filePath: filePath,
+            fileHash: fileHash,
+            firstPoint: firstPoint);
 }

@@ -1,4 +1,5 @@
-import 'package:bike_gps/core/helpers/helpers.dart';
+import 'package:bike_gps/core/helpers/constants_helper.dart';
+import 'package:bike_gps/core/helpers/tour_conversion_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';

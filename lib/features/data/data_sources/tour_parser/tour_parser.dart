@@ -1,12 +1,14 @@
 import 'dart:io';
 
+import 'package:bike_gps/core/helpers/constants_helper.dart';
+import 'package:bike_gps/core/helpers/distance_helper.dart';
 import 'package:bike_gps/features/data/models/tour/tour_info_model.dart';
 import 'package:flutter/widgets.dart';
 import 'package:gpx/gpx.dart';
+import 'package:injectable/injectable.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:path/path.dart' as p;
 
-import '../../../../core/helpers/helpers.dart';
 import '../../models/tour/models.dart';
 
 abstract class TourParser {
@@ -25,6 +27,7 @@ abstract class TourParser {
   List<String> get fileExtensionPriority;
 }
 
+@Injectable(as: TourParser)
 class GpxParser extends TourParser {
   GpxParser(
       {@required ConstantsHelper constants,
@@ -127,7 +130,8 @@ class GpxParser extends TourParser {
         name: tourModel.name,
         filePath: file.path,
         bounds: tourModel.bounds,
-        fileHash: fileHash);
+        fileHash: fileHash,
+        firstPoint: tourModel.trackPoints.first.latLng);
   }
 
   bool _isWaypoint(Wpt point) {

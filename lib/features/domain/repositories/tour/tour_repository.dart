@@ -1,9 +1,8 @@
+import 'package:bike_gps/core/error/failure.dart';
+import 'package:bike_gps/features/domain/entities/tour/entities.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-
-import '../../../core/error/failure.dart';
-import '../entities/tour/entities.dart';
 
 abstract class TourRepository {
   Future<Either<Failure, Tour>> getTour({@required String name});

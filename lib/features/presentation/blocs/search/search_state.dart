@@ -10,7 +10,7 @@ abstract class SearchState extends Equatable {
 class QueryLoading extends SearchState {}
 
 class QueryEmpty extends SearchState {
-  final List<SearchHistoryItem> searchHistory;
+  final List<SearchResult> searchHistory;
 
   const QueryEmpty({@required this.searchHistory});
 
@@ -22,15 +22,17 @@ class QueryEmpty extends SearchState {
 }
 
 class QueryLoadSuccess extends SearchState {
+  final String query;
   final List<SearchResult> searchResults;
 
-  const QueryLoadSuccess({@required this.searchResults});
+  const QueryLoadSuccess({@required this.query, @required this.searchResults});
 
   @override
-  List<Object> get props => [searchResults];
+  List<Object> get props => [query, searchResults];
 
   @override
-  String toString() => 'QueryLoadSuccess { searchResults: $searchResults}';
+  String toString() =>
+      'QueryLoadSuccess { query: $query, searchResults: $searchResults}';
 }
 
 class QueryLoadFailure extends SearchState {
@@ -45,14 +47,17 @@ class QueryLoadFailure extends SearchState {
   String toString() => 'QueryLoadFailure { message: $message}';
 }
 
-class SearchBarHidden extends SearchState {
+class SearchBarInactive extends SearchState {
   final String previousQuery;
+  final List<SearchResult> previousSearchResults;
 
-  const SearchBarHidden({@required this.previousQuery});
+  const SearchBarInactive(
+      {@required this.previousQuery, @required this.previousSearchResults});
 
   @override
-  List<Object> get props => [previousQuery];
+  List<Object> get props => [previousQuery, previousSearchResults];
 
   @override
-  String toString() => 'SearchBarHidden { previousQuery: $previousQuery}';
+  String toString() =>
+      'SearchBarHidden { previousQuery: $previousQuery, previousSearchResults: $previousSearchResults }';
 }

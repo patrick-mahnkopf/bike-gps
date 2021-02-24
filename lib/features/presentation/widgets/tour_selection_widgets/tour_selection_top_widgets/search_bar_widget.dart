@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:bike_gps/core/widgets/custom_widgets.dart';
-import 'package:bike_gps/features/domain/entities/search/search_result.dart';
+import 'package:bike_gps/features/domain/entities/search/entities.dart';
 import 'package:bike_gps/features/presentation/blocs/search/search_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -35,7 +35,8 @@ class SearchBarWidget extends StatelessWidget {
             axisAlignment: isPortrait ? 0.0 : -1.0,
             openAxisAlignment: 0.0,
             maxWidth: isPortrait ? 600 : 500,
-            onSubmitted: (_) => _onSubmitted(searchBloc),
+            onSubmitted: (_) => _getSearchResultAndSubmit(
+                searchBloc: searchBloc, context: context),
             actions: [
               FloatingSearchBarAction(
                 builder: (context, _) {
@@ -48,8 +49,7 @@ class SearchBarWidget extends StatelessWidget {
                   } else {
                     return CircularButton(
                       icon: const Icon(Icons.close),
-                      onPressed: () =>
-                          searchBloc.add(const QueryChanged(query: '')),
+                      onPressed: () => _onQueryCleared(searchBloc),
                     );
                   }
                 },
@@ -71,14 +71,22 @@ class SearchBarWidget extends StatelessWidget {
     );
   }
 
-  void _onSubmitted(SearchBloc searchBloc) {
-    final SearchState state = searchBloc.state;
-    if (state is QueryLoadSuccess) {
-      searchBloc.add(QuerySubmitted(searchResult: state.searchResults.first));
-    } else {
-      log('Tried submitting query before loading finished',
-          name: 'SearchBar', time: DateTime.now());
+  void _onQueryCleared(SearchBloc searchBloc) {
+    searchBloc.add(const QueryChanged(query: ''));
+    searchBloc.searchBarController.close();
+  }
+
+  void _getSearchResultAndSubmit(
+      {@required SearchBloc searchBloc, @required BuildContext context}) {
+    final SearchState searchState = searchBloc.state;
+    SearchResult searchResult;
+    if (searchState is QueryLoadSuccess) {
+      searchResult = searchState.searchResults.first;
+    } else if (searchState is QueryEmpty) {
+      searchResult = searchState.searchHistory.first;
     }
+    _onSubmitted(
+        searchBloc: searchBloc, context: context, searchResult: searchResult);
   }
 }
 
@@ -90,29 +98,12 @@ class ExpandableBody extends StatelessWidget {
         if (state is QueryLoading) {
           return const LoadingIndicator();
         } else if (state is QueryLoadSuccess) {
-          return Material(
-            color: Colors.white,
-            elevation: 4.0,
-            borderRadius: BorderRadius.circular(8),
-            child: ImplicitlyAnimatedList<SearchResult>(
-              shrinkWrap: true,
-              padding: EdgeInsets.zero,
-              physics: const NeverScrollableScrollPhysics(),
-              items: state.searchResults,
-              areItemsTheSame: (a, b) => a == b,
-              itemBuilder: (context, animation, searchResult, i) {
-                return SizeFadeTransition(
-                  animation: animation,
-                  child: SearchResultItem(searchResult: searchResult),
-                );
-              },
-              updateItemBuilder: (context, animation, searchResult) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: SearchResultItem(searchResult: searchResult),
-                );
-              },
-            ),
+          return SearchBarBody(
+            searchResults: state.searchResults,
+          );
+        } else if (state is QueryEmpty) {
+          return SearchBarBody(
+            searchResults: state.searchHistory,
           );
         } else {
           return Container();
@@ -122,10 +113,43 @@ class ExpandableBody extends StatelessWidget {
   }
 }
 
-class SearchResultItem extends StatelessWidget {
+class SearchBarBody extends StatelessWidget {
+  final List<SearchResult> searchResults;
+
+  const SearchBarBody({Key key, this.searchResults}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      elevation: 4.0,
+      borderRadius: BorderRadius.circular(8),
+      child: ImplicitlyAnimatedList<SearchResult>(
+        shrinkWrap: true,
+        padding: EdgeInsets.zero,
+        physics: const NeverScrollableScrollPhysics(),
+        items: searchResults,
+        areItemsTheSame: (a, b) => a == b,
+        itemBuilder: (context, animation, searchResult, i) {
+          return SizeFadeTransition(
+            animation: animation,
+            child: SearchBarListItem(searchResult: searchResult),
+          );
+        },
+        updateItemBuilder: (context, animation, searchResult) {
+          return FadeTransition(
+            opacity: animation,
+            child: SearchBarListItem(searchResult: searchResult),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class SearchBarListItem extends StatelessWidget {
   final SearchResult searchResult;
 
-  const SearchResultItem({Key key, @required this.searchResult})
+  const SearchBarListItem({Key key, @required this.searchResult})
       : super(key: key);
 
   @override
@@ -139,7 +163,10 @@ class SearchResultItem extends StatelessWidget {
       children: [
         InkWell(
           onTap: () {
-            searchBloc.add(QuerySubmitted(searchResult: searchResult));
+            _onSubmitted(
+                searchBloc: searchBloc,
+                context: context,
+                searchResult: searchResult);
           },
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -201,4 +228,28 @@ class SearchResultItem extends StatelessWidget {
       return const Icon(Icons.error);
     }
   }
+}
+
+void _onSubmitted(
+    {@required SearchBloc searchBloc,
+    @required BuildContext context,
+    @required SearchResult searchResult}) {
+  final SearchState state = searchBloc.state;
+  if (state is QueryLoadSuccess) {
+    searchBloc.add(QuerySubmitted(
+        searchResult: searchResult,
+        context: context,
+        query: state.query,
+        searchResults: state.searchResults));
+  } else if (state is QueryEmpty) {
+    searchBloc.add(QuerySubmitted(
+        searchResult: searchResult,
+        context: context,
+        query: '',
+        searchResults: state.searchHistory));
+  } else {
+    log('Tried submitting query before loading finished',
+        name: 'SearchBar', time: DateTime.now());
+  }
+  searchBloc.searchBarController.hide();
 }

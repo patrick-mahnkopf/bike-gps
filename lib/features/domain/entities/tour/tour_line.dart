@@ -6,11 +6,17 @@ class TourLine extends Equatable {
   final Line background;
   final Line route;
   final Line touchArea;
+  final String tourName;
+  final bool isActive;
+  final bool isPathToTour;
 
   const TourLine(
       {@required this.background,
       @required this.route,
-      @required this.touchArea});
+      @required this.touchArea,
+      @required this.tourName,
+      @required this.isActive,
+      @required this.isPathToTour});
 
   @override
   List<Object> get props => [background, route, touchArea];

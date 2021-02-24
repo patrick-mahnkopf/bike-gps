@@ -12,18 +12,29 @@ part 'mapbox_state.dart';
 
 @injectable
 class MapboxBloc extends Bloc<MapboxEvent, MapboxState> {
-  MapboxBloc() : super(MapboxInitial());
+  MapboxBloc() : super(MapboxPreInitial());
 
   @override
   Stream<MapboxState> mapEventToState(
     MapboxEvent event,
   ) async* {
-    if (event is MapboxLoaded) {
+    if (event is MapboxInitialized) {
+      yield* _mapMapboxInitializedToState(event);
+    } else if (event is MapboxLoaded) {
       yield* _mapMapboxLoadedToState(event);
     }
   }
 
+  Stream<MapboxState> _mapMapboxInitializedToState(
+      MapboxInitialized event) async* {
+    yield MapboxInitial(controller: event.mapboxController);
+  }
+
   Stream<MapboxState> _mapMapboxLoadedToState(MapboxLoaded event) async* {
+    if (state is MapboxInitial) {
+      event.mapboxController.mapboxMapController.onLineTapped
+          .add(event.mapboxController.onLineTapped);
+    }
     yield MapboxLoadSuccess(controller: event.mapboxController);
   }
 }

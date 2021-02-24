@@ -32,7 +32,7 @@ abstract class LocationModule {
     if (hasPermissions != PermissionStatus.granted) {
       await location.requestPermission();
     }
-    await location.changeSettings(distanceFilter: 5);
+    await location.changeSettings(distanceFilter: 2);
     return location;
   }
 }

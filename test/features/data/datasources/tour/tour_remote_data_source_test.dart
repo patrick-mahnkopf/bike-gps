@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:bike_gps/core/error/exception.dart';
-import 'package:bike_gps/features/data/data_sources/tour/data_sources.dart';
-import 'package:bike_gps/features/data/data_sources/tour_parser/data_sources.dart';
+import 'package:bike_gps/features/data/data_sources/tour/tour_remote_data_source.dart';
+import 'package:bike_gps/features/data/data_sources/tour_parser/tour_parser.dart';
 import 'package:bike_gps/features/data/models/tour/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;

@@ -1,29 +1,28 @@
+import 'package:bike_gps/core/error/failure.dart';
+import 'package:bike_gps/core/usecases/usecase.dart';
+import 'package:bike_gps/features/domain/entities/tour/entities.dart';
+import 'package:bike_gps/features/domain/repositories/tour/tour_repository.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 import 'package:injectable/injectable.dart';
 
-import '../../../../core/error/failure.dart';
-import '../../../../core/usecases/usecase.dart';
-import '../../entities/tour/entities.dart';
-import '../../repositories/repositories.dart';
-
 @lazySingleton
-class GetTour extends UseCase<Tour, Params> {
+class GetTour extends UseCase<Tour, TourParams> {
   final TourRepository repository;
 
   GetTour({@required this.repository});
 
   @override
-  Future<Either<Failure, Tour>> call(Params params) async {
+  Future<Either<Failure, Tour>> call(TourParams params) async {
     return repository.getTour(name: params.name);
   }
 }
 
-class Params extends Equatable {
+class TourParams extends Equatable {
   final String name;
 
-  const Params({@required this.name});
+  const TourParams({@required this.name});
 
   @override
   List<Object> get props => [name];

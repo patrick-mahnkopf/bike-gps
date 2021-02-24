@@ -1,9 +1,9 @@
+import 'package:bike_gps/core/helpers/distance_helper.dart';
 import 'package:bike_gps/core/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/helpers/helpers.dart';
 import '../../../../injection_container.dart';
 import '../../blocs/map/map_bloc.dart';
 
@@ -82,6 +82,7 @@ class GrabSectionContent extends StatelessWidget {
   }
 
   void stopNavigation(BuildContext context) {
-    BlocProvider.of<MapBloc>(context).add(TourSelectionViewActivated());
+    BlocProvider.of<MapBloc>(context)
+        .add(TourSelectionViewActivated(context: context));
   }
 }

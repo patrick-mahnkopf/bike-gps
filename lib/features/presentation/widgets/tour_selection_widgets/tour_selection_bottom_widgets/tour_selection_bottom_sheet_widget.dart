@@ -1,4 +1,5 @@
-import 'package:bike_gps/core/helpers/helpers.dart';
+import 'package:bike_gps/core/helpers/distance_helper.dart';
+import 'package:bike_gps/core/helpers/tour_conversion_helper.dart';
 import 'package:bike_gps/core/widgets/custom_widgets.dart';
 import 'package:bike_gps/features/presentation/blocs/height_map/height_map_bloc.dart';
 import 'package:bike_gps/features/presentation/blocs/map/map_bloc.dart';
@@ -108,7 +109,7 @@ class GrabSectionContent extends StatelessWidget {
                     icon: const Icon(Icons.navigation),
                     label: const Text("Start"),
                     onPressed: () => BlocProvider.of<MapBloc>(context)
-                        .add(NavigationViewActivated()),
+                        .add(NavigationViewActivated(context: context)),
                     style: ElevatedButton.styleFrom(
                       primary: Colors.blue,
                       onPrimary: Colors.white,

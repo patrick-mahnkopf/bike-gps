@@ -1,6 +1,9 @@
 import 'dart:async';
 
+import 'package:bike_gps/features/domain/usecases/tour/get_path_to_tour.dart';
+import 'package:bike_gps/features/domain/usecases/tour/get_tour.dart';
 import 'package:bike_gps/features/presentation/blocs/height_map/height_map_bloc.dart';
+import 'package:bike_gps/features/presentation/blocs/mapbox/mapbox_bloc.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
@@ -10,7 +13,6 @@ import 'package:injectable/injectable.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../domain/entities/tour/entities.dart';
-import '../../../domain/repositories/repositories.dart';
 
 part 'tour_event.dart';
 part 'tour_state.dart';
@@ -20,9 +22,13 @@ const String serverFailureMessage = 'Server Failure';
 
 @injectable
 class TourBloc extends Bloc<TourEvent, TourState> {
-  final TourRepository tourRepository;
+  final GetTour getTour;
+  final GetPathToTour getPathToTour;
 
-  TourBloc({@required this.tourRepository}) : super(TourEmpty());
+  TourBloc({@required this.getTour, @required this.getPathToTour})
+      : assert(getTour != null),
+        assert(getPathToTour != null),
+        super(TourEmpty());
 
   @override
   Stream<TourState> mapEventToState(
@@ -39,7 +45,7 @@ class TourBloc extends Bloc<TourEvent, TourState> {
     yield TourLoading();
     try {
       final Either<Failure, Tour> failureOrTour =
-          await tourRepository.getTour(name: event.tourName);
+          await getTour(TourParams(name: event.tourName));
       yield* _eitherLoadSuccessOrLoadFailureState(failureOrTour, event.context);
     } on Exception catch (error) {
       yield TourLoadFailure(message: error.toString());
@@ -54,6 +60,12 @@ class TourBloc extends Bloc<TourEvent, TourState> {
       (tour) {
         BlocProvider.of<HeightMapBloc>(context)
             .add(HeightMapLoaded(tour: tour));
+        final MapboxState mapboxState =
+            BlocProvider.of<MapboxBloc>(context).state;
+        if (mapboxState is MapboxLoadSuccess) {
+          // TODO include alternative tours
+          mapboxState.controller.onSelectTour(tour, context);
+        }
         return TourLoadSuccess(tour: tour);
       },
     );

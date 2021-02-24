@@ -6,10 +6,12 @@ class TourInfo {
   final LatLngBounds bounds;
   final String filePath;
   final String fileHash;
+  final LatLng firstPoint;
 
   TourInfo(
       {@required this.name,
       @required this.bounds,
       @required this.filePath,
-      @required this.fileHash});
+      @required this.fileHash,
+      @required this.firstPoint});
 }

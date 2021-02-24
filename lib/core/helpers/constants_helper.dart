@@ -10,10 +10,11 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 @preResolve
-@singleton
+@injectable
 class ConstantsHelper {
   final String applicationDocumentsDirectoryPath;
   String tourDirectoryPath;
+  String searchHistoryPath;
   final Map<String, String> turnSymbolAssetPaths;
 
   ConstantsHelper(
@@ -23,6 +24,16 @@ class ConstantsHelper {
       applicationDocumentsDirectoryPath,
       'tours',
     );
+    searchHistoryPath = p.join(
+      applicationDocumentsDirectoryPath,
+      'searchHistory.json',
+    );
+    if (!Directory(tourDirectoryPath).existsSync()) {
+      Directory(tourDirectoryPath).create(recursive: true);
+    }
+    if (!File(searchHistoryPath).existsSync()) {
+      File(searchHistoryPath).create();
+    }
   }
 
   Future<String> getFileHash(String filePath) async {

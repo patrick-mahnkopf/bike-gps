@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bike_gps/core/helpers/helpers.dart';
+import 'package:bike_gps/core/helpers/tour_conversion_helper.dart';
 import 'package:bike_gps/features/domain/entities/tour/entities.dart';
 import 'package:bloc/bloc.dart';
 import 'package:charts_flutter_cf/charts_flutter_cf.dart';

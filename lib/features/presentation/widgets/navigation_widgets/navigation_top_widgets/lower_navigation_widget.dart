@@ -1,7 +1,7 @@
+import 'package:bike_gps/core/helpers/tour_conversion_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-import '../../../../../core/helpers/helpers.dart';
 import '../../../../domain/entities/tour/entities.dart';
 
 class LowerNavigationWidget extends StatelessWidget {
