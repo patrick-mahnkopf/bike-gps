@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:bike_gps/core/helpers/constants_helper.dart';
@@ -7,15 +8,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:injectable/injectable.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:path/path.dart' as p;
+import 'package:watcher/watcher.dart';
 
-@injectable
+@lazySingleton
 class TourListHelper {
   final Map<String, TourInfo> _tourMap = {};
   final ConstantsHelper constantsHelper;
   final TourParser tourParser;
 
   TourListHelper({@required this.constantsHelper, @required this.tourParser}) {
-    startTourListChangeListener();
+    _startTourListChangeListener();
   }
 
   List<TourInfo> get asList => _tourMap.values.toList();
@@ -24,22 +26,35 @@ class TourListHelper {
 
   String getPath(String name) => get(name).filePath;
 
+  String getExtension(String name) => p.extension(getPath(name));
+
   File getFile(String name) => File(getPath(name));
+
+  String getFileHash(String name) => get(name).fileHash;
 
   LatLngBounds getBounds(String name) => get(name).bounds;
 
-  bool contains(String name) => get(name) != null;
+  bool contains(String name) => _tourMap.containsKey(name);
 
   void add(TourInfo tourInfo) => _tourMap[tourInfo.name] = tourInfo;
 
-  void startTourListChangeListener() {
-    Directory(constantsHelper.tourDirectoryPath)
-        .list()
-        .listen((FileSystemEntity entity) async {
-      if (await shouldAddTourToList(entity)) {
-        add(await tourParser.getTourInfo(file: entity as File));
-      }
-    });
+  void remove(String name) => _tourMap.remove(name);
+
+  void _startTourListChangeListener() {
+    DirectoryWatcher(constantsHelper.tourDirectoryPath).events.listen(
+      (WatchEvent event) async {
+        if (event.type == ChangeType.REMOVE) {
+          final String baseNameWithoutExtension =
+              p.basenameWithoutExtension(event.path);
+          remove(baseNameWithoutExtension);
+        } else {
+          if (await shouldAddTourToList(filePath: event.path)) {
+            final File file = File(event.path);
+            add(await tourParser.getTourInfo(file: file));
+          }
+        }
+      },
+    );
   }
 
   Future<List<TourInfo>> initializeTourList() async {
@@ -47,7 +62,7 @@ class TourListHelper {
         Directory(constantsHelper.tourDirectoryPath).listSync();
     final List<TourInfo> initialTourList = [];
     for (final FileSystemEntity entity in tourFiles) {
-      if (await shouldAddTourToList(entity)) {
+      if (await shouldAddTourToList(filePath: entity.path)) {
         final TourInfo tourInfo =
             await tourParser.getTourInfo(file: entity as File);
         initialTourList.add(tourInfo);
@@ -57,34 +72,35 @@ class TourListHelper {
     return initialTourList;
   }
 
-  Future<bool> shouldAddTourToList(FileSystemEntity entity) async {
-    if (entity is File) {
-      final String fileBasename = p.basenameWithoutExtension(entity.path);
-      final String fileExtension = p.extension(entity.path);
-      if (!tourParser.fileExtensionPriority.contains(fileExtension)) {
-        return false;
-      }
-      final File file = await _getTourFile(fileBasename);
-      if (file == null) {
-        return false;
-      }
-      if (contains(fileBasename)) {
-        final bool differentHash = get(fileBasename) != null &&
-            get(fileBasename).fileHash !=
-                await constantsHelper.getFileHash(file.path);
-        final bool differentExtension =
-            p.extension(get(fileBasename).filePath) != p.extension(file.path);
-        if (differentHash || differentExtension) {
+  Future<bool> shouldAddTourToList({@required String filePath}) async {
+    try {
+      final String fileBasename = p.basenameWithoutExtension(filePath);
+      final File file = await _getFileWithBestExtension(fileBasename);
+      if (file != null) {
+        if (contains(fileBasename)) {
+          final bool differentHash = getFileHash(fileBasename) !=
+              await constantsHelper.getFileHash(file.path);
+          final bool differentExtension =
+              getExtension(fileBasename) != p.extension(file.path);
+          if (differentHash || differentExtension) {
+            return true;
+          }
+        } else {
           return true;
         }
-      } else {
-        return true;
       }
+      return false;
+    } on Exception catch (error, stacktrace) {
+      log(error.toString(),
+          error: error,
+          stackTrace: stacktrace,
+          time: DateTime.now(),
+          name: 'TourListHelper');
+      return false;
     }
-    return false;
   }
 
-  Future<File> _getTourFile(String name) async {
+  Future<File> _getFileWithBestExtension(String name) async {
     final String filePath = p.join(constantsHelper.tourDirectoryPath, name);
     for (final String fileExtension in tourParser.fileExtensionPriority) {
       if (await File(filePath + fileExtension).exists()) {

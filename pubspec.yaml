@@ -29,10 +29,6 @@ dependencies:
   geocoder:
     git:
       url: https://github.com/otopba/flutter_geocoder.git
-  mapbox_gl:
-    git:
-      url: https://github.com/tobrun/flutter-mapbox-gl
-      rev: AnnotationSelection
   charts_flutter_cf: ^0.10.3+cf
   cupertino_icons: ^1.0.0
   dartz: ^0.9.2
@@ -49,15 +45,18 @@ dependencies:
   injectable: ^1.0.7
   latlong: ^0.6.1
   location: ^3.2.4
+  mapbox_gl: ^0.10.0
   material_floating_search_bar: ^0.2.6
   md5_plugin: ^1.0.2
   path: ^1.7.0
-  path_provider: ^1.6.27
+  path_provider: ^2.0.0
   provider: ^4.3.3
+  receive_sharing_intent: ^1.4.3
   rxdart: ^0.25.0
   snapping_sheet: ^2.0.2
   tuple: ^1.0.3
   uni_links: ^0.4.0
+  watcher: ^0.9.6
 
 dev_dependencies:
   flutter_test:

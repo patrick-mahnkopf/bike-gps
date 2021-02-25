@@ -71,7 +71,7 @@ Future<GetIt> $initGetIt(
       tourParser: get<TourParser>(), client: get<Client>()));
   gh.factory<HeightMapBloc>(
       () => HeightMapBloc(tourConversionHelper: get<TourConversionHelper>()));
-  gh.factory<TourListHelper>(() => TourListHelper(
+  gh.lazySingleton<TourListHelper>(() => TourListHelper(
       constantsHelper: get<ConstantsHelper>(), tourParser: get<TourParser>()));
   gh.factory<TourLocalDataSource>(() => TourLocalDataSourceImpl(
         tourParser: get<TourParser>(),
