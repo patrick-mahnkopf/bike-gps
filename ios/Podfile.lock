@@ -2,7 +2,7 @@ PODS:
   - Flutter (1.0.0)
   - geocoder (0.0.1):
     - Flutter
-  - geolocator (6.1.9):
+  - geolocator (6.2.0):
     - Flutter
   - location (0.0.1):
     - Flutter
@@ -15,7 +15,11 @@ PODS:
   - MapboxAnnotationExtension (0.0.1-beta.1):
     - Mapbox-iOS-SDK (~> 5.2)
   - MapboxMobileEvents (0.10.2)
+  - md5_plugin (0.0.1):
+    - Flutter
   - path_provider (0.0.1):
+    - Flutter
+  - receive_sharing_intent (0.0.1):
     - Flutter
   - uni_links (0.0.1):
     - Flutter
@@ -26,7 +30,9 @@ DEPENDENCIES:
   - geolocator (from `.symlinks/plugins/geolocator/ios`)
   - location (from `.symlinks/plugins/location/ios`)
   - mapbox_gl (from `.symlinks/plugins/mapbox_gl/ios`)
+  - md5_plugin (from `.symlinks/plugins/md5_plugin/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
+  - receive_sharing_intent (from `.symlinks/plugins/receive_sharing_intent/ios`)
   - uni_links (from `.symlinks/plugins/uni_links/ios`)
 
 SPEC REPOS:
@@ -46,21 +52,27 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/location/ios"
   mapbox_gl:
     :path: ".symlinks/plugins/mapbox_gl/ios"
+  md5_plugin:
+    :path: ".symlinks/plugins/md5_plugin/ios"
   path_provider:
     :path: ".symlinks/plugins/path_provider/ios"
+  receive_sharing_intent:
+    :path: ".symlinks/plugins/receive_sharing_intent/ios"
   uni_links:
     :path: ".symlinks/plugins/uni_links/ios"
 
 SPEC CHECKSUMS:
-  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
   geocoder: 3cfab70531a0b367e917bafe82df4c30f6d4c45a
-  geolocator: 057a0c63a43e9c5296d8ad845a3ac8e6df23d899
+  geolocator: f5e3de65e241caba7ce3e8a618803387bda73384
   location: 3a2eed4dd2fab25e7b7baf2a9efefe82b512d740
   Mapbox-iOS-SDK: b31bd62a5dd5b7e688eab787acd3d093a122f4d6
   mapbox_gl: 48d261b93d7dfc2367c2f93b493ea8f43df5ba96
   MapboxAnnotationExtension: d66de5561562c9d940153c0135725e671407b781
   MapboxMobileEvents: 2bc0ca2eedb627b73cf403258dce2b2fa98074a6
+  md5_plugin: 59289a455a610eb5f84828eae82be8dd79ae817d
   path_provider: abfe2b5c733d04e238b0d8691db0cfd63a27a93c
+  receive_sharing_intent: c0d87310754e74c0f9542947e7cbdf3a0335a3b1
   uni_links: d97da20c7701486ba192624d99bffaaffcfc298a
 
 PODFILE CHECKSUM: 08a75f215f13a96bfc959e3ce1d3bca8d6170765

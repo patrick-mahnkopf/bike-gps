@@ -303,9 +303,11 @@ packages:
   flutter_svg:
     dependency: "direct main"
     description:
-      name: flutter_svg
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: "12b55b464d2e253f411a17798527a7daa2c00ceb"
+      resolved-ref: "12b55b464d2e253f411a17798527a7daa2c00ceb"
+      url: "git://github.com/gskinnerTeam/flutter_svg.git"
+    source: git
     version: "0.19.2+1"
   flutter_test:
     dependency: "direct dev"
@@ -423,14 +425,14 @@ packages:
       name: injectable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.2"
   injectable_generator:
     dependency: "direct dev"
     description:
       name: injectable_generator
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.1"
+    version: "1.1.2"
   intl:
     dependency: transitive
     description:
@@ -735,9 +737,11 @@ packages:
   receive_sharing_intent:
     dependency: "direct main"
     description:
-      name: receive_sharing_intent
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: b2ac782aff8cfb947afcc5109911ae0240890a22
+      url: "https://github.com/LazyDave76/receive_sharing_intent.git"
+    source: git
     version: "1.4.3"
   riverpod:
     dependency: transitive
@@ -792,7 +796,7 @@ packages:
       name: source_span
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.8.0"
+    version: "1.8.1"
   stack_trace:
     dependency: transitive
     description:

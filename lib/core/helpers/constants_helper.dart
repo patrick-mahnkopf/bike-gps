@@ -13,19 +13,18 @@ import 'package:path_provider/path_provider.dart';
 @injectable
 class ConstantsHelper {
   final String applicationDocumentsDirectoryPath;
+  final String applicationSupportDirectoryPath;
   String tourDirectoryPath;
   String searchHistoryPath;
   final Map<String, String> turnSymbolAssetPaths;
 
   ConstantsHelper(
       {@required this.applicationDocumentsDirectoryPath,
+      @required this.applicationSupportDirectoryPath,
       @required this.turnSymbolAssetPaths}) {
-    tourDirectoryPath = p.join(
-      applicationDocumentsDirectoryPath,
-      'tours',
-    );
+    tourDirectoryPath = applicationDocumentsDirectoryPath;
     searchHistoryPath = p.join(
-      applicationDocumentsDirectoryPath,
+      applicationSupportDirectoryPath,
       'searchHistory.json',
     );
     if (!Directory(tourDirectoryPath).existsSync()) {
@@ -64,6 +63,8 @@ class ConstantsHelper {
     return ConstantsHelper(
         applicationDocumentsDirectoryPath:
             (await getApplicationDocumentsDirectory()).path,
+        applicationSupportDirectoryPath:
+            (await getApplicationSupportDirectory()).path,
         turnSymbolAssetPaths: turnArrowPaths);
   }
 

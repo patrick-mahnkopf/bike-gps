@@ -36,7 +36,10 @@ dependencies:
   fluro: ^1.7.8
   flutter_bloc: ^6.1.1
   flutter_riverpod: ^0.12.4
-  flutter_svg: ^0.19.1
+  flutter_svg:
+    git:
+      url: git://github.com/gskinnerTeam/flutter_svg.git
+      ref: 12b55b464d2e253f411a17798527a7daa2c00ceb
   geolocator: ^6.2.0
   get_it: ^5.0.6
   gpx: ^1.1.1
@@ -51,7 +54,9 @@ dependencies:
   path: ^1.7.0
   path_provider: ^2.0.0
   provider: ^4.3.3
-  receive_sharing_intent: ^1.4.3
+  receive_sharing_intent:
+    git:
+      url: https://github.com/LazyDave76/receive_sharing_intent.git
   rxdart: ^0.25.0
   snapping_sheet: ^2.0.2
   tuple: ^1.0.3

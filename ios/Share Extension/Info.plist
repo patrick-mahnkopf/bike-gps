@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleDevelopmentRegion</key>
+  <string>$(DEVELOPMENT_LANGUAGE)</string>
+  <key>CFBundleDisplayName</key>
+  <string>Share Extension</string>
+  <key>CFBundleExecutable</key>
+  <string>$(EXECUTABLE_NAME)</string>
+  <key>CFBundleIdentifier</key>
+  <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundleName</key>
+  <string>$(PRODUCT_NAME)</string>
+  <key>CFBundlePackageType</key>
+  <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+  <key>CFBundleShortVersionString</key>
+    <string>$(FLUTTER_BUILD_NAME)</string>
+    <key>CFBundleVersion</key>
+    <string>$(FLUTTER_BUILD_NUMBER)</string>
+    <key>NSExtension</key>
+    <dict>
+        <key>NSExtensionAttributes</key>
+        <dict>
+            <key>PHSupportedMediaTypes</key>
+               <array>
+                    <!--TODO: Add this flag, if you want to support sharing video into your app-->
+                   <string>Video</string>
+                   <!--TODO: Add this flag, if you want to support sharing images into your app-->
+                   <string>Image</string>
+               </array>
+            <key>NSExtensionActivationRule</key>
+            <dict>
+                <!--TODO: Add this flag, if you want to support sharing text into your app-->
+                <key>NSExtensionActivationSupportsText</key>
+                <true/>
+                <!--TODO: Add this tag, if you want to support sharing urls into your app-->
+                <key>NSExtensionActivationSupportsWebURLWithMaxCount</key>
+                <integer>1</integer>
+                <key>NSExtensionActivationSupportsFileWithMaxCount</key>
+                <integer>100</integer>
+            </dict>
+        </dict>
+        <key>NSExtensionMainStoryboard</key>
+        <string>MainInterface</string>
+        <key>NSExtensionPointIdentifier</key>
+        <string>com.apple.share-services</string>
+    </dict>
+</dict>
+</plist>

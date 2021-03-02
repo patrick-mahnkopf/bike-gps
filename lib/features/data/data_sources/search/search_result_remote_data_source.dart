@@ -25,7 +25,7 @@ class SearchResultRemoteDataSourceImpl implements SearchResultRemoteDataSource {
 
   @override
   Future<List<SearchResultModel>> getSearchResults({String query}) async {
-    final response = await http.get('http://photon.komoot.io/api/?q=$query');
+    final response = await http.get('https://photon.komoot.io/api/?q=$query');
     final body = json.decode(utf8.decode(response.bodyBytes));
     final features = body['features'] as List;
 

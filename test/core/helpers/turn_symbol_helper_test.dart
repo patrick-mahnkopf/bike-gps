@@ -27,6 +27,7 @@ void main() {
   setUp(() async {
     constantsHelper = ConstantsHelper(
         applicationDocumentsDirectoryPath: '',
+        applicationSupportDirectoryPath: '',
         turnSymbolAssetPaths: tTurnSymbolAssetPaths);
     turnSymbolHelper = TourConversionHelper(constantsHelper: constantsHelper);
   });
