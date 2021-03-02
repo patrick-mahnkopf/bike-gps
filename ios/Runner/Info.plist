@@ -4,6 +4,9 @@
 <dict>
   <key>CFBundleDevelopmentRegion</key>
   <string>$(DEVELOPMENT_LANGUAGE)</string>
+  <!--
+  TODO Change CFBundleDocumentTypes to more specific types
+  -->
   <key>CFBundleDocumentTypes</key>
   <array>
     <dict>
