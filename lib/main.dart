@@ -84,7 +84,9 @@ class _MyAppState extends State<MyApp> {
     _intentDataStreamSubscription = ReceiveSharingIntent.getMediaStream()
         .listen((List<SharedMediaFile> values) async {
       for (final SharedMediaFile value in values) {
-        final File file = File(value.path);
+        final String path = value.path.replaceAll("%20", " ");
+        final File file = File(path);
+        print("Got file: $path");
         await _copyFileToTourDirectory(file: file);
       }
     }, onError: (err) {
@@ -97,7 +99,9 @@ class _MyAppState extends State<MyApp> {
         .then((List<SharedMediaFile> values) async {
       if (values != null) {
         for (final SharedMediaFile value in values) {
-          final File file = File(value.path);
+          final String path = value.path.replaceAll("%20", " ");
+          final File file = File(path);
+          print("Got file: $path");
           await _copyFileToTourDirectory(file: file);
         }
       }

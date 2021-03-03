@@ -4,7 +4,6 @@ import MobileCoreServices
 import Photos
 
 class ShareViewController: SLComposeServiceViewController {
-    // TODO: IMPORTANT: This should be your host app bundle identifier
     let hostAppBundleIdentifier = "de.luh.kbs.bikeGps"
     let sharedKey = "ShareKey"
     var sharedMedia: [SharedMediaFile] = []
@@ -163,7 +162,6 @@ class ShareViewController: SLComposeServiceViewController {
 
             if error == nil, let url = data as? URL, let this = self {
                 
-                print("og Path:\(String(describing: data))")
                 print("File path:\(url)");
                 // Always copy
                 let fileName = this.getFileName(from :url, type: .file)

@@ -122,13 +122,21 @@ class ExpandableBody extends StatelessWidget {
         if (state is QueryLoading) {
           return const LoadingIndicator();
         } else if (state is QueryLoadSuccess) {
-          return SearchBarBody(
-            searchResults: state.searchResults,
-          );
+          if (state.searchResults.isEmpty) {
+            return Container();
+          } else {
+            return SearchBarBody(
+              searchResults: state.searchResults,
+            );
+          }
         } else if (state is QueryEmpty) {
-          return SearchBarBody(
-            searchResults: state.searchHistory,
-          );
+          if (state.searchHistory.isEmpty) {
+            return Container();
+          } else {
+            return SearchBarBody(
+              searchResults: state.searchHistory,
+            );
+          }
         } else {
           return Container();
         }
