@@ -11,6 +11,8 @@
 			<string>GPS Exchange Format (GPX)</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
+            <key>CFBundleTypeIconFile</key>
+            <string>AppIcon</string>
 			<key>LSHandlerRank</key>
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
@@ -24,6 +26,8 @@
 			<string>RichTrack File Format (RTX)</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
+            <key>CFBundleTypeIconFile</key>
+            <string>AppIcon</string>
 			<key>LSHandlerRank</key>
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>

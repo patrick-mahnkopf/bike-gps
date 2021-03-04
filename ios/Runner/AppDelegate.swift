@@ -12,24 +12,36 @@ _ application: UIApplication,
 }
     
 override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-
+    
     print("import URL: \(url.absoluteURL)");
     
     if (url.isFileURL) {
-        let canAccess = url.startAccessingSecurityScopedResource();
-        if (canAccess) {
-            let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-            let documentsDirectory = paths[0]
-            let fileName = url.lastPathComponent;
-            let newPath = documentsDirectory.appendingPathComponent(fileName);
-            print("newPath: \(newPath.absoluteURL)");
-            if (url.absoluteURL != newPath.absoluteURL) {
-                _ = self.copyFile(at: url, to: newPath);
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        let documentsDirectory = paths[0]
+        let fileName = url.lastPathComponent;
+        let newUrl = documentsDirectory.appendingPathComponent(fileName);
+        print("newPath: \(newUrl.absoluteURL)");
+        if (options[.openInPlace] as? Bool == true) {
+            print("Got file with OpenInPlace key => copying to documents");
+            let canAccess = url.startAccessingSecurityScopedResource();
+            if (canAccess) {
+                _ = self.copyFile(at: url, to: newUrl);
+                url.stopAccessingSecurityScopedResource();
             } else {
-                print("Opened file from app's document directory");
+                print("Couldn't access file at: \(url)")
             }
         } else {
-            print("Could not access file at: \(url)")
+            print("Got file without OpenInPlace key => moving to documents");
+            do {
+                do {
+                    try FileManager.default.removeItem(at: newUrl);
+                } catch {}
+                _ = url.startAccessingSecurityScopedResource();
+                try FileManager.default.moveItem(at: url, to: newUrl);
+                url.stopAccessingSecurityScopedResource();
+            } catch {
+                print(error);
+            }
         }
     } else {
         print("URL does not belong to file");
