@@ -24,8 +24,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  bike_gps_closed_source:
-    path: ../bike_gps_closed_source
+  # bike_gps_closed_source:
+  #   path: ../bike_gps_closed_source
   geocoder:
     git:
       url: https://github.com/otopba/flutter_geocoder.git

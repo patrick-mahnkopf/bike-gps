@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:bike_gps/core/helpers/constants_helper.dart';
+import 'package:bike_gps/features/presentation/blocs/map/map_bloc.dart';
 import 'package:bike_gps/features/presentation/blocs/mapbox/mapbox_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -41,9 +43,15 @@ class CustomContainerTextWidget extends StatelessWidget {
 }
 
 class RecenterMapWidget extends StatelessWidget {
+  final ConstantsHelper constantsHelper;
+
+  const RecenterMapWidget({Key key, @required this.constantsHelper})
+      : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final MapboxBloc mapboxBloc = BlocProvider.of<MapboxBloc>(context);
+    final MapState mapState = BlocProvider.of<MapBloc>(context).state;
     return BlocBuilder<MapboxBloc, MapboxState>(
       builder: (context, state) {
         if (state is MapboxLoadSuccess &&
@@ -53,7 +61,7 @@ class RecenterMapWidget extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.all(8),
             child: FloatingActionButton.extended(
-              onPressed: () => _recenterMap(mapboxBloc, state),
+              onPressed: () => _recenterMap(mapboxBloc, mapState, state),
               backgroundColor: Colors.white,
               label: const Text(
                 "Re-center",
@@ -72,12 +80,19 @@ class RecenterMapWidget extends StatelessWidget {
     );
   }
 
-  void _recenterMap(MapboxBloc mapboxBloc, MapboxLoadSuccess state) {
-    state.controller.mapboxMapController
-        .updateMyLocationTrackingMode(MyLocationTrackingMode.TrackingCompass);
+  void _recenterMap(
+      MapboxBloc mapboxBloc, MapState mapState, MapboxLoadSuccess state) {
+    CameraUpdate cameraUpdate;
+    if (mapState is NavigationViewActive) {
+      cameraUpdate = CameraUpdate.zoomTo(constantsHelper.navigationViewZoom);
+    } else if (mapState is TourSelectionViewActive) {
+      cameraUpdate = CameraUpdate.zoomTo(constantsHelper.tourViewZoom);
+    }
     mapboxBloc.add(MapboxLoaded(
-        mapboxController: state.controller.copyWith(
-            myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass)));
+      mapboxController: state.controller.copyWith(
+          myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass),
+      cameraUpdate: cameraUpdate,
+    ));
   }
 }
 

@@ -17,6 +17,8 @@ class ConstantsHelper {
   String tourDirectoryPath;
   String searchHistoryPath;
   final Map<String, String> turnSymbolAssetPaths;
+  final double navigationViewZoom = 16;
+  final double tourViewZoom = 14;
 
   ConstantsHelper(
       {@required this.applicationDocumentsDirectoryPath,

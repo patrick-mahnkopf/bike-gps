@@ -39,9 +39,9 @@ class MapboxBloc extends Bloc<MapboxEvent, MapboxState> {
     if (event.cameraUpdate != null) {
       await event.mapboxController.mapboxMapController
           .moveCamera(event.cameraUpdate);
-      event.mapboxController.mapboxMapController
-          .updateMyLocationTrackingMode(MyLocationTrackingMode.TrackingCompass);
     }
+    event.mapboxController.mapboxMapController.updateMyLocationTrackingMode(
+        event.mapboxController.myLocationTrackingMode);
     yield MapboxLoadSuccess(controller: event.mapboxController);
   }
 }

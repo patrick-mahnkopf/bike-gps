@@ -9,4 +9,7 @@ abstract class TourRepository {
 
   Future<Either<Failure, Tour>> getPathToTour(
       {@required LatLng userLocation, @required LatLng tourStart});
+
+  Future<Either<Failure, List<Tour>>> getAlternativeTours(
+      {@required String mainTourName});
 }

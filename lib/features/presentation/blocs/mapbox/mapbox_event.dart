@@ -27,9 +27,13 @@ class MapboxLoaded extends MapboxEvent {
   const MapboxLoaded({@required this.mapboxController, this.cameraUpdate});
 
   @override
-  List<Object> get props => [mapboxController, cameraUpdate];
+  List<Object> get props => [
+        mapboxController,
+        mapboxController.myLocationTrackingMode,
+        mapboxController.activeStyleString,
+      ];
 
   @override
   String toString() =>
-      'MapboxLoaded { mapboxController: $mapboxController, cameraUpdate: $cameraUpdate }';
+      'MapboxLoaded { mapboxController: $mapboxController, myLocationTrackingMode: ${mapboxController.myLocationTrackingMode}, activeStyleString: ${mapboxController.activeStyleString} } }';
 }

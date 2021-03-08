@@ -14,3 +14,5 @@ class ArgumentFailure extends Failure {}
 class NavigationDataFailure extends Failure {}
 
 class FileFailure extends Failure {}
+
+class TourListFailure extends Failure {}

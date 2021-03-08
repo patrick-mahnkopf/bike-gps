@@ -12,6 +12,7 @@ import '../../models/tour/models.dart';
 
 abstract class TourLocalDataSource {
   Future<TourModel> getTour({@required String name});
+  Future<List<TourModel>> getAlternativeTours({@required String mainTourName});
 }
 
 @Injectable(as: TourLocalDataSource)
@@ -42,6 +43,39 @@ class TourLocalDataSourceImpl implements TourLocalDataSource {
           time: DateTime.now(),
           name: 'TourLocalDataSource');
       throw ParserException();
+    }
+  }
+
+  @override
+  Future<List<TourModel>> getAlternativeTours(
+      {@required String mainTourName}) async {
+    try {
+      if (tourListHelper.contains(mainTourName)) {
+        final List<TourModel> tourModels = [];
+        final TourBounds mainTourBounds =
+            tourListHelper.getBounds(mainTourName);
+
+        for (final TourBounds alternativeTourBounds
+            in tourListHelper.getBoundsList()) {
+          if (mainTourBounds != alternativeTourBounds) {
+            if (mainTourBounds.getOverlap(alternativeTourBounds) >= 0.25) {
+              final TourModel tourModel =
+                  await getTour(name: alternativeTourBounds.name);
+              tourModels.add(tourModel);
+            }
+          }
+        }
+        return tourModels;
+      } else {
+        throw TourListException();
+      }
+    } on Exception catch (error, stacktrace) {
+      log('Getting alternative tours failed',
+          error: error,
+          stackTrace: stacktrace,
+          time: DateTime.now(),
+          name: 'TourLocalDataSource');
+      throw TourListException();
     }
   }
 }

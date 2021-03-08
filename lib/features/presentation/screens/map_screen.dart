@@ -84,14 +84,14 @@ class MapScreen extends StatelessWidget {
                   if (tourState is TourLoadSuccess) {
                     if (mapboxState is MapboxLoadSuccess &&
                         mapboxState.controller != null) {
-                      mapboxState.controller.mapboxMapController
-                          .updateMyLocationTrackingMode(
-                              MyLocationTrackingMode.TrackingCompass);
-                      mapboxBloc.add(MapboxLoaded(
+                      mapboxBloc.add(
+                        MapboxLoaded(
                           mapboxController: mapboxState.controller.copyWith(
                               myLocationTrackingMode:
                                   MyLocationTrackingMode.TrackingCompass),
-                          cameraUpdate: CameraUpdate.zoomTo(14)));
+                          cameraUpdate: CameraUpdate.zoomTo(16),
+                        ),
+                      );
                     }
 
                     navigationBloc.add(NavigationLoaded(

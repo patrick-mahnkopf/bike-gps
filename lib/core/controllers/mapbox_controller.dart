@@ -71,7 +71,7 @@ class MapboxController {
     final String accessToken = await _getMapboxAccessToken();
     final Map<String, String> styleStrings = await _getStyleStrings();
     final CameraPosition initialCameraPosition =
-        await _getInitialCameraPosition();
+        await _getInitialCameraPosition(constantsHelper);
 
     return MapboxController(
         accessToken: accessToken,
@@ -102,34 +102,18 @@ class MapboxController {
     };
   }
 
-  static Future<CameraPosition> _getInitialCameraPosition() async {
+  static Future<CameraPosition> _getInitialCameraPosition(
+      ConstantsHelper constantsHelper) async {
     final LocationData locationData = await getIt<Location>().getLocation();
     return CameraPosition(
         target: LatLng(locationData.latitude, locationData.longitude),
-        zoom: 14);
+        zoom: constantsHelper.tourViewZoom);
   }
-
-  // void recenterMap(BuildContext context) {
-  //   final MapboxBloc mapboxBloc = BlocProvider.of<MapboxBloc>(context);
-  //   if (mapboxBloc.state is MapboxLoadSuccess && mapboxMapController != null) {
-  //     mapboxMapController
-  //         .updateMyLocationTrackingMode(MyLocationTrackingMode.TrackingCompass);
-  //     mapboxBloc.add(MapboxLoaded(
-  //         mapboxController: copyWith(
-  //             myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass)));
-  //   }
-  // }
-
-  // bool canRecenterMap(BuildContext context) {
-  //   return BlocProvider.of<MapboxBloc>(context).state is MapboxLoadSuccess &&
-  //       mapboxMapController != null &&
-  //       myLocationTrackingMode != MyLocationTrackingMode.TrackingCompass;
-  // }
 
   Future<FunctionResult> onSelectPlace(SearchResult searchResult) async {
     try {
-      final CameraUpdate cameraUpdate =
-          CameraUpdate.newLatLngZoom(searchResult.coordinates, 14);
+      final CameraUpdate cameraUpdate = CameraUpdate.newLatLngZoom(
+          searchResult.coordinates, constantsHelper.tourViewZoom);
       _animateCamera(cameraUpdate);
       await _drawPlaceIcon(searchResult.coordinates);
     } on Exception catch (exception, stacktrace) {

@@ -21,7 +21,8 @@ class MapboxInitial extends MapboxState {
   const MapboxInitial({@required this.controller});
 
   @override
-  String toString() => 'MapboxInitial { controller: $controller }';
+  String toString() =>
+      'MapboxInitial { controller: $controller, trackingMode: ${controller.myLocationTrackingMode} }';
 
   @override
   List<Object> get props => [controller];
@@ -34,10 +35,16 @@ class MapboxLoadSuccess extends MapboxState {
 
   @override
   String toString() =>
-      'MapboxLoadSuccess { controller: $controller, mapboxMapController: ${controller.mapboxMapController} }';
+      'MapboxLoadSuccess { controller: $controller, mapboxMapController: ${controller.mapboxMapController}, trackingMode: ${controller.myLocationTrackingMode} }';
 
   @override
-  List<Object> get props => [controller];
+  List<Object> get props => [
+        controller,
+        controller.activeStyleString,
+        controller.mapboxMapController,
+        controller.myLocationTrackingMode,
+        controller.tourLines
+      ];
 }
 
 class MapboxLoadFailure extends MapboxState {

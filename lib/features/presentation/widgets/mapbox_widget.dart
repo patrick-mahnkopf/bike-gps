@@ -21,13 +21,16 @@ class MapboxWidget extends StatelessWidget {
             mapboxMapController: mapboxMapController)));
   }
 
-  void _onMyLocationTrackingModeChanged(BuildContext context) {
+  void _onCameraTrackingDismissed(BuildContext context) {
     final MapboxBloc mapboxBloc = BlocProvider.of<MapboxBloc>(context);
     final MapboxState mapboxState = mapboxBloc.state;
     if (mapboxState is MapboxLoadSuccess) {
-      mapboxBloc.add(MapboxLoaded(
-          mapboxController: mapboxState.controller
-              .copyWith(myLocationTrackingMode: MyLocationTrackingMode.None)));
+      if (mapboxState.controller.myLocationTrackingMode !=
+          MyLocationTrackingMode.None) {
+        mapboxBloc.add(MapboxLoaded(
+            mapboxController: mapboxState.controller.copyWith(
+                myLocationTrackingMode: MyLocationTrackingMode.None)));
+      }
     }
   }
 
@@ -45,8 +48,7 @@ class MapboxWidget extends StatelessWidget {
       compassViewMargins: const Point(32, 32),
       myLocationEnabled: true,
       myLocationTrackingMode: mapboxController.myLocationTrackingMode,
-      onCameraTrackingDismissed: () =>
-          _onMyLocationTrackingModeChanged(context),
+      onCameraTrackingDismissed: () => _onCameraTrackingDismissed(context),
     );
   }
 }

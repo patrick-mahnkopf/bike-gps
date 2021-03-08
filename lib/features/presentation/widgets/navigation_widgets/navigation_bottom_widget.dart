@@ -25,7 +25,9 @@ class NavigationBottomWidget extends StatelessWidget {
           alignment: Alignment.bottomLeft,
           child: Padding(
             padding: EdgeInsets.only(bottom: bottomSheetGrabSectionHeight),
-            child: RecenterMapWidget(),
+            child: RecenterMapWidget(
+              constantsHelper: getIt(),
+            ),
           ),
         ),
         BottomSheetWidget(
@@ -91,8 +93,6 @@ class GrabSectionContent extends StatelessWidget {
     final MapboxState mapboxState = mapboxBloc.state;
     if (mapboxState is MapboxLoadSuccess && tourState is TourLoadSuccess) {
       mapboxState.controller.animateCameraToTourBounds(tourState.tour);
-      mapboxState.controller.mapboxMapController
-          .updateMyLocationTrackingMode(MyLocationTrackingMode.None);
       mapboxBloc.add(MapboxLoaded(
           mapboxController: mapboxState.controller
               .copyWith(myLocationTrackingMode: MyLocationTrackingMode.None)));

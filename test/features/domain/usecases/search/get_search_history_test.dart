@@ -1,10 +1,7 @@
 import 'package:bike_gps/core/usecases/usecase.dart';
 import 'package:bike_gps/features/domain/entities/search/entities.dart';
-import 'package:bike_gps/features/domain/entities/tour/entities.dart';
 import 'package:bike_gps/features/domain/repositories/search/search_result_repository.dart';
-import 'package:bike_gps/features/domain/repositories/tour/tour_repository.dart';
 import 'package:bike_gps/features/domain/usecases/search/get_search_history.dart';
-import 'package:bike_gps/features/domain/usecases/tour/get_tour.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';

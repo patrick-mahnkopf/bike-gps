@@ -285,8 +285,6 @@ void _onSubmitted(
   final MapboxBloc mapboxBloc = BlocProvider.of<MapboxBloc>(context);
   final MapboxState mapboxState = mapboxBloc.state;
   if (mapboxState is MapboxLoadSuccess) {
-    mapboxState.controller.mapboxMapController
-        .updateMyLocationTrackingMode(MyLocationTrackingMode.None);
     mapboxBloc.add(MapboxLoaded(
         mapboxController: mapboxState.controller
             .copyWith(myLocationTrackingMode: MyLocationTrackingMode.None)));
