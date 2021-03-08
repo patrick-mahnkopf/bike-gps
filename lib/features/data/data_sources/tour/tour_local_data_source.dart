@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:bike_gps/core/helpers/constants_helper.dart';
 import 'package:bike_gps/core/helpers/tour_list_helper.dart';
 import 'package:bike_gps/features/data/data_sources/tour_parser/tour_parser.dart';
+import 'package:bike_gps/features/domain/entities/tour/entities.dart';
 import 'package:flutter/widgets.dart';
 import 'package:injectable/injectable.dart';
 

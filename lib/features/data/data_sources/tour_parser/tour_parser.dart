@@ -12,15 +12,15 @@ import 'package:path/path.dart' as p;
 import '../../models/tour/models.dart';
 
 abstract class TourParser {
-  final ConstantsHelper constants;
+  final ConstantsHelper constantsHelper;
   final DistanceHelper distanceHelper;
 
-  TourParser({@required this.constants, @required this.distanceHelper});
+  TourParser({@required this.constantsHelper, @required this.distanceHelper});
 
   Future<TourModel> getTour({@required File file});
 
   Future<TourModel> getTourFromFileContent(
-      {@required String tourFileContent, String tourName});
+      {@required String tourFileContent, @required String tourName});
 
   Future<TourInfoModel> getTourInfo({@required File file});
 
@@ -30,15 +30,15 @@ abstract class TourParser {
 @Injectable(as: TourParser)
 class GpxParser extends TourParser {
   GpxParser(
-      {@required ConstantsHelper constants,
+      {@required ConstantsHelper constantsHelper,
       @required DistanceHelper distanceHelper})
-      : super(constants: constants, distanceHelper: distanceHelper);
+      : super(constantsHelper: constantsHelper, distanceHelper: distanceHelper);
 
   @override
   List<String> get fileExtensionPriority => ['.gpx', '.xml'];
 
   @override
-  Future<TourModel> getTour({File file}) async {
+  Future<TourModel> getTour({@required File file}) async {
     final String tourFileContent = await file.readAsString();
     final String tourName = p.basenameWithoutExtension(file.path);
     return getTourFromFileContent(
@@ -56,7 +56,7 @@ class GpxParser extends TourParser {
     final List<WayPointModel> wayPoints = [];
     // TODO enrich with RouteService data when online, especially surface and wayPoint turn info
     double previousDistanceFromStart = 0;
-    final List<Wpt> combinedTourPoints = _getCombinedPoints(tourGpx);
+    final List<Wpt> combinedTourPoints = getCombinedPoints(tourGpx);
     for (int i = 0; i < combinedTourPoints.length; i++) {
       final Wpt currentPoint = combinedTourPoints[i];
       double distanceFromStart;
@@ -113,7 +113,7 @@ class GpxParser extends TourParser {
       name: tourName,
       trackPoints: trackPoints,
       wayPoints: wayPoints,
-      bounds: _getBounds(tourGpx, trackPoints),
+      bounds: getBounds(tourGpx, trackPoints),
       ascent: ascent,
       descent: descent,
       tourLength: tourLength,
@@ -124,7 +124,7 @@ class GpxParser extends TourParser {
   Future<TourInfoModel> getTourInfo({File file}) async {
     // TODO make more efficient by not parsing entire file
     final TourModel tourModel = await getTour(file: file);
-    final String fileHash = await constants.getFileHash(file.path);
+    final String fileHash = await constantsHelper.getFileHash(file.path);
 
     return TourInfoModel(
         name: tourModel.name,
@@ -138,7 +138,7 @@ class GpxParser extends TourParser {
     return point.name != null;
   }
 
-  LatLngBounds _getBounds(Gpx tourGpx, List<TrackPointModel> trackPoints) {
+  LatLngBounds getBounds(Gpx tourGpx, List<TrackPointModel> trackPoints) {
     if (tourGpx?.metadata?.bounds != null) {
       final Bounds bounds = tourGpx.metadata.bounds;
       return LatLngBounds(
@@ -174,7 +174,7 @@ class GpxParser extends TourParser {
     }
   }
 
-  List<Wpt> _getCombinedPoints(Gpx tourGpx) {
+  List<Wpt> getCombinedPoints(Gpx tourGpx) {
     List<Wpt> initialPoints = tourGpx.trks.first.trksegs.first.trkpts;
     if (tourGpx.trks.first.trksegs.first.trkpts.isEmpty) {
       initialPoints = tourGpx.rtes.first.rtepts;

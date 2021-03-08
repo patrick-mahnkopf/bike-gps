@@ -1,10 +1,12 @@
 import 'dart:io';
 
+import 'package:bike_gps/features/domain/entities/tour/entities.dart';
 import 'package:bike_gps/features/domain/entities/tour/tour_info.dart';
-import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:path/path.dart' as p;
 
 class TourList {
   final Map<String, TourInfo> _tourMap = {};
+  final Map<String, TourBounds> _tourBounds = {};
 
   List<TourInfo> get asList => _tourMap.values.toList();
 
@@ -12,11 +14,26 @@ class TourList {
 
   String getPath(String name) => get(name).filePath;
 
+  String getExtension(String name) => p.extension(getPath(name));
+
   File getFile(String name) => File(getPath(name));
 
-  LatLngBounds getBounds(String name) => get(name).bounds;
+  String getFileHash(String name) => get(name).fileHash;
 
-  bool contains(String name) => get(name) != null;
+  TourBounds getBounds(String name) => _tourBounds[name];
 
-  void add(TourInfo tourInfo) => _tourMap[tourInfo.name] = tourInfo;
+  List<TourBounds> getBoundsList() => _tourBounds.values.toList();
+
+  bool contains(String name) => _tourMap.containsKey(name);
+
+  void add(TourInfo tourInfo) {
+    _tourMap[tourInfo.name] = tourInfo;
+    _tourBounds[tourInfo.name] =
+        TourBounds(bounds: tourInfo.bounds, name: tourInfo.name);
+  }
+
+  void remove(String name) {
+    _tourMap.remove(name);
+    _tourBounds.remove(name);
+  }
 }

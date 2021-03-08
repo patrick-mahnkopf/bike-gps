@@ -38,7 +38,7 @@ Future<FunctionResult> _init() async {
 Future<FunctionResult> _additionalDependencyInit() async {
   try {
     getIt.registerLazySingleton<TourParser>(
-        () => GpxParser(constants: getIt(), distanceHelper: getIt()));
+        () => GpxParser(constantsHelper: getIt(), distanceHelper: getIt()));
     return FunctionResultSuccess();
   } on Exception catch (error, stacktrace) {
     return FunctionResultFailure(
