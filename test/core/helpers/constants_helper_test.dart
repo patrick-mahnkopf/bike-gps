@@ -10,23 +10,14 @@ void main() {
     constantsHelper = await ConstantsHelper.create();
   });
 
-  test(
-      'tour directory path should start with application documents directory path',
+  test('tour directory path should be application support directory path',
       () async {
     // arrange
-    final applicationDocumentsDirectoryPath =
-        (await getApplicationDocumentsDirectory()).path;
+    final applicationSupportDirectory =
+        (await getApplicationSupportDirectory()).path;
     // act
     final result = constantsHelper.tourDirectoryPath;
     // assert
-    expect(result, startsWith(applicationDocumentsDirectoryPath));
-  });
-
-  test('tour directory path should end with tours', () {
-    // arrange
-    // act
-    final result = constantsHelper.tourDirectoryPath;
-    // assert
-    expect(result, endsWith('\\tours'));
+    expect(result, applicationSupportDirectory);
   });
 }

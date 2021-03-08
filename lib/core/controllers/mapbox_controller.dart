@@ -25,6 +25,11 @@ class MapboxController {
   final MyLocationTrackingMode myLocationTrackingMode;
   final ConstantsHelper constantsHelper;
   final List<TourLine> tourLines = [];
+  final List<String> assetImagePaths = [
+    'start_location.png',
+    'end_location.png',
+    'place_pin.png'
+  ];
 
   MapboxController(
       {this.mapboxMapController,
@@ -156,8 +161,23 @@ class MapboxController {
   void animateCameraToTourBounds(Tour tour) {
     mapboxMapController
         .updateMyLocationTrackingMode(MyLocationTrackingMode.None);
-    final CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(tour.bounds);
+    final CameraUpdate cameraUpdate = _getCameraUpdateFromTour(tour);
     _animateCamera(cameraUpdate);
+  }
+
+  CameraUpdate _getCameraUpdateFromTour(Tour tour) {
+    final LatLngBounds bounds = tour.bounds;
+    final double latOffset =
+        (bounds.northeast.latitude - bounds.southwest.latitude) / 4;
+    final double lonOffset =
+        (bounds.northeast.longitude - bounds.southwest.longitude) / 10;
+
+    final LatLngBounds adjustedBounds = LatLngBounds(
+        southwest: LatLng(bounds.southwest.latitude - latOffset,
+            bounds.southwest.longitude - lonOffset),
+        northeast: LatLng(bounds.northeast.latitude + latOffset,
+            bounds.northeast.longitude + lonOffset));
+    return CameraUpdate.newLatLngBounds(adjustedBounds);
   }
 
   Future<TourLine> _drawTour({

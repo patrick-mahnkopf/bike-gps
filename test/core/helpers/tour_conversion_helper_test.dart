@@ -5,7 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  TourConversionHelper turnSymbolHelper;
+  TourConversionHelper tourConversionHelper;
   ConstantsHelper constantsHelper;
   final Map<String, String> tTurnSymbolAssetPaths = {
     'testid': 'test/assets/turnArrows/A01.svg'
@@ -29,7 +29,8 @@ void main() {
         applicationDocumentsDirectoryPath: '',
         applicationSupportDirectoryPath: '',
         turnSymbolAssetPaths: tTurnSymbolAssetPaths);
-    turnSymbolHelper = TourConversionHelper(constantsHelper: constantsHelper);
+    tourConversionHelper =
+        TourConversionHelper(constantsHelper: constantsHelper);
   });
 
   bool svgPicturesEqual(SvgPicture first, SvgPicture second) {
@@ -46,8 +47,8 @@ void main() {
     test('should return icon with id testId in white', () {
       // arrange
       // act
-      final SvgPicture result =
-          turnSymbolHelper.getTurnSymbolFromId(iconId: 'testid') as SvgPicture;
+      final SvgPicture result = tourConversionHelper.getTurnSymbolFromId(
+          iconId: 'testid') as SvgPicture;
       // assert
       expect(svgPicturesEqual(result, tSvgPictureWhite), true);
     });
@@ -55,7 +56,7 @@ void main() {
     test('should return icon with id testId in black', () {
       // arrange
       // act
-      final SvgPicture result = turnSymbolHelper.getTurnSymbolFromId(
+      final SvgPicture result = tourConversionHelper.getTurnSymbolFromId(
           iconId: 'testid', color: Colors.black) as SvgPicture;
       // assert
       expect(svgPicturesEqual(result, tSvgPictureBlack), true);
@@ -75,7 +76,7 @@ void main() {
       // arrange
       // act
       final Icon result =
-          turnSymbolHelper.getTurnSymbolFromId(iconId: 'unknown') as Icon;
+          tourConversionHelper.getTurnSymbolFromId(iconId: 'unknown') as Icon;
       // assert
       expect(iconsEqual(result, tInfoIcon), true);
     });
