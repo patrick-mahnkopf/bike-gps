@@ -27,7 +27,7 @@ abstract class TourParser {
   List<String> get fileExtensionPriority;
 }
 
-@Injectable(as: TourParser)
+@Injectable(as: TourParser, env: ["public"])
 class GpxParser extends TourParser {
   GpxParser(
       {@required ConstantsHelper constantsHelper,
@@ -139,7 +139,11 @@ class GpxParser extends TourParser {
   }
 
   LatLngBounds getBounds(Gpx tourGpx, List<TrackPointModel> trackPoints) {
-    if (tourGpx?.metadata?.bounds != null) {
+    if (tourGpx?.metadata?.bounds != null &&
+        (tourGpx.metadata.bounds.maxlon - tourGpx.metadata.bounds.minlon >=
+                0.000001 ||
+            tourGpx.metadata.bounds.maxlat - tourGpx.metadata.bounds.minlat >=
+                0.000001)) {
       final Bounds bounds = tourGpx.metadata.bounds;
       return LatLngBounds(
           northeast: LatLng(bounds.maxlat, bounds.maxlon),

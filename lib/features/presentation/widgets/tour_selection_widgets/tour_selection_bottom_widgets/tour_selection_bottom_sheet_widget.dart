@@ -237,6 +237,7 @@ class RoadBook extends StatelessWidget {
       return ListTile(
         leading: tourConversionHelper.getTurnSymbolFromId(
           iconId: currentWayPoint.turnSymboldId,
+          color: Colors.black,
         ),
         title: Text(currentWayPoint.name ?? ''),
         subtitle: _getTileSubtitle(currentWayPoint),

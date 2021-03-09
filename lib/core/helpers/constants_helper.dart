@@ -81,7 +81,8 @@ class ConstantsHelper {
     for (final String iconPath in iconPaths) {
       final String fileName = p.basename(iconPath).replaceAll('%20', ' ');
       final String baseName = p.basenameWithoutExtension(fileName);
-      turnArrowPaths[baseName.toLowerCase()] = 'assets/turnArrows/$fileName';
+      turnArrowPaths[baseName.toLowerCase()] =
+          'assets/images/turnArrows/$fileName';
     }
     return turnArrowPaths;
   }

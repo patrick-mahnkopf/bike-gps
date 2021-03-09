@@ -5,16 +5,16 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Bike Gps Public",
-      "type": "dart",
-      "request": "launch",
-      "program": "lib/main.dart"
-    },
-    {
       "name": "Bike Gps Rtx",
       "type": "dart",
       "request": "launch",
       "program": "lib/main_rtx.dart"
+    },
+    {
+      "name": "Bike Gps Public",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart"
     },
     {
       "name": "Dart: Run all Tests",

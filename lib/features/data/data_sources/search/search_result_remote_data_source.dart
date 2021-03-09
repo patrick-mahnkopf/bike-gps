@@ -14,7 +14,6 @@ abstract class SearchResultRemoteDataSource {
   Future<List<SearchResultModel>> getSearchResults({@required String query});
 }
 
-@preResolve
 @Injectable(as: SearchResultRemoteDataSource)
 class SearchResultRemoteDataSourceImpl implements SearchResultRemoteDataSource {
   final TourListHelper tourListHelper;

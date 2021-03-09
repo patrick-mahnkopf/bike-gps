@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
 import 'package:injectable/injectable.dart';
@@ -13,9 +14,10 @@ final GetIt getIt = GetIt.instance;
   preferRelativeImports: true, // default
   asExtension: false, // default
 )
-Future<FunctionResult> configureDependencies() async {
+Future<FunctionResult> configureDependencies(
+    {@required String environment}) async {
   try {
-    await $initGetIt(getIt);
+    await $initGetIt(getIt, environment: environment);
     return FunctionResultSuccess();
   } on Exception catch (error, stacktrace) {
     return FunctionResultFailure(
