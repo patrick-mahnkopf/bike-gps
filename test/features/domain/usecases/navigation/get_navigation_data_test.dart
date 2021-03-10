@@ -89,8 +89,8 @@ void main() {
         currentWayPointDistance: 0,
         distanceToTourEnd: 3 * degreeDistance);
     // act
-    final result =
-        await usecase(Params(tour: tTour, userLocation: userLocation));
+    final result = await usecase(
+        NavigationDataParams(tour: tTour, userLocation: userLocation));
     // assert
     expect(result, const Right(tNavigationData));
   });
@@ -101,9 +101,9 @@ void main() {
       // arrange
       const LatLng userLocation = LatLng(0, 0);
       // act
-      final NavigationData result =
-          (await usecase(Params(tour: tTour, userLocation: userLocation)))
-              .getOrElse(null);
+      final NavigationData result = (await usecase(
+              NavigationDataParams(tour: tTour, userLocation: userLocation)))
+          .getOrElse(null);
       // assert
       expect(result.currentWayPoint, tFirstWayPoint);
     });
@@ -113,9 +113,9 @@ void main() {
       // arrange
       const LatLng userLocation = LatLng(-1, 0);
       // act
-      final NavigationData result =
-          (await usecase(Params(tour: tTour, userLocation: userLocation)))
-              .getOrElse(null);
+      final NavigationData result = (await usecase(
+              NavigationDataParams(tour: tTour, userLocation: userLocation)))
+          .getOrElse(null);
       // assert
       expect(result.currentWayPoint, tFirstWayPoint);
     });
@@ -125,9 +125,9 @@ void main() {
       // arrange
       const LatLng userLocation = LatLng(1, 0);
       // act
-      final NavigationData result =
-          (await usecase(Params(tour: tTour, userLocation: userLocation)))
-              .getOrElse(null);
+      final NavigationData result = (await usecase(
+              NavigationDataParams(tour: tTour, userLocation: userLocation)))
+          .getOrElse(null);
       // assert
       expect(result.currentWayPoint, tSecondWayPoint);
     });
@@ -138,9 +138,9 @@ void main() {
       // arrange
       const LatLng userLocation = LatLng(0.6, 0);
       // act
-      final NavigationData result =
-          (await usecase(Params(tour: tTour, userLocation: userLocation)))
-              .getOrElse(null);
+      final NavigationData result = (await usecase(
+              NavigationDataParams(tour: tTour, userLocation: userLocation)))
+          .getOrElse(null);
       // assert
       expect(result.currentWayPoint, tSecondWayPoint);
     });
@@ -151,9 +151,9 @@ void main() {
       // arrange
       const LatLng userLocation = LatLng(0.1, 0);
       // act
-      final NavigationData result =
-          (await usecase(Params(tour: tTour, userLocation: userLocation)))
-              .getOrElse(null);
+      final NavigationData result = (await usecase(
+              NavigationDataParams(tour: tTour, userLocation: userLocation)))
+          .getOrElse(null);
       // assert
       expect(result.currentWayPoint, tSecondWayPoint);
     });
@@ -164,9 +164,9 @@ void main() {
       // arrange
       const LatLng userLocation = LatLng(1.1, 0);
       // act
-      final NavigationData result =
-          (await usecase(Params(tour: tTour, userLocation: userLocation)))
-              .getOrElse(null);
+      final NavigationData result = (await usecase(
+              NavigationDataParams(tour: tTour, userLocation: userLocation)))
+          .getOrElse(null);
       // assert
       expect(result.currentWayPoint, tThirdWayPoint);
     });
@@ -179,9 +179,9 @@ void main() {
       final double tCurrentWayPointDistance = distanceHelper
           .distanceBetweenLatLngs(userLocation, tFirstWayPoint.latLng);
       // act
-      final NavigationData result =
-          (await usecase(Params(tour: tTour, userLocation: userLocation)))
-              .getOrElse(null);
+      final NavigationData result = (await usecase(
+              NavigationDataParams(tour: tTour, userLocation: userLocation)))
+          .getOrElse(null);
       // assert
       expect(result.currentWayPointDistance, tCurrentWayPointDistance);
     });
@@ -192,9 +192,9 @@ void main() {
       // arrange
       const LatLng userLocation = LatLng(0, 0);
       // act
-      final NavigationData result =
-          (await usecase(Params(tour: tTour, userLocation: userLocation)))
-              .getOrElse(null);
+      final NavigationData result = (await usecase(
+              NavigationDataParams(tour: tTour, userLocation: userLocation)))
+          .getOrElse(null);
       // assert
       expect(result.nextWayPoint, tSecondWayPoint);
     });
@@ -207,9 +207,9 @@ void main() {
       const LatLng userLocation = LatLng(0, 0);
       final double tDistanceToTourEnd = tTour.tourLength;
       // act
-      final NavigationData result =
-          (await usecase(Params(tour: tTour, userLocation: userLocation)))
-              .getOrElse(null);
+      final NavigationData result = (await usecase(
+              NavigationDataParams(tour: tTour, userLocation: userLocation)))
+          .getOrElse(null);
       // assert
       expect(result.distanceToTourEnd, tDistanceToTourEnd);
     });
@@ -224,9 +224,9 @@ void main() {
           (tThirdWayPoint.distanceFromStart -
               tSecondWayPoint.distanceFromStart);
       // act
-      final NavigationData result =
-          (await usecase(Params(tour: tTour, userLocation: userLocation)))
-              .getOrElse(null);
+      final NavigationData result = (await usecase(
+              NavigationDataParams(tour: tTour, userLocation: userLocation)))
+          .getOrElse(null);
       // assert
       expect(result.distanceToTourEnd, tDistanceToTourEnd);
     });

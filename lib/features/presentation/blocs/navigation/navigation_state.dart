@@ -39,6 +39,37 @@ class NavigationLoadSuccess extends NavigationState {
       ];
 }
 
+class NavigationToTourLoadSuccess extends NavigationState {
+  final WayPoint currentWayPoint;
+  final WayPoint nextWayPoint;
+  final double currentWayPointDistance;
+  final double distanceToTourEnd;
+  final LatLng currentPosition;
+  final Tour pathToTour;
+
+  const NavigationToTourLoadSuccess({
+    @required this.currentWayPoint,
+    @required this.nextWayPoint,
+    @required this.currentWayPointDistance,
+    @required this.distanceToTourEnd,
+    @required this.currentPosition,
+    @required this.pathToTour,
+  });
+
+  @override
+  String toString() =>
+      'NavigationToTourLoadSuccess { currentWayPoint: ${currentWayPoint.latLng},${currentWayPoint.name}, nextWayPoint: ${nextWayPoint.latLng},${nextWayPoint.name}, currentWayPointDistance: $currentWayPointDistance, distanceToTourEnd: $distanceToTourEnd, pathToTour: $pathToTour }';
+
+  @override
+  List<Object> get props => [
+        currentWayPoint,
+        nextWayPoint,
+        currentWayPointDistance,
+        distanceToTourEnd,
+        pathToTour,
+      ];
+}
+
 class NavigationLoadFailure extends NavigationState {
   final String message;
 

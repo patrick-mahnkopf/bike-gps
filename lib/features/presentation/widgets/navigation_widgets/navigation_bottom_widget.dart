@@ -11,10 +11,12 @@ import '../../../../injection_container.dart';
 import '../../blocs/map/map_bloc.dart';
 
 class NavigationBottomWidget extends StatelessWidget {
+  final double distanceToTourStart;
   final double distanceToTourEnd;
   double get bottomSheetGrabSectionHeight => 78;
 
-  const NavigationBottomWidget({Key key, @required this.distanceToTourEnd})
+  const NavigationBottomWidget(
+      {Key key, @required this.distanceToTourEnd, this.distanceToTourStart})
       : super(key: key);
 
   @override
@@ -46,9 +48,13 @@ class NavigationBottomWidget extends StatelessWidget {
 class GrabSectionContent extends StatelessWidget {
   final DistanceHelper distanceHelper;
   final double distanceToTourEnd;
+  final double distanceToTourStart;
 
   const GrabSectionContent(
-      {Key key, this.distanceHelper, this.distanceToTourEnd})
+      {Key key,
+      this.distanceHelper,
+      this.distanceToTourEnd,
+      this.distanceToTourStart = 0})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -60,7 +66,7 @@ class GrabSectionContent extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: Text(
-              distanceHelper.distanceToString(distanceToTourEnd),
+              _getTourDistanceText(),
               style: const TextStyle(fontSize: 20),
             ),
           ),
@@ -84,6 +90,18 @@ class GrabSectionContent extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getTourDistanceText() {
+    final String distanceToTour =
+        distanceHelper.distanceToString(distanceToTourStart);
+    final String totalDistance = distanceHelper
+        .distanceToString(distanceToTourStart + distanceToTourEnd);
+    if (distanceToTourStart != 0) {
+      return "$distanceToTour (total: $totalDistance)";
+    } else {
+      return totalDistance;
+    }
   }
 
   void stopNavigation(BuildContext context) {

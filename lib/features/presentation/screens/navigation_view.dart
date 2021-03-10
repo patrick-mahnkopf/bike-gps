@@ -1,3 +1,4 @@
+import 'package:bike_gps/core/widgets/custom_widgets.dart';
 import 'package:bike_gps/features/presentation/widgets/navigation_widgets/navigation_bottom_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -22,6 +23,14 @@ class NavigationView extends StatelessWidget {
                   nextWayPoint: state.nextWayPoint,
                   currentWayPointDistance: state.currentWayPointDistance,
                 );
+              } else if (state is NavigationToTourLoadSuccess) {
+                return NavigationTopWidget(
+                  currentWayPoint: state.currentWayPoint,
+                  nextWayPoint: state.nextWayPoint,
+                  currentWayPointDistance: state.currentWayPointDistance,
+                );
+              } else if (state is NavigationLoading) {
+                return const LoadingIndicator();
               } else {
                 return Container();
               }
@@ -33,6 +42,12 @@ class NavigationView extends StatelessWidget {
                 return NavigationBottomWidget(
                   distanceToTourEnd: state.distanceToTourEnd,
                 );
+              } else if (state is NavigationToTourLoadSuccess) {
+                return NavigationBottomWidget(
+                  distanceToTourEnd: state.distanceToTourEnd,
+                );
+              } else if (state is NavigationLoading) {
+                return const LoadingIndicator();
               } else {
                 return Container();
               }

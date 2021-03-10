@@ -13,33 +13,33 @@ import 'core/controllers/mapbox_controller.dart' as _i32;
 import 'core/helpers/color_helper.dart' as _i4;
 import 'core/helpers/constants_helper.dart' as _i5;
 import 'core/helpers/distance_helper.dart' as _i6;
-import 'core/helpers/tour_conversion_helper.dart' as _i13;
-import 'core/helpers/tour_list_helper.dart' as _i16;
+import 'core/helpers/tour_conversion_helper.dart' as _i12;
+import 'core/helpers/tour_list_helper.dart' as _i15;
 import 'features/data/data_sources/search/search_result_local_data_source.dart'
     as _i23;
 import 'features/data/data_sources/search/search_result_remote_data_source.dart'
     as _i24;
-import 'features/data/data_sources/tour/tour_local_data_source.dart' as _i17;
-import 'features/data/data_sources/tour/tour_remote_data_source.dart' as _i14;
+import 'features/data/data_sources/tour/tour_local_data_source.dart' as _i16;
+import 'features/data/data_sources/tour/tour_remote_data_source.dart' as _i13;
 import 'features/data/data_sources/tour_parser/rtx_parser.dart' as _i34;
 import 'features/data/data_sources/tour_parser/tour_parser.dart' as _i8;
 import 'features/data/repositories/search/search_result_repository_impl.dart'
     as _i26;
-import 'features/data/repositories/tour/tour_repository_impl.dart' as _i19;
+import 'features/data/repositories/tour/tour_repository_impl.dart' as _i18;
 import 'features/domain/repositories/search/search_result_repository.dart'
     as _i25;
-import 'features/domain/repositories/tour/tour_repository.dart' as _i18;
+import 'features/domain/repositories/tour/tour_repository.dart' as _i17;
 import 'features/domain/usecases/navigation/get_navigation_data.dart' as _i7;
 import 'features/domain/usecases/search/add_to_search_history.dart' as _i28;
 import 'features/domain/usecases/search/get_search_history.dart' as _i29;
 import 'features/domain/usecases/search/get_search_results.dart' as _i30;
-import 'features/domain/usecases/tour/get_alternative_tours.dart' as _i20;
-import 'features/domain/usecases/tour/get_path_to_tour.dart' as _i21;
-import 'features/domain/usecases/tour/get_tour.dart' as _i22;
-import 'features/presentation/blocs/height_map/height_map_bloc.dart' as _i15;
+import 'features/domain/usecases/tour/get_alternative_tours.dart' as _i19;
+import 'features/domain/usecases/tour/get_path_to_tour.dart' as _i20;
+import 'features/domain/usecases/tour/get_tour.dart' as _i21;
+import 'features/presentation/blocs/height_map/height_map_bloc.dart' as _i14;
 import 'features/presentation/blocs/map/map_bloc.dart' as _i10;
 import 'features/presentation/blocs/mapbox/mapbox_bloc.dart' as _i11;
-import 'features/presentation/blocs/navigation/navigation_bloc.dart' as _i12;
+import 'features/presentation/blocs/navigation/navigation_bloc.dart' as _i22;
 import 'features/presentation/blocs/search/search_bloc.dart' as _i31;
 import 'features/presentation/blocs/tour/tour_bloc.dart' as _i27;
 import 'injection_container.dart' as _i33;
@@ -71,10 +71,8 @@ Future<_i1.GetIt> $initGetIt(_i1.GetIt get,
       preResolve: true);
   gh.factory<_i10.MapBloc>(() => _i10.MapBloc());
   gh.factory<_i11.MapboxBloc>(() => _i11.MapboxBloc());
-  gh.factory<_i12.NavigationBloc>(() =>
-      _i12.NavigationBloc(getNavigationData: get<_i7.GetNavigationData>()));
-  gh.factory<_i13.TourConversionHelper>(() =>
-      _i13.TourConversionHelper(constantsHelper: get<_i5.ConstantsHelper>()));
+  gh.factory<_i12.TourConversionHelper>(() =>
+      _i12.TourConversionHelper(constantsHelper: get<_i5.ConstantsHelper>()));
   gh.factory<_i8.TourParser>(
       () => rtxParserModule.getRtxParser(get<_i5.ConstantsHelper>(),
           get<_i6.DistanceHelper>(), get<_i8.GpxParser>()),
@@ -84,40 +82,43 @@ Future<_i1.GetIt> $initGetIt(_i1.GetIt get,
           constantsHelper: get<_i5.ConstantsHelper>(),
           distanceHelper: get<_i6.DistanceHelper>()),
       registerFor: {_public});
-  gh.factory<_i14.TourRemoteDataSource>(() => _i14.TourRemoteDataSourceImpl(
+  gh.factory<_i13.TourRemoteDataSource>(() => _i13.TourRemoteDataSourceImpl(
       tourParser: get<_i8.TourParser>(), client: get<_i3.Client>()));
-  gh.factory<_i15.HeightMapBloc>(() => _i15.HeightMapBloc(
-      tourConversionHelper: get<_i13.TourConversionHelper>()));
-  gh.lazySingleton<_i16.TourListHelper>(() => _i16.TourListHelper(
+  gh.factory<_i14.HeightMapBloc>(() => _i14.HeightMapBloc(
+      tourConversionHelper: get<_i12.TourConversionHelper>()));
+  gh.lazySingleton<_i15.TourListHelper>(() => _i15.TourListHelper(
       constantsHelper: get<_i5.ConstantsHelper>(),
       tourParser: get<_i8.TourParser>()));
-  gh.factory<_i17.TourLocalDataSource>(() => _i17.TourLocalDataSourceImpl(
+  gh.factory<_i16.TourLocalDataSource>(() => _i16.TourLocalDataSourceImpl(
       tourParser: get<_i8.TourParser>(),
       constantsHelper: get<_i5.ConstantsHelper>(),
-      tourListHelper: get<_i16.TourListHelper>()));
-  gh.factory<_i18.TourRepository>(() => _i19.TourRepositoryImpl(
-      localDataSource: get<_i17.TourLocalDataSource>(),
-      remoteDataSource: get<_i14.TourRemoteDataSource>()));
-  gh.lazySingleton<_i20.GetAlternativeTours>(
-      () => _i20.GetAlternativeTours(repository: get<_i18.TourRepository>()));
-  gh.lazySingleton<_i21.GetPathToTour>(
-      () => _i21.GetPathToTour(repository: get<_i18.TourRepository>()));
-  gh.lazySingleton<_i22.GetTour>(
-      () => _i22.GetTour(repository: get<_i18.TourRepository>()));
+      tourListHelper: get<_i15.TourListHelper>()));
+  gh.factory<_i17.TourRepository>(() => _i18.TourRepositoryImpl(
+      localDataSource: get<_i16.TourLocalDataSource>(),
+      remoteDataSource: get<_i13.TourRemoteDataSource>()));
+  gh.lazySingleton<_i19.GetAlternativeTours>(
+      () => _i19.GetAlternativeTours(repository: get<_i17.TourRepository>()));
+  gh.lazySingleton<_i20.GetPathToTour>(
+      () => _i20.GetPathToTour(repository: get<_i17.TourRepository>()));
+  gh.lazySingleton<_i21.GetTour>(
+      () => _i21.GetTour(repository: get<_i17.TourRepository>()));
+  gh.factory<_i22.NavigationBloc>(() => _i22.NavigationBloc(
+      getNavigationData: get<_i7.GetNavigationData>(),
+      getPathToTour: get<_i20.GetPathToTour>(),
+      distanceHelper: get<_i6.DistanceHelper>()));
   await gh.factoryAsync<_i23.SearchResultLocalDataSource>(
       () => _i23.SearchResultLocalDataSourceImpl.create(
           constantsHelper: get<_i5.ConstantsHelper>(),
-          tourListHelper: get<_i16.TourListHelper>()),
+          tourListHelper: get<_i15.TourListHelper>()),
       preResolve: true);
   gh.factory<_i24.SearchResultRemoteDataSource>(() =>
       _i24.SearchResultRemoteDataSourceImpl(
-          tourListHelper: get<_i16.TourListHelper>(),
-          getTour: get<_i22.GetTour>()));
+          tourListHelper: get<_i15.TourListHelper>(),
+          getTour: get<_i21.GetTour>()));
   gh.factory<_i25.SearchResultRepository>(() => _i26.SearchResultRepositoryImpl(
       localDataSource: get<_i23.SearchResultLocalDataSource>(),
       remoteDataSource: get<_i24.SearchResultRemoteDataSource>()));
-  gh.factory<_i27.TourBloc>(() => _i27.TourBloc(
-      getTour: get<_i22.GetTour>(), getPathToTour: get<_i21.GetPathToTour>()));
+  gh.factory<_i27.TourBloc>(() => _i27.TourBloc(getTour: get<_i21.GetTour>()));
   gh.lazySingleton<_i28.AddToSearchHistory>(() =>
       _i28.AddToSearchHistory(repository: get<_i25.SearchResultRepository>()));
   gh.lazySingleton<_i29.GetSearchHistory>(() =>

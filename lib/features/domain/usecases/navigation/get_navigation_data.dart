@@ -12,13 +12,13 @@ import '../../../../core/usecases/usecase.dart';
 import '../../entities/tour/entities.dart';
 
 @lazySingleton
-class GetNavigationData extends UseCase<NavigationData, Params> {
+class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
   final DistanceHelper distanceHelper;
 
   GetNavigationData({this.distanceHelper});
 
   @override
-  Future<Either<Failure, NavigationData>> call(Params params) {
+  Future<Either<Failure, NavigationData>> call(NavigationDataParams params) {
     try {
       return Future.value(right(_getNavigationData(
           tour: params.tour, userLocation: params.userLocation)));
@@ -117,11 +117,12 @@ class GetNavigationData extends UseCase<NavigationData, Params> {
   }
 }
 
-class Params extends Equatable {
+class NavigationDataParams extends Equatable {
   final Tour tour;
   final LatLng userLocation;
 
-  const Params({@required this.tour, @required this.userLocation});
+  const NavigationDataParams(
+      {@required this.tour, @required this.userLocation});
 
   @override
   List<Object> get props => [tour, userLocation];

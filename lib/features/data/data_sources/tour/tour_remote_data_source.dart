@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:bike_gps/features/data/data_sources/tour_parser/tour_parser.dart';
 import 'package:flutter/services.dart';
@@ -28,16 +29,37 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
   @override
   Future<TourModel> getPathToTour(
       {@required LatLng userLocation, @required LatLng tourStart}) async {
-    final String tourFileContent = await _getTourFileContentFromRouteService(
-        userLocation: userLocation, tourStart: tourStart);
-    return tourParser.getTourFromFileContent(
-        tourFileContent: tourFileContent, tourName: 'ORS');
+    try {
+      final String tourFileContent = await _getTourFileContentFromRouteService(
+          userLocation: userLocation, tourStart: tourStart);
+      return tourParser.getTourFromFileContent(
+          tourFileContent: tourFileContent, tourName: 'ORS');
+    } on ServerException {
+      rethrow;
+    }
   }
 
   Future<String> _getTourFileContentFromRouteService(
       {@required LatLng userLocation, @required LatLng tourStart}) async {
     final String baseUrl =
         await rootBundle.loadString('assets/tokens/route_service_url.txt');
+    final String postBody = jsonEncode(<String, dynamic>{
+      'coordinates': [
+        [userLocation.longitude, userLocation.latitude],
+        [tourStart.longitude, tourStart.latitude]
+      ],
+      'extra_info': [
+        'surface',
+        'waycategory',
+        'waytype',
+        'traildifficulty',
+      ],
+      'instructions': 'true',
+      'instructions_format': 'text',
+    });
+    log("Sending body to ORS: $postBody",
+        name: 'TourRemoteDataSource getPathToTour PostBody',
+        time: DateTime.now());
     final Response response = await client.post(
       baseUrl,
       headers: <String, String>{
@@ -61,8 +83,14 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
       }),
     );
     if (response.statusCode == 200) {
+      log("Code: ${response.statusCode}, Body: ${response.body}",
+          name: 'TourRemoteDataSource getPathToTour Response',
+          time: DateTime.now());
       return response.body;
     } else {
+      log("Code: ${response.statusCode}, Body: ${response.body}",
+          name: 'TourRemoteDataSource getPathToTour Error',
+          time: DateTime.now());
       throw ServerException();
     }
   }

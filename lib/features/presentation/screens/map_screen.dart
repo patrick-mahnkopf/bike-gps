@@ -114,6 +114,13 @@ class MapScreen extends StatelessWidget {
                               userLocation: currentLatLng,
                               tour: tourState.tour));
                         }
+                      } else if (navigationState
+                          is NavigationToTourLoadSuccess) {
+                        if (currentLatLng != navigationState.currentPosition) {
+                          navigationBloc.add(NavigationLoaded(
+                              userLocation: currentLatLng,
+                              tour: navigationState.pathToTour));
+                        }
                       }
                     }
                   });
@@ -132,7 +139,8 @@ class MapScreen extends StatelessWidget {
                             searchState.previousSearchResults));
                   }
 
-                  if (navigationBloc.state is NavigationLoadSuccess) {
+                  if (navigationBloc.state is NavigationLoadSuccess ||
+                      navigationBloc.state is NavigationToTourLoadSuccess) {
                     navigationBloc.add(NavigationStopped());
                   }
 

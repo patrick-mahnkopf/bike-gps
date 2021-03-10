@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:bike_gps/core/controllers/controllers.dart';
-import 'package:bike_gps/features/domain/usecases/tour/get_path_to_tour.dart';
 import 'package:bike_gps/features/domain/usecases/tour/get_tour.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
@@ -22,11 +21,9 @@ const String serverFailureMessage = 'Server Failure';
 @injectable
 class TourBloc extends Bloc<TourEvent, TourState> {
   final GetTour getTour;
-  final GetPathToTour getPathToTour;
 
-  TourBloc({@required this.getTour, @required this.getPathToTour})
+  TourBloc({@required this.getTour})
       : assert(getTour != null),
-        assert(getPathToTour != null),
         super(TourEmpty());
 
   @override

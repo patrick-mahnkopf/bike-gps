@@ -13,6 +13,5 @@ class MainActivity: FlutterActivity() {
           startActivity(intent);
       }
       super.onCreate(savedInstanceState);
-      handleIntent();
   }
 }

@@ -27,6 +27,9 @@ class Tour extends Equatable {
             (highest, current) =>
                 current.elevation > highest ? current.elevation : highest);
 
+  TrackPoint trackPointForWayPoint(WayPoint wayPoint) =>
+      trackPoints.firstWhere((trackPoint) => trackPoint.wayPoint == wayPoint);
+
   @override
   List<Object> get props =>
       [name, trackPoints, wayPoints, ascent, descent, tourLength, bounds];
