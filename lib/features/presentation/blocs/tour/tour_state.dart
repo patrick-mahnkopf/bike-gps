@@ -19,14 +19,16 @@ class TourLoading extends TourState {
 
 class TourLoadSuccess extends TourState {
   final Tour tour;
+  final List<Tour> alternativeTours;
 
-  const TourLoadSuccess({@required this.tour});
-
-  @override
-  String toString() => 'TourLoadSuccess { tour: $tour }';
+  const TourLoadSuccess({@required this.tour, this.alternativeTours});
 
   @override
-  List<Object> get props => [tour];
+  String toString() =>
+      'TourLoadSuccess { tour: $tour, alternativeTours: $alternativeTours }';
+
+  @override
+  List<Object> get props => [tour, alternativeTours];
 }
 
 class TourLoadFailure extends TourState {

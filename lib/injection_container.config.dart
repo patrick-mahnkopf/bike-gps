@@ -118,7 +118,9 @@ Future<_i1.GetIt> $initGetIt(_i1.GetIt get,
   gh.factory<_i25.SearchResultRepository>(() => _i26.SearchResultRepositoryImpl(
       localDataSource: get<_i23.SearchResultLocalDataSource>(),
       remoteDataSource: get<_i24.SearchResultRemoteDataSource>()));
-  gh.factory<_i27.TourBloc>(() => _i27.TourBloc(getTour: get<_i21.GetTour>()));
+  gh.factory<_i27.TourBloc>(() => _i27.TourBloc(
+      getTour: get<_i21.GetTour>(),
+      getAlternativeTours: get<_i19.GetAlternativeTours>()));
   gh.lazySingleton<_i28.AddToSearchHistory>(() =>
       _i28.AddToSearchHistory(repository: get<_i25.SearchResultRepository>()));
   gh.lazySingleton<_i29.GetSearchHistory>(() =>
@@ -132,7 +134,8 @@ Future<_i1.GetIt> $initGetIt(_i1.GetIt get,
           addToSearchHistory: get<_i28.AddToSearchHistory>()),
       preResolve: true);
   gh.singletonAsync<_i32.MapboxController>(() => _i32.MapboxController.create(
-      constantsHelper: get<_i5.ConstantsHelper>()));
+      constantsHelper: get<_i5.ConstantsHelper>(),
+      tourListHelper: get<_i15.TourListHelper>()));
   return get;
 }
 

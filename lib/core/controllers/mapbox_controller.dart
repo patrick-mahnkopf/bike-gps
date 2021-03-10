@@ -1,5 +1,6 @@
 import 'package:bike_gps/core/function_results/function_result.dart';
 import 'package:bike_gps/core/helpers/constants_helper.dart';
+import 'package:bike_gps/core/helpers/tour_list_helper.dart';
 import 'package:bike_gps/features/domain/entities/search/entities.dart';
 import 'package:bike_gps/features/domain/entities/tour/entities.dart';
 import 'package:flutter/services.dart';
@@ -24,6 +25,7 @@ class MapboxController {
   final Map<String, String> styleStrings;
   final MyLocationTrackingMode myLocationTrackingMode;
   final ConstantsHelper constantsHelper;
+  final TourListHelper tourListHelper;
   final List<TourLine> tourLines = [];
   final List<String> assetImagePaths = [
     'start_location.png',
@@ -40,7 +42,8 @@ class MapboxController {
       @required this.initialCameraPosition,
       @required this.styleStrings,
       @required this.myLocationTrackingMode,
-      @required this.constantsHelper});
+      @required this.constantsHelper,
+      @required this.tourListHelper});
 
   MapboxController copyWith(
       {String accessToken,
@@ -62,12 +65,14 @@ class MapboxController {
           myLocationTrackingMode ?? this.myLocationTrackingMode,
       styleStrings: styleStrings,
       constantsHelper: constantsHelper,
+      tourListHelper: tourListHelper,
     );
   }
 
   @factoryMethod
   static Future<MapboxController> create(
-      {@required ConstantsHelper constantsHelper}) async {
+      {@required ConstantsHelper constantsHelper,
+      @required TourListHelper tourListHelper}) async {
     final String accessToken = await _getMapboxAccessToken();
     final Map<String, String> styleStrings = await _getStyleStrings();
     final CameraPosition initialCameraPosition =
@@ -81,7 +86,8 @@ class MapboxController {
         initialCameraPosition: initialCameraPosition,
         locationRenderMode: MyLocationRenderMode.COMPASS,
         myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass,
-        constantsHelper: constantsHelper);
+        constantsHelper: constantsHelper,
+        tourListHelper: tourListHelper);
   }
 
   static Future<String> _getMapboxAccessToken() async {
@@ -125,14 +131,17 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
-  Future<FunctionResult> onSelectTour(Tour tour) async {
+  Future<FunctionResult> onSelectTour(
+      {@required Tour tour, List<Tour> alternativeTours}) async {
     try {
-      tourLines.add(await _drawTour(tour: tour, isMainTour: true));
-      await _drawTourStartAndEndIcons(
-        tour.trackPoints.first.latLng,
-        tour.trackPoints.last.latLng,
-      );
-      animateCameraToTourBounds(tour);
+      if (alternativeTours.isNotEmpty) {
+        _drawAlternativeTours(alternativeTours);
+        animateCameraToTourBounds(
+            tour: tour, alternativeTours: alternativeTours);
+      } else {
+        animateCameraToTourBounds(tour: tour);
+      }
+      _drawMainTour(tour);
     } on Exception catch (exception, stacktrace) {
       return FunctionResultFailure(
           error: exception,
@@ -142,15 +151,72 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
-  void animateCameraToTourBounds(Tour tour) {
+  Future<FunctionResult> _drawMainTour(Tour tour) async {
+    try {
+      tourLines.add(await _drawTour(tour: tour, isMainTour: true));
+      await _drawTourStartAndEndIcons(
+        tour.trackPoints.first.latLng,
+        tour.trackPoints.last.latLng,
+      );
+      return FunctionResultSuccess();
+    } on Exception catch (exception, stacktrace) {
+      return FunctionResultFailure(
+          error: exception,
+          stackTrace: stacktrace,
+          name: 'Mapbox Controller _drawMainTour');
+    }
+  }
+
+  Future<FunctionResult> _drawAlternativeTours(
+      List<Tour> alternativeTours) async {
+    try {
+      for (final Tour tour in alternativeTours) {
+        tourLines.add(await _drawTour(tour: tour));
+      }
+      return FunctionResultSuccess();
+    } on Exception catch (exception, stacktrace) {
+      return FunctionResultFailure(
+          error: exception,
+          stackTrace: stacktrace,
+          name: 'Mapbox Controller _drawAlternativeTours');
+    }
+  }
+
+  void animateCameraToTourBounds(
+      {@required Tour tour, List<Tour> alternativeTours}) {
     mapboxMapController
         .updateMyLocationTrackingMode(MyLocationTrackingMode.None);
-    final CameraUpdate cameraUpdate = _getCameraUpdateFromTour(tour);
+    LatLngBounds bounds;
+    if (alternativeTours != null && alternativeTours.isNotEmpty) {
+      bounds = _getCombinedBounds(tour, alternativeTours);
+    } else {
+      bounds = tour.bounds;
+    }
+    final CameraUpdate cameraUpdate = _getCameraUpdateFromBounds(bounds);
     _animateCamera(cameraUpdate);
   }
 
-  CameraUpdate _getCameraUpdateFromTour(Tour tour) {
-    final LatLngBounds bounds = tour.bounds;
+  LatLngBounds _getCombinedBounds(Tour tour, List<Tour> alternativeTours) {
+    final TourBounds combinedBounds = tourListHelper.getBounds(tour.name);
+    for (final Tour alternativeTour in alternativeTours) {
+      final TourBounds bounds = tourListHelper.getBounds(alternativeTour.name);
+      if (bounds.south < combinedBounds.south) {
+        combinedBounds.south = bounds.south;
+      }
+      if (bounds.west < combinedBounds.west) {
+        combinedBounds.west = bounds.west;
+      }
+      if (bounds.north > combinedBounds.north) {
+        combinedBounds.north = bounds.north;
+      }
+      if (bounds.east > combinedBounds.east) {
+        combinedBounds.east = bounds.east;
+      }
+    }
+    return combinedBounds.bounds;
+  }
+
+  CameraUpdate _getCameraUpdateFromBounds(LatLngBounds bounds) {
     final double latOffset =
         (bounds.northeast.latitude - bounds.southwest.latitude) / 4;
     final double lonOffset =

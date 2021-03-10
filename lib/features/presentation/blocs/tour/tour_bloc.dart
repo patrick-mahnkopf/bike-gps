@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bike_gps/core/controllers/controllers.dart';
+import 'package:bike_gps/features/domain/usecases/tour/get_alternative_tours.dart';
 import 'package:bike_gps/features/domain/usecases/tour/get_tour.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
@@ -21,9 +22,11 @@ const String serverFailureMessage = 'Server Failure';
 @injectable
 class TourBloc extends Bloc<TourEvent, TourState> {
   final GetTour getTour;
+  final GetAlternativeTours getAlternativeTours;
 
-  TourBloc({@required this.getTour})
+  TourBloc({@required this.getTour, @required this.getAlternativeTours})
       : assert(getTour != null),
+        assert(getAlternativeTours != null),
         super(TourEmpty());
 
   @override
@@ -42,8 +45,11 @@ class TourBloc extends Bloc<TourEvent, TourState> {
     try {
       final Either<Failure, Tour> failureOrTour =
           await getTour(TourParams(name: event.tourName));
+      final Either<Failure, List<Tour>> failureOrAlternativeTours =
+          await getAlternativeTours(
+              AlternativeTourParams(mainTourName: event.tourName));
       yield* _eitherLoadSuccessOrLoadFailureState(
-          failureOrTour, event.mapboxController);
+          failureOrTour, event.mapboxController, failureOrAlternativeTours);
     } on Exception catch (error) {
       yield TourLoadFailure(message: error.toString());
       rethrow;
@@ -52,12 +58,22 @@ class TourBloc extends Bloc<TourEvent, TourState> {
 
   Stream<TourState> _eitherLoadSuccessOrLoadFailureState(
       Either<Failure, Tour> failureOrTour,
-      MapboxController mapboxController) async* {
+      MapboxController mapboxController,
+      Either<Failure, List<Tour>> failureOrAlternativeTours) async* {
     yield failureOrTour.fold(
       (failure) => TourLoadFailure(message: _mapFailureToMessage(failure)),
       (tour) {
-        mapboxController.onSelectTour(tour);
-        return TourLoadSuccess(tour: tour);
+        if (failureOrAlternativeTours.isRight()) {
+          final List<Tour> alternativeTours =
+              failureOrAlternativeTours.getOrElse(() => null);
+          mapboxController.onSelectTour(
+              tour: tour, alternativeTours: alternativeTours);
+          return TourLoadSuccess(
+              tour: tour, alternativeTours: alternativeTours);
+        } else {
+          mapboxController.onSelectTour(tour: tour);
+          return TourLoadSuccess(tour: tour);
+        }
       },
     );
   }

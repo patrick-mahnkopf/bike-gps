@@ -24,6 +24,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
   final GetNavigationData getNavigationData;
   final GetPathToTour getPathToTour;
   final DistanceHelper distanceHelper;
+  static const double maxAllowedDistanceToTour =
+      double.maxFinite; // TODO change back to 20
 
   NavigationBloc(
       {@required this.getNavigationData,
@@ -48,13 +50,10 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       NavigationLoaded event) async* {
     yield NavigationLoading();
     try {
-      print("NavigationBloc: getting user location");
       final LatLng userLocation = await _getUserLocationFromEvent(event);
-      print("NavigationBloc: getting navigationData");
       final Either<Failure, NavigationData> navigationDataEither =
           await getNavigationData(NavigationDataParams(
               tour: event.tour, userLocation: userLocation));
-      print("NavigationBloc: got navigationData");
       yield* _eitherHandleGetPathToTourOrNavigationLoadState(
           navigationDataEither, userLocation, event.tour);
     } on Exception catch (error) {
@@ -76,10 +75,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       LatLng userLocation,
       Tour tour) async* {
     if (failureOrNavigationData.isRight()) {
-      print("NavigationBloc: navigationData isRight");
       final NavigationData navigationData =
           failureOrNavigationData.getOrElse(() => null);
-      print("NavigationBloc: getOrElse");
       yield* _eitherGetPathToTourOrNavigationLoadSuccessState(
           tour, navigationData, userLocation);
     } else {
@@ -90,12 +87,9 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
 
   Stream<NavigationState> _eitherGetPathToTourOrNavigationLoadSuccessState(
       Tour tour, NavigationData navigationData, LatLng userLocation) async* {
-    print("NavigationBloc: getting distanceToTour");
     final double distanceToTour =
         distanceHelper.distanceToTour(userLocation, tour, navigationData);
-    print("NavigationBloc: got distanceToTour: $distanceToTour");
-    if (distanceToTour >= 20) {
-      print("NavigationBloc: User not on track, getting pathToTour");
+    if (distanceToTour >= maxAllowedDistanceToTour) {
       final Either<Failure, Tour> pathToTourEither = await getPathToTour(
           PathToTourParams(
               tourStart: tour.trackPoints.first.latLng,
@@ -103,7 +97,6 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       yield* _eitherHandleNavigationToTourOrLoadFailureState(
           pathToTourEither, userLocation);
     } else {
-      print("NavigationBloc: User on track, returning navigationData");
       yield NavigationLoadSuccess(
           currentWayPoint: navigationData.currentWayPoint,
           currentWayPointDistance: navigationData.currentWayPointDistance,
@@ -117,7 +110,6 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       Either<Failure, Tour> pathToTourEither, LatLng userLocation) async* {
     if (pathToTourEither.isRight()) {
       final Tour pathToTour = pathToTourEither.getOrElse(() => null);
-      print("NavigationBloc: getting navigationdata for pathToTour");
       final Either<Failure, NavigationData> navigationToTourDataEither =
           await getNavigationData(NavigationDataParams(
               tour: pathToTour, userLocation: userLocation));
