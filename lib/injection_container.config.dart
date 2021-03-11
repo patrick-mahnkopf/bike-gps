@@ -83,7 +83,9 @@ Future<_i1.GetIt> $initGetIt(_i1.GetIt get,
           distanceHelper: get<_i6.DistanceHelper>()),
       registerFor: {_public});
   gh.factory<_i13.TourRemoteDataSource>(() => _i13.TourRemoteDataSourceImpl(
-      tourParser: get<_i8.TourParser>(), client: get<_i3.Client>()));
+      tourParser: get<_i8.TourParser>(),
+      client: get<_i3.Client>(),
+      constantsHelper: get<_i5.ConstantsHelper>()));
   gh.factory<_i14.HeightMapBloc>(() => _i14.HeightMapBloc(
       tourConversionHelper: get<_i12.TourConversionHelper>()));
   gh.lazySingleton<_i15.TourListHelper>(() => _i15.TourListHelper(

@@ -22,10 +22,12 @@ class Tour extends Equatable {
       @required this.descent,
       @required this.tourLength,
       @required this.bounds})
-      : highestPoint = trackPoints.fold(
-            double.negativeInfinity,
-            (highest, current) =>
-                current.elevation > highest ? current.elevation : highest);
+      : highestPoint = trackPoints.first.elevation != null
+            ? trackPoints.fold(
+                double.negativeInfinity,
+                (highest, current) =>
+                    current.elevation > highest ? current.elevation : highest)
+            : 0;
 
   TrackPoint trackPointForWayPoint(WayPoint wayPoint) =>
       trackPoints.firstWhere((trackPoint) => trackPoint.wayPoint == wayPoint);

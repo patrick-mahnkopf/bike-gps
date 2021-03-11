@@ -182,6 +182,25 @@ class MapboxController {
     }
   }
 
+  Future<FunctionResult> addPathToTour(Tour pathToTour) async {
+    try {
+      clearPathToTour();
+      _drawPathToTour(pathToTour);
+      return FunctionResultSuccess();
+    } on Exception catch (error, stackTrace) {
+      return FunctionResultFailure(error: error, stackTrace: stackTrace);
+    }
+  }
+
+  Future<FunctionResult> _drawPathToTour(Tour pathToTour) async {
+    try {
+      tourLines.add(await _drawTour(tour: pathToTour, isPathToTour: true));
+      return FunctionResultSuccess();
+    } on Exception catch (error, stackTrace) {
+      return FunctionResultFailure(error: error, stackTrace: stackTrace);
+    }
+  }
+
   void animateCameraToTourBounds(
       {@required Tour tour, List<Tour> alternativeTours}) {
     mapboxMapController
@@ -266,14 +285,15 @@ class MapboxController {
       LineOptions(
         geometry: lineCoordinateList,
         lineWidth: lineWidth,
-        lineColor: isMainTour ? primaryTourColor : secondaryTourColor,
+        lineColor:
+            isMainTour || isPathToTour ? primaryTourColor : secondaryTourColor,
       ),
     );
 
     return TourLine(
       tourName: tour.name,
       background: backgroundLine,
-      route: tourLine,
+      tour: tourLine,
       isActive: isMainTour,
       isPathToTour: isPathToTour,
       touchArea: touchAreaLine,
@@ -311,12 +331,51 @@ class MapboxController {
 
   void onTourDismissed() {
     _clearActiveDrawings();
+    tourLines.clear();
   }
 
   void _clearActiveDrawings() {
     mapboxMapController.clearLines();
     mapboxMapController.clearCircles();
     mapboxMapController.clearSymbols();
+  }
+
+  Future<FunctionResult> clearAlternativeTours() async {
+    try {
+      for (final TourLine tourLine in tourLines) {
+        if (!tourLine.isActive) {
+          await _removeTourLine(tourLine);
+        }
+      }
+      return FunctionResultSuccess();
+    } on Exception catch (error, stackTrace) {
+      return FunctionResultFailure(error: error, stackTrace: stackTrace);
+    }
+  }
+
+  Future<FunctionResult> clearPathToTour() async {
+    try {
+      for (final TourLine tourLine in List<TourLine>.from(tourLines)) {
+        if (tourLine.isPathToTour) {
+          await _removeTourLine(tourLine);
+        }
+      }
+      return FunctionResultSuccess();
+    } on Exception catch (error, stackTrace) {
+      return FunctionResultFailure(error: error, stackTrace: stackTrace);
+    }
+  }
+
+  Future<FunctionResult> _removeTourLine(TourLine tourLine) async {
+    try {
+      await mapboxMapController.removeLine(tourLine.background);
+      await mapboxMapController.removeLine(tourLine.tour);
+      await mapboxMapController.removeLine(tourLine.touchArea);
+      tourLines.remove(tourLine);
+      return FunctionResultSuccess();
+    } on Exception catch (error, stackTrace) {
+      return FunctionResultFailure(error: error, stackTrace: stackTrace);
+    }
   }
 
   void _moveCamera(CameraUpdate cameraUpdate) {

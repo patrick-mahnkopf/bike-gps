@@ -30,6 +30,7 @@ class DistanceHelper {
 
   double distanceToTour(
       LatLng userLocation, Tour tour, NavigationData navigationData) {
+    // TODO handle distance to path correctly
     final TrackPoint currentTrackPoint =
         tour.trackPointForWayPoint(navigationData.currentWayPoint);
     final int currentTrackPointIndex =
@@ -57,7 +58,7 @@ class DistanceHelper {
           180 *
           pi;
     }
-    return sin(alpha) * au;
+    return (sin(alpha) * au).abs();
   }
 
   double bearingBetween(LatLng first, LatLng second) {

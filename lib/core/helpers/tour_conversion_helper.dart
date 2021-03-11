@@ -13,15 +13,84 @@ class TourConversionHelper {
   TourConversionHelper({@required this.constantsHelper});
 
   Widget getTurnSymbolFromId({@required String iconId, Color color}) {
+    final String assetId = _mapTurnSymbolIdToAssetId(iconId);
     if (constantsHelper.turnSymbolAssetPaths
-        .containsKey(iconId.toLowerCase())) {
+        .containsKey(assetId.toLowerCase())) {
       return SvgPicture.asset(
-        constantsHelper.turnSymbolAssetPaths[iconId.toLowerCase()],
+        constantsHelper.turnSymbolAssetPaths[assetId.toLowerCase()],
         color: color ?? Colors.white,
         width: 48,
       );
     } else {
       return const Icon(Icons.info);
+    }
+  }
+
+  String _mapTurnSymbolIdToAssetId(String turnSymbolId) {
+    switch (turnSymbolId) {
+      // Turn left
+      case '0':
+        return 'A02';
+        break;
+      // Turn right
+      case '1':
+        return 'A04';
+        break;
+      // Turn sharp left
+      case '2':
+        return 'A11';
+        break;
+      // Turn sharp right
+      case '3':
+        return 'A12';
+        break;
+      // Turn slight left
+      case '4':
+        return 'A09';
+        break;
+      // Turn slight right
+      case '5':
+        return 'A10';
+        break;
+      // Continue
+      case '6':
+        return 'GR01';
+        break;
+      // Enter roundabout
+      case '7':
+        return '';
+        break;
+      // Exit roundabout
+      case '8':
+        return '';
+        break;
+      // U-turn
+      case '9':
+        return 'Z01';
+        break;
+      // Finish
+      case '10':
+        return 'P01';
+        break;
+      // Depart
+      case '11':
+        return 'GR01';
+        break;
+      // Keep left
+      case '12':
+        return '';
+        break;
+      // Keep right
+      case '13':
+        return '';
+        break;
+      // Unknown
+      case '14':
+        return '';
+        break;
+      default:
+        return '';
+        break;
     }
   }
 

@@ -92,18 +92,19 @@ class MapScreen extends StatelessWidget {
                           cameraUpdate: CameraUpdate.zoomTo(16),
                         ),
                       );
+                      navigationBloc.add(NavigationLoaded(
+                        tour: tourState.tour,
+                        mapboxController: mapboxState.controller,
+                      ));
                     }
-
-                    navigationBloc.add(NavigationLoaded(
-                      tour: tourState.tour,
-                    ));
                   }
 
                   getIt<Location>()
                       .onLocationChanged
                       .listen((LocationData currentLocation) {
                     if (tourState is TourLoadSuccess &&
-                        mapState is NavigationViewActive) {
+                        mapState is NavigationViewActive &&
+                        mapboxState is MapboxLoadSuccess) {
                       final NavigationState navigationState =
                           navigationBloc.state;
                       final LatLng currentLatLng = LatLng(
@@ -112,14 +113,16 @@ class MapScreen extends StatelessWidget {
                         if (currentLatLng != navigationState.currentPosition) {
                           navigationBloc.add(NavigationLoaded(
                               userLocation: currentLatLng,
-                              tour: tourState.tour));
+                              tour: tourState.tour,
+                              mapboxController: mapboxState.controller));
                         }
                       } else if (navigationState
                           is NavigationToTourLoadSuccess) {
                         if (currentLatLng != navigationState.currentPosition) {
                           navigationBloc.add(NavigationLoaded(
                               userLocation: currentLatLng,
-                              tour: navigationState.pathToTour));
+                              tour: navigationState.pathToTour,
+                              mapboxController: mapboxState.controller));
                         }
                       }
                     }

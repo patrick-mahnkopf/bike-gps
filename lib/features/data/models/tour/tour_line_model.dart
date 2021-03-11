@@ -6,14 +6,14 @@ import '../../../domain/entities/tour/entities.dart';
 class TourLineModel extends TourLine {
   const TourLineModel(
       {@required Line background,
-      @required Line route,
+      @required Line tour,
       @required Line touchArea,
       @required String tourName,
       @required bool isActive,
       @required bool isPathToTour})
       : super(
             background: background,
-            route: route,
+            tour: tour,
             touchArea: touchArea,
             tourName: tourName,
             isActive: isActive,

@@ -9,7 +9,11 @@ abstract class NavigationState extends Equatable {
 
 class NavigationInitial extends NavigationState {}
 
-class NavigationLoading extends NavigationState {}
+class NavigationLoading extends NavigationState {
+  final NavigationState previousState;
+
+  const NavigationLoading({this.previousState});
+}
 
 class NavigationLoadSuccess extends NavigationState {
   final WayPoint currentWayPoint;

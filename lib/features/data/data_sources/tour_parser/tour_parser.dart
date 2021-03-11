@@ -11,6 +11,8 @@ import 'package:path/path.dart' as p;
 
 import '../../models/tour/models.dart';
 
+enum TourType { tour, route }
+
 abstract class TourParser {
   final ConstantsHelper constantsHelper;
   final DistanceHelper distanceHelper;
@@ -20,11 +22,15 @@ abstract class TourParser {
   Future<TourModel> getTour({@required File file});
 
   Future<TourModel> getTourFromFileContent(
-      {@required String tourFileContent, @required String tourName});
+      {@required String tourFileContent,
+      @required String tourName,
+      @required TourType tourType});
 
   Future<TourInfoModel> getTourInfo({@required File file});
 
   List<String> get fileExtensionPriority;
+
+  Future<TourModel> enrichTourWithNavigation({@required TourModel tour});
 }
 
 @Injectable(as: TourParser, env: ["public"])
@@ -42,12 +48,16 @@ class GpxParser extends TourParser {
     final String tourFileContent = await file.readAsString();
     final String tourName = p.basenameWithoutExtension(file.path);
     return getTourFromFileContent(
-        tourFileContent: tourFileContent, tourName: tourName);
+        tourFileContent: tourFileContent,
+        tourName: tourName,
+        tourType: TourType.tour);
   }
 
   @override
   Future<TourModel> getTourFromFileContent(
-      {@required String tourFileContent, @required String tourName}) async {
+      {@required String tourFileContent,
+      @required String tourName,
+      @required TourType tourType}) async {
     final Gpx tourGpx = GpxReader().fromString(tourFileContent);
     double ascent = 0;
     double descent = 0;
@@ -71,23 +81,29 @@ class GpxParser extends TourParser {
         distanceFromStart = distanceToPrevious + previousDistanceFromStart;
         previousDistanceFromStart = distanceFromStart;
 
-        if (currentPoint.ele > previousPoint.ele) {
-          ascent += currentPoint.ele - previousPoint.ele;
-        } else {
-          descent += previousPoint.ele - currentPoint.ele;
+        if (currentPoint.ele != null) {
+          if (currentPoint.ele > previousPoint.ele) {
+            ascent += currentPoint.ele - previousPoint.ele;
+          } else {
+            descent += previousPoint.ele - currentPoint.ele;
+          }
         }
       }
 
       if (_isWaypoint(currentPoint)) {
+        String turnSymbolId = '';
+        if (currentPoint.extensions.containsKey('type')) {
+          turnSymbolId = currentPoint.extensions['type'];
+        }
         final WayPointModel wayPoint = WayPointModel(
           latLng: LatLng(currentPoint.lat, currentPoint.lon),
           elevation: currentPoint.ele,
           distanceFromStart: distanceFromStart,
           surface: 'A',
           name: currentPoint.name,
-          direction: '',
+          direction: currentPoint.desc ?? '',
           location: '',
-          turnSymboldId: '',
+          turnSymboldId: turnSymbolId ?? '',
         );
         wayPoints.add(wayPoint);
 
@@ -103,7 +119,7 @@ class GpxParser extends TourParser {
         trackPoints.add(TrackPointModel(
           latLng: LatLng(currentPoint.lat, currentPoint.lon),
           elevation: currentPoint.ele,
-          isWayPoint: _isWaypoint(currentPoint),
+          isWayPoint: false,
           distanceFromStart: distanceFromStart,
           surface: 'A',
         ));
@@ -179,12 +195,17 @@ class GpxParser extends TourParser {
   }
 
   List<Wpt> getCombinedPoints(Gpx tourGpx) {
-    List<Wpt> initialPoints = tourGpx.trks.first.trksegs.first.trkpts;
-    if (tourGpx.trks.first.trksegs.first.trkpts.isEmpty) {
-      initialPoints = tourGpx.rtes.first.rtepts;
+    List<Wpt> initialPoints;
+    List<Wpt> wayPoints;
+    if (tourGpx.rtes.isNotEmpty) {
+      return tourGpx.rtes.first.rtepts;
+    } else if (tourGpx.rtes.isEmpty && tourGpx.trks.isEmpty) {
+      return [];
+    } else {
+      initialPoints = tourGpx.trks.first.trksegs.first.trkpts;
+      wayPoints = tourGpx.wpts;
     }
     final List<Wpt> combinedPoints = initialPoints;
-    final List<Wpt> wayPoints = tourGpx.wpts;
 
     for (int i = 0; i < wayPoints.length; i++) {
       // Find index of trackPoint with lowest distance to current wayPoint
@@ -221,5 +242,11 @@ class GpxParser extends TourParser {
       }
     }
     return combinedPoints;
+  }
+
+  @override
+  Future<TourModel> enrichTourWithNavigation({TourModel tour}) {
+    // TODO: implement enrichTourWithNavigation
+    throw UnimplementedError();
   }
 }
