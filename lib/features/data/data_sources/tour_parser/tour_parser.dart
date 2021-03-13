@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:bike_gps/core/helpers/constants_helper.dart';
@@ -8,6 +9,7 @@ import 'package:gpx/gpx.dart';
 import 'package:injectable/injectable.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import '../../models/tour/models.dart';
 
@@ -105,6 +107,28 @@ class GpxParser extends TourParser {
           location: '',
           turnSymboldId: turnSymbolId ?? '',
         );
+        if (tourType == TourType.route && i > 0) {
+          final Wpt previousPoint = combinedTourPoints[i - 1];
+          log('previousPoint: name: ${previousPoint.name}, desc: ${previousPoint.desc}, distance: ${previousPoint.extensions['distance']}, duration: ${previousPoint.extensions['duration']}, \ncurrentPoint: name: ${currentPoint.name}, desc: ${currentPoint.desc}, distance: ${currentPoint.extensions['distance']}, duration: ${currentPoint.extensions['duration']}',
+              name: 'TourParser ORS getTourFromFileContent');
+          if (currentPoint.desc == previousPoint.desc &&
+              currentPoint.extensions['distance'] ==
+                  previousPoint.extensions['distance'] &&
+              currentPoint.extensions['duration'] ==
+                  previousPoint.extensions['duration']) {
+            log('Removed WayPoint',
+                name: 'TourParser ORS getTourFromFileContent');
+            wayPoints.removeLast();
+            trackPoints.removeLast();
+            trackPoints.add(TrackPointModel(
+              latLng: LatLng(previousPoint.lat, previousPoint.lon),
+              elevation: previousPoint.ele,
+              isWayPoint: false,
+              distanceFromStart: distanceFromStart,
+              surface: 'A',
+            ));
+          }
+        }
         wayPoints.add(wayPoint);
 
         trackPoints.add(TrackPointModel(
@@ -124,6 +148,19 @@ class GpxParser extends TourParser {
           surface: 'A',
         ));
       }
+    }
+    if (tourType == TourType.route) {
+      final String basePath = (await getApplicationSupportDirectory()).path;
+      await File('$basePath/ORS_tour_${DateTime.now()}.gpx')
+          .writeAsString(TourModel(
+        name: tourName,
+        trackPoints: trackPoints,
+        wayPoints: wayPoints,
+        bounds: getBounds(tourGpx, trackPoints),
+        ascent: ascent,
+        descent: descent,
+        tourLength: tourLength,
+      ).toGpx());
     }
     return TourModel(
       name: tourName,

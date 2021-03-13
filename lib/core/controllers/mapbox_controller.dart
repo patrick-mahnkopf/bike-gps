@@ -357,6 +357,7 @@ class MapboxController {
     try {
       for (final TourLine tourLine in List<TourLine>.from(tourLines)) {
         if (tourLine.isPathToTour) {
+          print(tourLine.background.id);
           await _removeTourLine(tourLine);
         }
       }
@@ -368,14 +369,23 @@ class MapboxController {
 
   Future<FunctionResult> _removeTourLine(TourLine tourLine) async {
     try {
-      await mapboxMapController.removeLine(tourLine.background);
-      await mapboxMapController.removeLine(tourLine.tour);
-      await mapboxMapController.removeLine(tourLine.touchArea);
+      await _removeLine(tourLine.background);
+      await _removeLine(tourLine.tour);
+      await _removeLine(tourLine.touchArea);
       tourLines.remove(tourLine);
       return FunctionResultSuccess();
     } on Exception catch (error, stackTrace) {
       return FunctionResultFailure(error: error, stackTrace: stackTrace);
     }
+  }
+
+  // TODO can have no element mapboxMapController.lines != tourLines?
+  Future<FunctionResult> _removeLine(Line line) async {
+    final Line lineResult = mapboxMapController.lines.firstWhere((element) =>
+        element.options.geometry == line.options.geometry &&
+        element.options.lineColor == line.options.lineColor);
+    await mapboxMapController.removeLine(lineResult);
+    return FunctionResultSuccess();
   }
 
   void _moveCamera(CameraUpdate cameraUpdate) {

@@ -110,7 +110,7 @@ class MapScreen extends StatelessWidget {
                       final LatLng currentLatLng = LatLng(
                           currentLocation.latitude, currentLocation.longitude);
                       if (navigationState is NavigationLoadSuccess) {
-                        if (currentLatLng != navigationState.currentPosition) {
+                        if (currentLatLng != navigationState.userLocation) {
                           navigationBloc.add(NavigationLoaded(
                               userLocation: currentLatLng,
                               tour: tourState.tour,
@@ -118,10 +118,10 @@ class MapScreen extends StatelessWidget {
                         }
                       } else if (navigationState
                           is NavigationToTourLoadSuccess) {
-                        if (currentLatLng != navigationState.currentPosition) {
+                        if (currentLatLng != navigationState.userLocation) {
                           navigationBloc.add(NavigationLoaded(
                               userLocation: currentLatLng,
-                              tour: navigationState.pathToTour,
+                              tour: tourState.tour,
                               mapboxController: mapboxState.controller));
                         }
                       }
