@@ -32,77 +32,56 @@ class DistanceHelper {
 
   Future<double> distanceToTour(
       LatLng userLocation, Tour tour, NavigationData navigationData,
-      {MapboxController mapboxController}) async {
+      {MapboxController mapboxController, bool isPath}) async {
     // TODO remove debugMode, mapboxController and logs
-    const bool debugMode = true;
+    const bool debugMode = false;
     // TODO handle distance to path correctly
     final TrackPoint currentTrackPoint =
         tour.trackPointForWayPoint(navigationData.currentWayPoint);
     final int currentTrackPointIndex =
         tour.trackPoints.indexOf(currentTrackPoint);
-    double au;
-    double alpha;
+    TrackPoint otherTrackPoint;
 
-    if (navigationData.currentWayPoint == tour.wayPoints.first) {
-      final TrackPoint nextTrackPoint =
-          tour.trackPoints.elementAt(currentTrackPointIndex + 1);
-      au = distanceBetweenLatLngs(currentTrackPoint.latLng, userLocation);
-      alpha = ((bearingBetweenLatLngs(
-                      currentTrackPoint.latLng, nextTrackPoint.latLng) -
-                  bearingBetweenLatLngs(currentTrackPoint.latLng, userLocation))
-              .abs()) /
-          180 *
-          pi;
-      if (mapboxController != null && debugMode) {
-        final Line tourLine = await mapboxController.mapboxMapController
-            .addLine(LineOptions(
-                geometry: [currentTrackPoint.latLng, nextTrackPoint.latLng],
-                lineColor: '#ff0000',
-                lineWidth: 10));
-        final Line distanceLine = await mapboxController.mapboxMapController
-            .addLine(LineOptions(
-                geometry: [userLocation, currentTrackPoint.latLng],
-                lineColor: '#ff0000',
-                lineWidth: 10));
-        Future.delayed(const Duration(seconds: 5), () {
-          mapboxController.mapboxMapController.removeLine(tourLine);
-          mapboxController.mapboxMapController.removeLine(distanceLine);
-        });
-      }
+    if (currentTrackPointIndex == 0) {
+      otherTrackPoint = tour.trackPoints[currentTrackPointIndex + 1];
     } else {
-      final TrackPoint previousTrackPoint =
-          tour.trackPoints.elementAt(currentTrackPointIndex - 1);
-      au = distanceBetweenLatLngs(previousTrackPoint.latLng, userLocation);
-      alpha = ((bearingBetweenLatLngs(
-                      previousTrackPoint.latLng, currentTrackPoint.latLng) -
-                  bearingBetweenLatLngs(
-                      previousTrackPoint.latLng, userLocation))
-              .abs()) /
-          180 *
-          pi;
-      if (mapboxController != null && debugMode) {
-        final Line tourLine = await mapboxController.mapboxMapController
-            .addLine(LineOptions(
-                geometry: [previousTrackPoint.latLng, currentTrackPoint.latLng],
-                lineColor: '#ff0000',
-                lineWidth: 10));
-        final Line distanceLine = await mapboxController.mapboxMapController
-            .addLine(LineOptions(
-                geometry: [userLocation, previousTrackPoint.latLng],
-                lineColor: '#ff0000',
-                lineWidth: 10));
-        Future.delayed(const Duration(seconds: 5), () {
-          mapboxController.mapboxMapController.removeLine(tourLine);
-          mapboxController.mapboxMapController.removeLine(distanceLine);
-        });
-      }
+      otherTrackPoint = tour.trackPoints[currentTrackPointIndex - 1];
     }
+    final double distance = _distanceBetweenPointAndLine(
+        currentTrackPoint.latLng, otherTrackPoint.latLng, userLocation);
     if (mapboxController != null && debugMode) {
-      developer.log(
-          'WayPoint $currentTrackPointIndex: au: $au, alpha: $alpha, sin(alpha): ${sin(alpha)}, distance: ${sin(alpha) * au}',
-          name: 'NavigationBloc distanceToTour');
+      final Line tourLine = await mapboxController.mapboxMapController.addLine(
+          LineOptions(
+              geometry: [currentTrackPoint.latLng, otherTrackPoint.latLng],
+              lineColor: '#ff0000',
+              lineWidth: 10));
+      Future.delayed(const Duration(seconds: 2), () {
+        mapboxController.mapboxMapController.removeLine(tourLine);
+      });
     }
-    return sin(alpha) * au;
+    final double distanceToClosestTrackPoint =
+        distanceBetweenLatLngs(userLocation, currentTrackPoint.latLng);
+    if (isPath != null && isPath) {
+      developer.log(
+          'distance: $distance, distanceToClosestTrackPoint: $distanceToClosestTrackPoint',
+          name: 'NavigationBloc distanceToTour pathDistance');
+    } else {
+      developer.log(
+          'distance: $distance, distanceToClosestTrackPoint: $distanceToClosestTrackPoint',
+          name: 'NavigationBloc distanceToTour tourDistance');
+    }
+    return min(distance, distanceToClosestTrackPoint);
+  }
+
+  double _distanceBetweenPointAndLine(
+      LatLng lineA, LatLng lineB, LatLng point) {
+    final double distanceAPoint = distanceBetweenLatLngs(lineA, point);
+    final double alpha = ((bearingBetweenLatLngs(lineA, lineB) -
+                bearingBetweenLatLngs(lineA, point))
+            .abs()) /
+        180 *
+        pi;
+    return sin(alpha) * distanceAPoint;
   }
 
   double bearingBetweenLatLngs(LatLng first, LatLng second) {

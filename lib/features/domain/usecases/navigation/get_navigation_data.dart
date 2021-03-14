@@ -65,6 +65,10 @@ class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
         nextWayPoint = null;
       }
     }
+    log('tour: ${tour.name}, currentWayPointIndex: $currentWayPointIndex, currentWayPoint: ${currentWayPoint.direction ?? currentWayPoint.name}, nextWayPoint: ${nextWayPoint.direction ?? nextWayPoint.name}',
+        name: 'GetNavigationData navigation _getNavigationData');
+    log('tour: ${tour.name}, turnSymbol: ${currentWayPoint.turnSymboldId}',
+        name: 'GetNavigationData navigation turnSymbol _getNavigationData');
     return NavigationData(
         currentWayPoint: currentWayPoint,
         nextWayPoint: nextWayPoint,

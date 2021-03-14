@@ -26,7 +26,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
   final GetNavigationData getNavigationData;
   final GetPathToTour getPathToTour;
   final DistanceHelper distanceHelper;
-  static const double maxAllowedDistanceToTour = 20;
+  static const double maxAllowedDistanceToTour = 40;
+  static const double maxAllowedDistanceToPathToTour = 20;
 
   NavigationBloc(
       {@required this.getNavigationData,
@@ -96,17 +97,23 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       @required LatLng userLocation,
       @required NavigationLoaded event}) async* {
     final double distanceToTour = await distanceHelper.distanceToTour(
-        userLocation, event.tour, navigationData);
+        userLocation, event.tour, navigationData,
+        mapboxController: event.mapboxController);
+    log('distanceToTour: $distanceToTour',
+        name: 'NavigationBloc navigation _handleNavigation');
     // Not on tour -> navigate to tour
     if (distanceToTour >= maxAllowedDistanceToTour) {
       log('Not on tour -> navigating to tour',
           name: 'NavigationBloc navigation _handleNavigation');
       yield* _startOrContinueNavigationToTour(
-          userLocation: userLocation, event: event);
+          userLocation: userLocation,
+          event: event,
+          closestWayPoint: navigationData.nextWayPoint.latLng);
       // On tour -> continue navigation on tour
     } else {
       log('On tour -> continue navigation on tour',
           name: 'NavigationBloc navigation _handleNavigation');
+      event.mapboxController.clearPathToTour();
       yield NavigationLoadSuccess(
           currentWayPoint: navigationData.currentWayPoint,
           nextWayPoint: navigationData.nextWayPoint,
@@ -118,7 +125,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
 
   Stream<NavigationState> _startOrContinueNavigationToTour(
       {@required LatLng userLocation,
-      @required NavigationLoaded event}) async* {
+      @required NavigationLoaded event,
+      @required LatLng closestWayPoint}) async* {
     final NavigationState navigationState = state;
     // Already navigating to tour
     if (navigationState is NavigationToTourLoadSuccess) {
@@ -130,15 +138,15 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       yield* _continueNavigationToTourOrFailureState(
           navigationToTourDataEither: navigationToTourDataEither,
           userLocation: userLocation,
-          event: event);
+          event: event,
+          closestWayPoint: closestWayPoint);
       // No previous path to tour
     } else {
       log('No previous path to tour',
           name: 'NavigationBloc navigation _startOrContinueNavigationToTour');
       final Either<Failure, Tour> pathToTourEither = await getPathToTour(
           PathToTourParams(
-              tourStart: event.tour.trackPoints.first.latLng,
-              userLocation: userLocation));
+              tourStart: closestWayPoint, userLocation: userLocation));
       yield* _newPathToTourOrFailureState(
           pathToTourEither: pathToTourEither,
           userLocation: userLocation,
@@ -149,14 +157,16 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
   Stream<NavigationState> _continueNavigationToTourOrFailureState(
       {@required Either<Failure, NavigationData> navigationToTourDataEither,
       @required LatLng userLocation,
-      @required NavigationLoaded event}) async* {
+      @required NavigationLoaded event,
+      @required LatLng closestWayPoint}) async* {
     if (navigationToTourDataEither.isRight()) {
       final NavigationData navigationToTourData =
           navigationToTourDataEither.getOrElse(() => null);
       yield* _continueOnPathToTourOrGetNewPath(
           navigationToTourData: navigationToTourData,
           userLocation: userLocation,
-          event: event);
+          event: event,
+          closestWayPoint: closestWayPoint);
     } else {
       log('NavigationFailure',
           name:
@@ -169,22 +179,22 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
   Stream<NavigationState> _continueOnPathToTourOrGetNewPath(
       {@required NavigationData navigationToTourData,
       @required LatLng userLocation,
-      @required NavigationLoaded event}) async* {
+      @required NavigationLoaded event,
+      @required LatLng closestWayPoint}) async* {
     final NavigationToTourLoadSuccess navigationState =
         state as NavigationToTourLoadSuccess;
     final double distanceToPath = await distanceHelper.distanceToTour(
         userLocation, navigationState.pathToTour, navigationToTourData,
-        mapboxController: event.mapboxController);
+        isPath: true);
     log('distanceToPath: $distanceToPath',
         name: 'NavigationBloc navigation _continueOnPathToTourOrGetNewPath');
     // Left path to tour -> navigate along new path to tour
-    if (distanceToPath >= maxAllowedDistanceToTour) {
+    if (distanceToPath >= maxAllowedDistanceToPathToTour) {
       log('Left path to tour -> navigate along new path to tour',
           name: 'NavigationBloc navigation _continueOnPathToTourOrGetNewPath');
       final Either<Failure, Tour> pathToTourEither = await getPathToTour(
           PathToTourParams(
-              tourStart: event.tour.trackPoints.first.latLng,
-              userLocation: userLocation));
+              tourStart: closestWayPoint, userLocation: userLocation));
       yield* _newPathToTourOrFailureState(
           pathToTourEither: pathToTourEither,
           userLocation: userLocation,

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bike_gps/core/function_results/function_result.dart';
 import 'package:bike_gps/core/helpers/constants_helper.dart';
 import 'package:bike_gps/core/helpers/tour_list_helper.dart';
@@ -27,11 +29,6 @@ class MapboxController {
   final ConstantsHelper constantsHelper;
   final TourListHelper tourListHelper;
   final List<TourLine> tourLines = [];
-  final List<String> assetImagePaths = [
-    'start_location.png',
-    'end_location.png',
-    'place_pin.png'
-  ];
 
   MapboxController(
       {this.mapboxMapController,
@@ -195,9 +192,26 @@ class MapboxController {
   Future<FunctionResult> _drawPathToTour(Tour pathToTour) async {
     try {
       tourLines.add(await _drawTour(tour: pathToTour, isPathToTour: true));
+      // _markWayPoints(pathToTour);
       return FunctionResultSuccess();
     } on Exception catch (error, stackTrace) {
       return FunctionResultFailure(error: error, stackTrace: stackTrace);
+    }
+  }
+
+  void _markWayPoints(Tour tour) {
+    for (int i = 0; i < tour.wayPoints.length; i++) {
+      final LatLng geometry = tour.wayPoints[i].latLng;
+      mapboxMapController.addSymbol(SymbolOptions(
+        iconImage: 'place_pin',
+        iconSize: 0.1,
+        // iconOffset: const Offset(0, 15),
+        iconAnchor: 'bottom',
+        geometry: geometry,
+        textField: '$i',
+        // textOffset: const Offset(0, -1.6),
+        textAnchor: 'bottom',
+      ));
     }
   }
 
@@ -381,10 +395,17 @@ class MapboxController {
 
   // TODO can have no element mapboxMapController.lines != tourLines?
   Future<FunctionResult> _removeLine(Line line) async {
-    final Line lineResult = mapboxMapController.lines.firstWhere((element) =>
-        element.options.geometry == line.options.geometry &&
-        element.options.lineColor == line.options.lineColor);
-    await mapboxMapController.removeLine(lineResult);
+    log('line: id: ${line.id}', name: 'MapboxController lines _removeLine');
+    for (final Line controllerLine in mapboxMapController.lines) {
+      log('controllerLine: id: ${controllerLine.id}',
+          name: 'MapboxController lines _removeLine');
+    }
+    if (mapboxMapController.lines.contains(line)) {
+      final Line lineResult = mapboxMapController.lines.firstWhere((element) =>
+          element.options.geometry == line.options.geometry &&
+          element.options.lineColor == line.options.lineColor);
+      await mapboxMapController.removeLine(lineResult);
+    }
     return FunctionResultSuccess();
   }
 

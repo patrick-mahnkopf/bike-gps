@@ -83,17 +83,17 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
         [tourStart.longitude, tourStart.latitude]
       ],
       'elevation': 'true',
-      'extra_info': [
-        'surface',
-        'waycategory',
-        'waytype',
-        'traildifficulty',
-      ],
+      // 'extra_info': [
+      //   'surface',
+      //   'waycategory',
+      //   'waytype',
+      //   'traildifficulty',
+      // ],
       'instructions': 'true',
       'instructions_format': 'text',
-      'roundabout_exits': 'true',
-      'units': 'm',
+      // 'roundabout_exits': 'true',
       'language': constantsHelper.language,
+      'units': 'm',
     });
     log("Sending body to ORS: $postBody",
         name: 'TourRemoteDataSource getPathToTour PostBody',

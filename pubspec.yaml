@@ -85,12 +85,13 @@ flutter:
     - assets/tours/
     - assets/html/
     - assets/images/
-    - assets/images/turnArrows/
+    - assets/images/turn_arrows/
+    - assets/images/map_symbols/
     - assets/
     - assets/i18n/
     - assets/fonts/
     - assets/tokens/
-    - test/assets/turnArrows/
+    - test/assets/turn_arrows/
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
   # For details regarding adding assets from package dependencies, see

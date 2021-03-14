@@ -1,4 +1,6 @@
 // Flutter imports:
+import 'dart:developer';
+
 import 'package:charts_flutter_cf/charts_flutter_cf.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -14,6 +16,8 @@ class TourConversionHelper {
 
   Widget getTurnSymbolFromId({@required String iconId, Color color}) {
     final String assetId = _mapTurnSymbolIdToAssetId(iconId);
+    log('iconId: $iconId, assetId: $assetId, contained?: ${constantsHelper.turnSymbolAssetPaths.containsKey(assetId.toLowerCase())}',
+        name: 'GetNavigationData navigation turnSymbol _getNavigationData');
     if (constantsHelper.turnSymbolAssetPaths
         .containsKey(assetId.toLowerCase())) {
       return SvgPicture.asset(
@@ -89,7 +93,7 @@ class TourConversionHelper {
         return '';
         break;
       default:
-        return '';
+        return turnSymbolId;
         break;
     }
   }
