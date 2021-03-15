@@ -32,6 +32,9 @@ class Tour extends Equatable {
   TrackPoint trackPointForWayPoint(WayPoint wayPoint) =>
       trackPoints.firstWhere((trackPoint) => trackPoint.wayPoint == wayPoint);
 
+  List<LatLng> get trackPointCoordinateList =>
+      trackPoints.map((trackPoint) => trackPoint.latLng).toList();
+
   @override
   List<Object> get props =>
       [name, trackPoints, wayPoints, ascent, descent, tourLength, bounds];

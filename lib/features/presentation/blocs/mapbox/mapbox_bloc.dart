@@ -32,10 +32,10 @@ class MapboxBloc extends Bloc<MapboxEvent, MapboxState> {
   }
 
   Stream<MapboxState> _mapMapboxLoadedToState(MapboxLoaded event) async* {
-    if (state is MapboxInitial) {
-      event.mapboxController.mapboxMapController.onLineTapped
-          .add(event.mapboxController.onLineTapped);
-    }
+    event.mapboxController.mapboxMapController.onLineTapped
+        .remove(event.mapboxController.onLineTapped);
+    event.mapboxController.mapboxMapController.onLineTapped
+        .add(event.mapboxController.onLineTapped);
     if (event.cameraUpdate != null) {
       await event.mapboxController.mapboxMapController
           .moveCamera(event.cameraUpdate);

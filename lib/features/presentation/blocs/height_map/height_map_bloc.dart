@@ -31,7 +31,7 @@ class HeightMapBloc extends Bloc<HeightMapEvent, HeightMapState> {
       HeightMapLoaded event) async* {
     yield HeightMapLoading();
     try {
-      final List<Series<WayPoint, int>> chartData =
+      final List<Series<TrackPoint, int>> chartData =
           await _getChartData(event.tour);
       final List<TickSpec<num>> primaryMeasureAxisTickSpecs =
           _getPrimaryMeasureAxisTickSpecs(event.tour);
@@ -40,21 +40,23 @@ class HeightMapBloc extends Bloc<HeightMapEvent, HeightMapState> {
       yield HeightMapLoadSuccess(
           chartData: chartData,
           primaryMeasureAxisTickSpecs: primaryMeasureAxisTickSpecs,
-          domainAxisTickSpecs: domainAxisTickSpecs);
+          domainAxisTickSpecs: domainAxisTickSpecs,
+          tour: event.tour);
     } on Exception catch (error) {
       yield HeightMapLoadFailure(message: error.toString());
     }
   }
 
-  Future<List<Series<WayPoint, int>>> _getChartData(Tour tour) async {
+  Future<List<Series<TrackPoint, int>>> _getChartData(Tour tour) async {
     return [
-      Series<WayPoint, int>(
+      Series<TrackPoint, int>(
         id: 'Active Tour',
-        colorFn: (WayPoint wayPoint, _) => tourConversionHelper
-            .mapSurfaceToChartColor(surface: wayPoint.surface),
-        domainFn: (WayPoint wayPoint, _) => wayPoint.distanceFromStart.toInt(),
-        measureFn: (WayPoint wayPoint, _) => wayPoint.elevation.toInt(),
-        data: tour.wayPoints,
+        colorFn: (TrackPoint trackPoint, _) => tourConversionHelper
+            .mapSurfaceToChartColor(surface: trackPoint.surface),
+        domainFn: (TrackPoint trackPoint, _) =>
+            trackPoint.distanceFromStart.toInt(),
+        measureFn: (TrackPoint trackPoint, _) => trackPoint.elevation.toInt(),
+        data: tour.trackPoints,
       )
     ];
   }

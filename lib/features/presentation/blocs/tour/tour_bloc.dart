@@ -19,7 +19,7 @@ part 'tour_state.dart';
 const String parserFailureMessage = 'Parser Failure';
 const String serverFailureMessage = 'Server Failure';
 
-@injectable
+@lazySingleton
 class TourBloc extends Bloc<TourEvent, TourState> {
   final GetTour getTour;
   final GetAlternativeTours getAlternativeTours;
@@ -41,7 +41,7 @@ class TourBloc extends Bloc<TourEvent, TourState> {
   }
 
   Stream<TourState> _mapTourLoadedToState(TourLoaded event) async* {
-    yield TourLoading();
+    yield TourLoading(previousState: state);
     try {
       final Either<Failure, Tour> failureOrTour =
           await getTour(TourParams(name: event.tourName));

@@ -3,6 +3,7 @@ import 'package:bike_gps/core/helpers/tour_conversion_helper.dart';
 import 'package:bike_gps/core/widgets/custom_widgets.dart';
 import 'package:bike_gps/features/presentation/blocs/height_map/height_map_bloc.dart';
 import 'package:bike_gps/features/presentation/blocs/map/map_bloc.dart';
+import 'package:bike_gps/features/presentation/blocs/tour/tour_bloc.dart';
 import 'package:bike_gps/injection_container.dart';
 import 'package:charts_flutter_cf/charts_flutter_cf.dart' hide TextStyle;
 import 'package:flutter/material.dart';
@@ -24,161 +25,176 @@ class TourSelectionBottomSheetWidget extends StatelessWidget {
     return BottomSheetWidget(
       grabSectionHeight: grabSectionHeight,
       grabSectionContent: GrabSectionContent(
-        tour: tour,
         distanceHelper: getIt(),
       ),
-      sheetContent: SheetContent(
-        tour: tour,
-      ),
+      sheetContent: const SheetContent(),
     );
   }
 }
 
 class GrabSectionContent extends StatelessWidget {
-  final Tour tour;
   final DistanceHelper distanceHelper;
 
   const GrabSectionContent({
     Key key,
-    @required this.tour,
     @required this.distanceHelper,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
-          alignment: Alignment.centerLeft,
-          child: Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Text(
-                  distanceHelper.distanceToString(tour.tourLength),
-                  style: const TextStyle(fontSize: 20),
-                ),
-              ),
-              const Icon(
-                Icons.arrow_upward,
-                color: Colors.green,
-                size: 16,
-              ),
-              Text(
-                distanceHelper.distanceToString(tour.ascent),
-              ),
-              const Icon(
-                Icons.arrow_downward,
-                color: Colors.red,
-                size: 16,
-              ),
-              Text(
-                distanceHelper.distanceToString(tour.descent),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.list),
-                  label: const Text("Road book"),
-                  onPressed: () => Provider.of<BottomSheetSnapController>(
-                          context,
-                          listen: false)
-                      .toggleBetweenSnapPositions(),
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.white,
-                    onPrimary: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(32),
+    return BlocBuilder<TourBloc, TourState>(builder: (context, state) {
+      if (state is TourLoadSuccess) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
+              alignment: Alignment.centerLeft,
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Text(
+                      distanceHelper.distanceToString(state.tour.tourLength),
+                      style: const TextStyle(fontSize: 20),
                     ),
                   ),
-                ),
+                  const Icon(
+                    Icons.arrow_upward,
+                    color: Colors.green,
+                    size: 16,
+                  ),
+                  Text(
+                    distanceHelper.distanceToString(state.tour.ascent),
+                  ),
+                  const Icon(
+                    Icons.arrow_downward,
+                    color: Colors.red,
+                    size: 16,
+                  ),
+                  Text(
+                    distanceHelper.distanceToString(state.tour.descent),
+                  ),
+                ],
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.navigation),
-                    label: const Text("Start"),
-                    onPressed: () => BlocProvider.of<MapBloc>(context)
-                        .add(NavigationViewActivated()),
-                    style: ElevatedButton.styleFrom(
-                      primary: Colors.blue,
-                      onPrimary: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(32),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.list),
+                      label: const Text("Road book"),
+                      onPressed: () => Provider.of<BottomSheetSnapController>(
+                              context,
+                              listen: false)
+                          .toggleBetweenSnapPositions(),
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.white,
+                        onPrimary: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(32),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.navigation),
+                        label: const Text("Start"),
+                        onPressed: () => BlocProvider.of<MapBloc>(context)
+                            .add(NavigationViewActivated()),
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.blue,
+                          onPrimary: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(32),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        )
-      ],
-    );
+            )
+          ],
+        );
+      } else if (state is TourLoading) {
+        return const LoadingIndicator();
+      } else {
+        return Container();
+      }
+    });
   }
 }
 
 class SheetContent extends StatelessWidget {
-  final Tour tour;
-
-  const SheetContent({Key key, @required this.tour}) : super(key: key);
-
-  int get _itemCount => tour.wayPoints.isEmpty ? 1 : tour.wayPoints.length;
+  const SheetContent({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          BlocBuilder<HeightMapBloc, HeightMapState>(
-            builder: (context, state) {
-              if (state is HeightMapLoading) {
-                return const LoadingIndicator();
-              } else if (state is HeightMapLoadSuccess) {
-                return HeightMap(state: state);
-              } else {
-                // TODO replace with error widget
-                return const Text('Could not load height map');
-              }
-            },
-          ),
-          DividerLine(),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(20.0),
-              itemCount: _itemCount,
-              itemBuilder: (context, index) {
-                return Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Colors.grey[300],
-                      ),
-                    ),
+    return BlocBuilder<TourBloc, TourState>(
+      builder: (context, tourBlocState) {
+        if (tourBlocState is TourLoadSuccess) {
+          BlocProvider.of<HeightMapBloc>(context)
+              .add(HeightMapLoaded(tour: tourBlocState.tour));
+          final int _itemCount = tourBlocState.tour.wayPoints.isEmpty
+              ? 1
+              : tourBlocState.tour.wayPoints.length;
+          return Container(
+            color: Colors.white,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                BlocBuilder<HeightMapBloc, HeightMapState>(
+                  builder: (context, heightMapState) {
+                    if (heightMapState is HeightMapLoadSuccess &&
+                        heightMapState.tour == tourBlocState.tour) {
+                      return HeightMap(state: heightMapState);
+                    } else if (heightMapState is HeightMapLoading) {
+                      return const LoadingIndicator();
+                    } else {
+                      // TODO replace with error widget
+                      return const Text('Could not load height map');
+                    }
+                  },
+                ),
+                DividerLine(),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(20.0),
+                    itemCount: _itemCount,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Colors.grey[300],
+                            ),
+                          ),
+                        ),
+                        child: RoadBook(
+                          tour: tourBlocState.tour,
+                          index: index,
+                          tourConversionHelper: getIt(),
+                        ),
+                      );
+                    },
                   ),
-                  child: RoadBook(
-                    tour: tour,
-                    index: index,
-                    tourConversionHelper: getIt(),
-                  ),
-                );
-              },
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
+          );
+        } else if (tourBlocState is TourLoading) {
+          return const LoadingIndicator();
+        } else {
+          return Container();
+        }
+      },
     );
   }
 }
@@ -192,6 +208,7 @@ class HeightMap extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.25,
+      width: MediaQuery.of(context).size.width,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: LineChart(
         state.chartData,

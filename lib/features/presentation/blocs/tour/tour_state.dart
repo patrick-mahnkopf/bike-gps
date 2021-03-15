@@ -13,8 +13,11 @@ class TourEmpty extends TourState {
 }
 
 class TourLoading extends TourState {
+  final TourState previousState;
+
+  const TourLoading({@required this.previousState});
   @override
-  List<Object> get props => [];
+  List<Object> get props => [previousState];
 }
 
 class TourLoadSuccess extends TourState {

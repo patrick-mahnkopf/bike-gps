@@ -84,6 +84,7 @@ class MapScreen extends StatelessWidget {
                   if (tourState is TourLoadSuccess) {
                     if (mapboxState is MapboxLoadSuccess &&
                         mapboxState.controller != null) {
+                      mapboxState.controller.clearAlternativeTours();
                       mapboxBloc.add(
                         MapboxLoaded(
                           mapboxController: mapboxState.controller.copyWith(
@@ -134,6 +135,10 @@ class MapScreen extends StatelessWidget {
                   final SearchState searchState = searchBloc.state;
                   final NavigationBloc navigationBloc =
                       BlocProvider.of<NavigationBloc>(context);
+                  final TourState tourState =
+                      BlocProvider.of<TourBloc>(context).state;
+                  final MapboxState mapboxState =
+                      BlocProvider.of<MapboxBloc>(context).state;
 
                   if (searchState is SearchBarInactive) {
                     searchBloc.add(SearchBarRecovered(
@@ -145,6 +150,14 @@ class MapScreen extends StatelessWidget {
                   if (navigationBloc.state is NavigationLoadSuccess ||
                       navigationBloc.state is NavigationToTourLoadSuccess) {
                     navigationBloc.add(NavigationStopped());
+                  }
+
+                  if (tourState is TourLoadSuccess &&
+                      mapboxState is MapboxLoadSuccess) {
+                    if (tourState.alternativeTours.isNotEmpty) {
+                      mapboxState.controller
+                          .drawAlternativeTours(tourState.alternativeTours);
+                    }
                   }
 
                   return const TourSelectionView();

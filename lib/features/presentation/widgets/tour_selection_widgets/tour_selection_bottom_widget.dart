@@ -1,5 +1,4 @@
 import 'package:bike_gps/core/widgets/custom_widgets.dart';
-import 'package:bike_gps/features/presentation/blocs/height_map/height_map_bloc.dart';
 import 'package:bike_gps/features/presentation/blocs/tour/tour_bloc.dart';
 import 'package:bike_gps/features/presentation/widgets/tour_selection_widgets/tour_selection_bottom_widgets/tour_selection_bottom_sheet_widget.dart';
 import 'package:bike_gps/injection_container.dart';
@@ -12,10 +11,16 @@ class TourSelectionBottomWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TourBloc, TourState>(
+      buildWhen: (previousState, newState) {
+        if (previousState is TourLoading &&
+            previousState.previousState is TourEmpty) {
+          return true;
+        } else {
+          return false;
+        }
+      },
       builder: (context, state) {
         if (state is TourLoadSuccess) {
-          BlocProvider.of<HeightMapBloc>(context)
-              .add(HeightMapLoaded(tour: state.tour));
           return Stack(
             children: [
               Align(
@@ -29,13 +34,10 @@ class TourSelectionBottomWidget extends StatelessWidget {
                 ),
               ),
               TourSelectionBottomSheetWidget(
-                tour: state.tour,
                 grabSectionHeight: bottomSheetGrabSectionHeight,
               ),
             ],
           );
-        } else if (state is TourLoading) {
-          return const LoadingIndicator();
         } else {
           return Container();
         }

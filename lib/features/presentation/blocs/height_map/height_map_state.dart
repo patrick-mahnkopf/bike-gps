@@ -22,22 +22,33 @@ class HeightMapLoading extends HeightMapState {
 }
 
 class HeightMapLoadSuccess extends HeightMapState {
+  String get name => 'HeightMapLoadSuccess';
   final List<TickSpec<num>> primaryMeasureAxisTickSpecs;
   final List<TickSpec<num>> domainAxisTickSpecs;
-  final List<Series<WayPoint, int>> chartData;
+  final List<Series<TrackPoint, int>> chartData;
+  final Tour tour;
 
   const HeightMapLoadSuccess(
       {@required this.primaryMeasureAxisTickSpecs,
       @required this.domainAxisTickSpecs,
-      @required this.chartData});
+      @required this.chartData,
+      @required this.tour});
 
   @override
-  List<Object> get props =>
-      [primaryMeasureAxisTickSpecs, domainAxisTickSpecs, chartData];
+  List<Object> get props => [
+        primaryMeasureAxisTickSpecs,
+        primaryMeasureAxisTickSpecs.length,
+        domainAxisTickSpecs,
+        domainAxisTickSpecs.length,
+        chartData,
+        chartData.length,
+        name,
+        tour
+      ];
 
   @override
   String toString() =>
-      'HeightMapLoaded { primaryMeasureAxisTickSpecs: $primaryMeasureAxisTickSpecs, domainAxisTickSpecs: $domainAxisTickSpecs, chartData: $chartData,  }';
+      'HeightMapLoadSuccess { primaryMeasureAxisTickSpecs: ${primaryMeasureAxisTickSpecs.length}, domainAxisTickSpecs: ${domainAxisTickSpecs.length}, chartData: ${chartData.length} }';
 }
 
 class HeightMapLoadFailure extends HeightMapState {

@@ -290,7 +290,6 @@ void _onSubmitted(
             .copyWith(myLocationTrackingMode: MyLocationTrackingMode.None)));
     if (searchResult.isTour) {
       if (mapboxState is MapboxLoadSuccess) {
-        // TODO include alternative tours
         BlocProvider.of<TourBloc>(context).add(TourLoaded(
             tourName: searchResult.name,
             mapboxController: mapboxState.controller));
