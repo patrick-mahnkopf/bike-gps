@@ -278,14 +278,6 @@ class MapboxController {
     final List<LatLng> lineCoordinateList =
         tour.trackPoints.map((trackPoint) => trackPoint.latLng).toList();
 
-    final Line touchAreaLine = await mapboxMapController.addLine(
-      LineOptions(
-        geometry: lineCoordinateList,
-        lineWidth: touchAreaWidth,
-        lineColor: touchAreaColor,
-        lineOpacity: 0,
-      ),
-    );
     final Line backgroundLine = await mapboxMapController.addLine(
       LineOptions(
         geometry: lineCoordinateList,
@@ -301,6 +293,14 @@ class MapboxController {
         lineWidth: lineWidth,
         lineColor:
             isMainTour || isPathToTour ? primaryTourColor : secondaryTourColor,
+      ),
+    );
+    final Line touchAreaLine = await mapboxMapController.addLine(
+      LineOptions(
+        geometry: lineCoordinateList,
+        lineWidth: touchAreaWidth,
+        lineColor: touchAreaColor,
+        lineOpacity: 0,
       ),
     );
 
@@ -371,7 +371,8 @@ class MapboxController {
     try {
       for (final TourLine tourLine in List<TourLine>.from(tourLines)) {
         if (tourLine.isPathToTour) {
-          print(tourLine.background.id);
+          log('pathToTour ids: background: ${tourLine.background.id}, tour: ${tourLine.tour.id}, touchArea: ${tourLine.touchArea.id}',
+              name: 'MapboxController clearPathToTour');
           await _removeTourLine(tourLine);
         }
       }

@@ -220,6 +220,7 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       @required NavigationLoaded event}) async* {
     if (pathToTourEither.isRight()) {
       final Tour pathToTour = pathToTourEither.getOrElse(() => null);
+      await event.mapboxController.addPathToTour(pathToTour);
       final Either<Failure, NavigationData> navigationToTourDataEither =
           await getNavigationData(NavigationDataParams(
               tour: pathToTour, userLocation: userLocation));
@@ -244,7 +245,6 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     if (navigationToTourDataEither.isRight()) {
       final NavigationData navigationToTourData =
           navigationToTourDataEither.getOrElse(() => null);
-      await event.mapboxController.addPathToTour(pathToTour);
       log('NavigationToTourLoadSuccess',
           name:
               'NavigationBloc navigation _navigateOnPathToTourOrFailureState');

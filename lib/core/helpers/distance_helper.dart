@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:gpx/gpx.dart';
 import 'package:injectable/injectable.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:vector_math/vector_math.dart';
 
 @injectable
 class DistanceHelper {
@@ -40,56 +41,66 @@ class DistanceHelper {
         tour.trackPointForWayPoint(navigationData.currentWayPoint);
     final int currentTrackPointIndex =
         tour.trackPoints.indexOf(currentTrackPoint);
-    TrackPoint otherTrackPoint;
+    TrackPoint firstTrackPoint;
+    TrackPoint secondTrackPoint;
 
     if (currentTrackPointIndex == 0) {
-      otherTrackPoint = tour.trackPoints[currentTrackPointIndex + 1];
+      firstTrackPoint = currentTrackPoint;
+      secondTrackPoint = tour.trackPoints[currentTrackPointIndex + 1];
     } else {
-      otherTrackPoint = tour.trackPoints[currentTrackPointIndex - 1];
+      firstTrackPoint = tour.trackPoints[currentTrackPointIndex - 1];
+      secondTrackPoint = currentTrackPoint;
     }
     final double distance = _distanceBetweenPointAndLine(
-        currentTrackPoint.latLng, otherTrackPoint.latLng, userLocation);
+        firstTrackPoint.latLng, secondTrackPoint.latLng, userLocation);
     if (mapboxController != null && debugMode) {
       final Line tourLine = await mapboxController.mapboxMapController.addLine(
           LineOptions(
-              geometry: [currentTrackPoint.latLng, otherTrackPoint.latLng],
+              geometry: [firstTrackPoint.latLng, secondTrackPoint.latLng],
               lineColor: '#ff0000',
               lineWidth: 10));
       Future.delayed(const Duration(seconds: 2), () {
         mapboxController.mapboxMapController.removeLine(tourLine);
       });
     }
-    final double distanceToClosestTrackPoint =
-        distanceBetweenLatLngs(userLocation, currentTrackPoint.latLng);
-    if (isPath != null && isPath) {
-      developer.log(
-          'distance: $distance, distanceToClosestTrackPoint: $distanceToClosestTrackPoint',
-          name: 'NavigationBloc distanceToTour pathDistance');
-    } else {
-      developer.log(
-          'distance: $distance, distanceToClosestTrackPoint: $distanceToClosestTrackPoint',
-          name: 'NavigationBloc distanceToTour tourDistance');
-    }
-    return min(distance, distanceToClosestTrackPoint);
+    return distance.abs();
   }
 
+  /// Calculates the cross-track distance between a great-circle path and a point
+  ///
+  /// This can be used to calculate the distance between a line on the earth's surface
+  /// and a third point made up of GPS coordinates,
+  /// see https://www.movable-type.co.uk/scripts/latlong.html#cross-track.
   double _distanceBetweenPointAndLine(
       LatLng lineA, LatLng lineB, LatLng point) {
     final double distanceAPoint = distanceBetweenLatLngs(lineA, point);
-    final double alpha = ((bearingBetweenLatLngs(lineA, lineB) -
-                bearingBetweenLatLngs(lineA, point))
-            .abs()) /
-        180 *
-        pi;
-    return sin(alpha) * distanceAPoint;
+    final double angularBearingAB =
+        radians(bearingBetweenLatLngs(lineA, lineB));
+    final double angularBearingAPoint =
+        radians(bearingBetweenLatLngs(lineA, point));
+    final double angle = sin(angularBearingAB - angularBearingAPoint);
+    final double crossTrackDistance = angle * distanceAPoint;
+    final double distanceBPoint = distanceBetweenLatLngs(lineB, point);
+    double distance = crossTrackDistance;
+    if (angle <= 0.1) {
+      if (distanceAPoint < distanceBPoint) {
+        distance = distanceAPoint;
+      } else {
+        distance = distanceBPoint;
+      }
+    }
+    developer.log(
+        'distance: $distance, angle: $angle, crossTrackDistance: $crossTrackDistance, distanceAPoint: $distanceAPoint, distanceBPoint: $distanceBPoint',
+        name: 'NavigationBloc distanceToTour _distanceBetweenPointAndLine');
+    return distance;
   }
 
   double bearingBetweenLatLngs(LatLng first, LatLng second) {
     developer.log(
         'Bearing: ${Geolocator.bearingBetween(first.latitude, first.longitude, second.latitude, second.longitude)}',
         name: 'NavigationBloc distanceToTour');
-    return Geolocator.bearingBetween(
-            first.latitude, first.longitude, second.latitude, second.longitude)
-        .abs();
+    final double bearing = Geolocator.bearingBetween(
+        first.latitude, first.longitude, second.latitude, second.longitude);
+    return 360 - ((bearing + 360) % 360);
   }
 }
