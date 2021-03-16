@@ -34,6 +34,7 @@ class MapboxController {
   final TourBloc tourBloc;
   final List<TourLine> tourLines = [];
   final List<Symbol> activeTourSymbols = [];
+  final List<Symbol> debugMarkings = [];
 
   MapboxController(
       {this.mapboxMapController,
@@ -215,17 +216,21 @@ class MapboxController {
           lineCoordinateList: pathToTour.trackPointCoordinateList,
           tourName: pathToTour.name,
           isPathToTour: true));
-      // _markWayPoints(pathToTour);
+      // await _markWayPoints(pathToTour);
       return FunctionResultSuccess();
     } on Exception catch (error, stackTrace) {
       return FunctionResultFailure(error: error, stackTrace: stackTrace);
     }
   }
 
-  void _markWayPoints(Tour tour) {
+  Future<FunctionResult> _markWayPoints(Tour tour) async {
+    if (debugMarkings.isNotEmpty) {
+      mapboxMapController.removeSymbols(debugMarkings);
+      debugMarkings.removeRange(0, debugMarkings.length);
+    }
     for (int i = 0; i < tour.wayPoints.length; i++) {
       final LatLng geometry = tour.wayPoints[i].latLng;
-      mapboxMapController.addSymbol(SymbolOptions(
+      debugMarkings.add(await mapboxMapController.addSymbol(SymbolOptions(
         iconImage: 'place_pin',
         iconSize: 0.1,
         // iconOffset: const Offset(0, 15),
@@ -234,8 +239,9 @@ class MapboxController {
         textField: '$i',
         // textOffset: const Offset(0, -1.6),
         textAnchor: 'bottom',
-      ));
+      )));
     }
+    return FunctionResultSuccess();
   }
 
   void animateCameraToTourBounds(
@@ -419,7 +425,7 @@ class MapboxController {
 
   Future<FunctionResult> clearAlternativeTours() async {
     try {
-      for (final TourLine tourLine in tourLines) {
+      for (final TourLine tourLine in List<TourLine>.from(tourLines)) {
         if (!tourLine.isActive) {
           await _removeTourLine(tourLine);
         }

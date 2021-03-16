@@ -82,7 +82,7 @@ class DistanceHelper {
     final double crossTrackDistance = angle * distanceAPoint;
     final double distanceBPoint = distanceBetweenLatLngs(lineB, point);
     double distance = crossTrackDistance;
-    if (angle <= 0.1) {
+    if (angle.abs() <= 0.1) {
       if (distanceAPoint < distanceBPoint) {
         distance = distanceAPoint;
       } else {

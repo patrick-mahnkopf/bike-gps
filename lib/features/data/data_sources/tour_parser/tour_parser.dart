@@ -105,38 +105,49 @@ class GpxParser extends TourParser {
           location: '',
           turnSymboldId: turnSymbolId ?? '',
         );
-        // if (tourType == TourType.route && i > 0) {
-        //   final Wpt previousPoint = combinedTourPoints[i - 1];
-        //   log('previousPoint: name: ${previousPoint.name}, desc: ${previousPoint.desc}, distance: ${previousPoint.extensions['distance']}, duration: ${previousPoint.extensions['duration']}, \ncurrentPoint: name: ${currentPoint.name}, desc: ${currentPoint.desc}, distance: ${currentPoint.extensions['distance']}, duration: ${currentPoint.extensions['duration']}',
-        //       name: 'TourParser ORS getTourFromFileContent');
-        //   if (currentPoint.desc == previousPoint.desc &&
-        //       currentPoint.extensions['distance'] ==
-        //           previousPoint.extensions['distance'] &&
-        //       currentPoint.extensions['duration'] ==
-        //           previousPoint.extensions['duration']) {
-        //     log('Removed WayPoint',
-        //         name: 'TourParser ORS getTourFromFileContent');
-        //     wayPoints.removeLast();
-        //     trackPoints.removeLast();
-        //     trackPoints.add(TrackPointModel(
-        //       latLng: LatLng(previousPoint.lat, previousPoint.lon),
-        //       elevation: previousPoint.ele,
-        //       isWayPoint: false,
-        //       distanceFromStart: distanceFromStart,
-        //       surface: 'A',
-        //     ));
-        //   }
-        // }
-        wayPoints.add(wayPoint);
+        if (tourType == TourType.route && i > 0) {
+          final Wpt previousPoint = combinedTourPoints[i - 1];
+          if (currentPoint.extensions['step'] !=
+              previousPoint.extensions['step']) {
+            wayPoints.add(wayPoint);
 
-        trackPoints.add(TrackPointModel(
-          latLng: LatLng(currentPoint.lat, currentPoint.lon),
-          elevation: currentPoint.ele,
-          isWayPoint: true,
-          wayPoint: wayPoint,
-          distanceFromStart: distanceFromStart,
-          surface: 'A',
-        ));
+            trackPoints.add(TrackPointModel(
+              latLng: LatLng(currentPoint.lat, currentPoint.lon),
+              elevation: currentPoint.ele,
+              isWayPoint: true,
+              wayPoint: wayPoint,
+              distanceFromStart: distanceFromStart,
+              surface: 'A',
+            ));
+          } else {
+            trackPoints.add(TrackPointModel(
+              latLng: LatLng(currentPoint.lat, currentPoint.lon),
+              elevation: currentPoint.ele,
+              isWayPoint: false,
+              distanceFromStart: distanceFromStart,
+              surface: 'A',
+            ));
+          }
+        } else if (tourType == TourType.route && i == 0) {
+          trackPoints.add(TrackPointModel(
+            latLng: LatLng(currentPoint.lat, currentPoint.lon),
+            elevation: currentPoint.ele,
+            isWayPoint: false,
+            distanceFromStart: distanceFromStart,
+            surface: 'A',
+          ));
+        } else {
+          wayPoints.add(wayPoint);
+
+          trackPoints.add(TrackPointModel(
+            latLng: LatLng(currentPoint.lat, currentPoint.lon),
+            elevation: currentPoint.ele,
+            isWayPoint: true,
+            wayPoint: wayPoint,
+            distanceFromStart: distanceFromStart,
+            surface: 'A',
+          ));
+        }
       } else {
         trackPoints.add(TrackPointModel(
           latLng: LatLng(currentPoint.lat, currentPoint.lon),
