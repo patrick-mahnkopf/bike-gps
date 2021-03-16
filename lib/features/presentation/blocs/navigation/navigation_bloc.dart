@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:bike_gps/core/controllers/controllers.dart';
+import 'package:bike_gps/core/helpers/constants_helper.dart';
 import 'package:bike_gps/core/helpers/distance_helper.dart';
 import 'package:bike_gps/features/domain/usecases/tour/get_path_to_tour.dart';
 import 'package:bloc/bloc.dart';
@@ -26,8 +27,6 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
   final GetNavigationData getNavigationData;
   final GetPathToTour getPathToTour;
   final DistanceHelper distanceHelper;
-  static const double maxAllowedDistanceToTour = 40;
-  static const double maxAllowedDistanceToPathToTour = 20;
 
   NavigationBloc(
       {@required this.getNavigationData,
@@ -96,13 +95,12 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       {@required NavigationData navigationData,
       @required LatLng userLocation,
       @required NavigationLoaded event}) async* {
-    final double distanceToTour = await distanceHelper.distanceToTour(
-        userLocation, event.tour, navigationData,
-        mapboxController: event.mapboxController);
+    final double distanceToTour =
+        await distanceHelper.distanceToTour(userLocation, event.tour);
     log('distanceToTour: $distanceToTour',
         name: 'NavigationBloc navigation _handleNavigation');
     // Not on tour -> navigate to tour
-    if (distanceToTour >= maxAllowedDistanceToTour) {
+    if (distanceToTour >= ConstantsHelper.maxAllowedDistanceToTour) {
       log('Not on tour -> navigating to tour',
           name: 'NavigationBloc navigation _handleNavigation');
       yield* _startOrContinueNavigationToTour(
@@ -184,12 +182,11 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     final NavigationToTourLoadSuccess navigationState =
         state as NavigationToTourLoadSuccess;
     final double distanceToPath = await distanceHelper.distanceToTour(
-        userLocation, navigationState.pathToTour, navigationToTourData,
-        isPath: true);
+        userLocation, navigationState.pathToTour);
     log('distanceToPath: $distanceToPath',
         name: 'NavigationBloc navigation _continueOnPathToTourOrGetNewPath');
     // Left path to tour -> navigate along new path to tour
-    if (distanceToPath >= maxAllowedDistanceToPathToTour) {
+    if (distanceToPath >= ConstantsHelper.maxAllowedDistanceToTour) {
       log('Left path to tour -> navigate along new path to tour',
           name: 'NavigationBloc navigation _continueOnPathToTourOrGetNewPath');
       final Either<Failure, Tour> pathToTourEither = await getPathToTour(

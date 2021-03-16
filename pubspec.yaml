@@ -40,6 +40,7 @@ dependencies:
     git:
       url: git://github.com/gskinnerTeam/flutter_svg.git
       ref: 12b55b464d2e253f411a17798527a7daa2c00ceb
+  geodesy: ^0.3.2
   geolocator: ^6.2.0
   get_it: ^5.0.6
   gpx: ^1.1.1

@@ -10,12 +10,14 @@ class TourLineModel extends TourLine {
       @required Line touchArea,
       @required String tourName,
       @required bool isActive,
-      @required bool isPathToTour})
+      @required bool isPathToTour,
+      List<Symbol> directionArrows})
       : super(
             background: background,
             tour: tour,
             touchArea: touchArea,
             tourName: tourName,
             isActive: isActive,
-            isPathToTour: isPathToTour);
+            isPathToTour: isPathToTour,
+            directionArrows: directionArrows);
 }

@@ -335,6 +335,13 @@ packages:
       url: "https://github.com/otopba/flutter_geocoder.git"
     source: git
     version: "0.2.1"
+  geodesy:
+    dependency: "direct main"
+    description:
+      name: geodesy
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.2"
   geolocator:
     dependency: "direct main"
     description:

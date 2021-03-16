@@ -1,14 +1,10 @@
-import 'dart:developer' as developer;
-import 'dart:math';
-
-import 'package:bike_gps/core/controllers/controllers.dart';
 import 'package:bike_gps/features/domain/entities/tour/entities.dart';
-import 'package:bike_gps/features/domain/usecases/navigation/get_navigation_data.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:geodesy/geodesy.dart' as gd;
 import 'package:geolocator/geolocator.dart';
 import 'package:gpx/gpx.dart';
 import 'package:injectable/injectable.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-import 'package:vector_math/vector_math.dart';
 
 @injectable
 class DistanceHelper {
@@ -24,83 +20,97 @@ class DistanceHelper {
   }
 
   String distanceToString(double distance) {
-    if (distance / 1000 >= 1) {
+    if (distance / 1000 >= 1.0) {
       return "${(distance / 1000).toStringAsFixed(1)} km";
     } else {
       return "${distance.toInt()} m";
     }
   }
 
-  Future<double> distanceToTour(
-      LatLng userLocation, Tour tour, NavigationData navigationData,
-      {MapboxController mapboxController, bool isPath}) async {
-    // TODO remove debugMode, mapboxController and logs
-    const bool debugMode = false;
-    // TODO handle distance to path correctly
-    final TrackPoint currentTrackPoint =
-        tour.trackPointForWayPoint(navigationData.currentWayPoint);
-    final int currentTrackPointIndex =
-        tour.trackPoints.indexOf(currentTrackPoint);
-    TrackPoint firstTrackPoint;
-    TrackPoint secondTrackPoint;
+  Future<double> distanceToTour(LatLng userLocation, Tour tour) async {
+    final int closestTrackPointIndex =
+        getClosestTrackPointIndex(tour, userLocation);
+    final TrackPoint closestTrackPoint =
+        tour.trackPoints[closestTrackPointIndex];
+    TrackPoint tourSegmentStart;
+    TrackPoint tourSegmentEnd;
 
-    if (currentTrackPointIndex == 0) {
-      firstTrackPoint = currentTrackPoint;
-      secondTrackPoint = tour.trackPoints[currentTrackPointIndex + 1];
+    if (closestTrackPointIndex == 0) {
+      tourSegmentStart = closestTrackPoint;
+      tourSegmentEnd = tour.trackPoints[closestTrackPointIndex + 1];
     } else {
-      firstTrackPoint = tour.trackPoints[currentTrackPointIndex - 1];
-      secondTrackPoint = currentTrackPoint;
+      tourSegmentStart = tour.trackPoints[closestTrackPointIndex - 1];
+      tourSegmentEnd = closestTrackPoint;
     }
-    final double distance = _distanceBetweenPointAndLine(
-        firstTrackPoint.latLng, secondTrackPoint.latLng, userLocation);
-    if (mapboxController != null && debugMode) {
-      final Line tourLine = await mapboxController.mapboxMapController.addLine(
-          LineOptions(
-              geometry: [firstTrackPoint.latLng, secondTrackPoint.latLng],
-              lineColor: '#ff0000',
-              lineWidth: 10));
-      Future.delayed(const Duration(seconds: 2), () {
-        mapboxController.mapboxMapController.removeLine(tourLine);
-      });
-    }
-    return distance.abs();
+    return _distanceToCurrentTourSegment(
+        lineStart: tourSegmentStart.latLng,
+        lineEnd: tourSegmentEnd.latLng,
+        point: userLocation);
   }
 
-  /// Calculates the cross-track distance between a great-circle path and a point
-  ///
-  /// This can be used to calculate the distance between a line on the earth's surface
-  /// and a third point made up of GPS coordinates,
-  /// see https://www.movable-type.co.uk/scripts/latlong.html#cross-track.
-  double _distanceBetweenPointAndLine(
-      LatLng lineA, LatLng lineB, LatLng point) {
-    final double distanceAPoint = distanceBetweenLatLngs(lineA, point);
-    final double angularBearingAB =
-        radians(bearingBetweenLatLngs(lineA, lineB));
-    final double angularBearingAPoint =
-        radians(bearingBetweenLatLngs(lineA, point));
-    final double angle = sin(angularBearingAB - angularBearingAPoint);
-    final double crossTrackDistance = angle * distanceAPoint;
-    final double distanceBPoint = distanceBetweenLatLngs(lineB, point);
-    double distance = crossTrackDistance;
-    if (angle.abs() <= 0.1) {
-      if (distanceAPoint < distanceBPoint) {
-        distance = distanceAPoint;
-      } else {
-        distance = distanceBPoint;
+  int getClosestTrackPointIndex(Tour tour, LatLng userLocation) {
+    double shortestDistance = double.infinity;
+    int index = 0;
+    for (int i = 0; i < tour.trackPoints.length; i++) {
+      final TrackPoint trackPoint = tour.trackPoints[i];
+      final double distance =
+          distanceBetweenLatLngs(userLocation, trackPoint.latLng);
+      if (distance < shortestDistance) {
+        shortestDistance = distance;
+        index = i;
       }
     }
-    developer.log(
-        'distance: $distance, angle: $angle, crossTrackDistance: $crossTrackDistance, distanceAPoint: $distanceAPoint, distanceBPoint: $distanceBPoint',
-        name: 'NavigationBloc distanceToTour _distanceBetweenPointAndLine');
-    return distance;
+    return index;
+  }
+
+  double _distanceToCurrentTourSegment(
+      {@required LatLng lineStart,
+      @required LatLng lineEnd,
+      @required LatLng point}) {
+    if (_pointIsBetweenLineEnds(lineStart, lineEnd, point)) {
+      return _getCrossTrackDistance(
+              lineStart: lineStart, lineEnd: lineEnd, point: point)
+          .abs();
+    } else {
+      final double distancePA = distanceBetweenLatLngs(point, lineStart);
+      final double distancePB = distanceBetweenLatLngs(point, lineEnd);
+      if (distancePA < distancePB) {
+        return distancePA;
+      } else {
+        return distancePB;
+      }
+    }
+  }
+
+  bool _pointIsBetweenLineEnds(LatLng lineA, LatLng lineB, LatLng point) {
+    final double bearingAB = bearingBetweenLatLngs(lineA, lineB);
+    final double bearingAP = bearingBetweenLatLngs(lineA, point);
+    final double bearingBA = bearingBetweenLatLngs(lineB, lineA);
+    final double bearingBP = bearingBetweenLatLngs(lineB, point);
+    final bool pointIsBelowB =
+        bearingAB - 90 <= bearingAP && bearingAP <= bearingAB + 90;
+    final bool pointIsAboveA =
+        bearingBA - 90 <= bearingBP && bearingBP <= bearingBA + 90;
+    if (pointIsBelowB && pointIsAboveA) {
+      return true;
+    }
+    return false;
+  }
+
+  double _getCrossTrackDistance(
+      {@required LatLng lineStart,
+      @required LatLng lineEnd,
+      @required LatLng point}) {
+    const double earthRadius = 6378137.0;
+    final p = gd.LatLng(point.latitude, point.longitude);
+    final a = gd.LatLng(lineStart.latitude, lineStart.longitude);
+    final b = gd.LatLng(lineEnd.latitude, lineEnd.longitude);
+    return gd.Geodesy().crossTrackDistanceTo(p, a, b, earthRadius).toDouble();
   }
 
   double bearingBetweenLatLngs(LatLng first, LatLng second) {
-    developer.log(
-        'Bearing: ${Geolocator.bearingBetween(first.latitude, first.longitude, second.latitude, second.longitude)}',
-        name: 'NavigationBloc distanceToTour');
     final double bearing = Geolocator.bearingBetween(
         first.latitude, first.longitude, second.latitude, second.longitude);
-    return 360 - ((bearing + 360) % 360);
+    return (bearing + 360) % 360;
   }
 }
