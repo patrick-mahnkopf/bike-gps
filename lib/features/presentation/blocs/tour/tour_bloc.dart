@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bike_gps/core/controllers/controllers.dart';
 import 'package:bike_gps/features/domain/usecases/tour/get_alternative_tours.dart';
+import 'package:bike_gps/features/domain/usecases/tour/get_enhanced_tour.dart';
 import 'package:bike_gps/features/domain/usecases/tour/get_tour.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
@@ -23,10 +24,15 @@ const String serverFailureMessage = 'Server Failure';
 class TourBloc extends Bloc<TourEvent, TourState> {
   final GetTour getTour;
   final GetAlternativeTours getAlternativeTours;
+  final GetEnhancedTour getEnhancedTour;
 
-  TourBloc({@required this.getTour, @required this.getAlternativeTours})
+  TourBloc(
+      {@required this.getTour,
+      @required this.getAlternativeTours,
+      @required this.getEnhancedTour})
       : assert(getTour != null),
         assert(getAlternativeTours != null),
+        assert(getEnhancedTour != null),
         super(TourEmpty());
 
   @override
@@ -60,22 +66,57 @@ class TourBloc extends Bloc<TourEvent, TourState> {
       Either<Failure, Tour> failureOrTour,
       MapboxController mapboxController,
       Either<Failure, List<Tour>> failureOrAlternativeTours) async* {
-    yield failureOrTour.fold(
-      (failure) => TourLoadFailure(message: _mapFailureToMessage(failure)),
-      (tour) {
-        if (failureOrAlternativeTours.isRight()) {
-          final List<Tour> alternativeTours =
-              failureOrAlternativeTours.getOrElse(() => null);
-          mapboxController.onSelectTour(
-              tour: tour, alternativeTours: alternativeTours);
-          return TourLoadSuccess(
-              tour: tour, alternativeTours: alternativeTours);
-        } else {
-          mapboxController.onSelectTour(tour: tour);
-          return TourLoadSuccess(tour: tour);
-        }
-      },
-    );
+    if (failureOrTour.isRight()) {
+      final Tour tour = failureOrTour.getOrElse(() => null);
+      if (failureOrAlternativeTours.isRight()) {
+        final List<Tour> alternativeTours =
+            failureOrAlternativeTours.getOrElse(() => null);
+        yield* _tourLoadSuccessOrEnhanceFirst(
+            tour, alternativeTours, mapboxController);
+      } else {
+        yield* _tourLoadSuccessOrEnhanceFirst(tour, [], mapboxController);
+      }
+    } else {
+      yield failureOrTour.fold(
+        (failure) => TourLoadFailure(message: _mapFailureToMessage(failure)),
+        (tour) => null,
+      );
+    }
+  }
+
+  Stream<TourState> _tourLoadSuccessOrEnhanceFirst(Tour tour,
+      List<Tour> alternativeTours, MapboxController mapboxController) async* {
+    Tour tourWithDirections = tour;
+    if (!_tourContainsDirections(tour)) {
+      final Either<Failure, Tour> failureOrEnhancedTour =
+          await getEnhancedTour(EnhancedTourParams(tour: tour));
+      if (failureOrEnhancedTour.isRight()) {
+        tourWithDirections = failureOrEnhancedTour.getOrElse(() => null);
+      }
+    }
+
+    if (alternativeTours == null || alternativeTours.isEmpty) {
+      mapboxController.onSelectTour(tour: tourWithDirections);
+      yield TourLoadSuccess(tour: tourWithDirections);
+    } else {
+      mapboxController.onSelectTour(
+          tour: tourWithDirections, alternativeTours: alternativeTours);
+      yield TourLoadSuccess(
+          tour: tourWithDirections, alternativeTours: alternativeTours);
+    }
+  }
+
+  bool _tourContainsDirections(Tour tour) {
+    int wayPointsWithDirections = 0;
+    for (var i = 0; i < tour.wayPoints.length; i++) {
+      if (tour.wayPoints[i].direction != '') {
+        wayPointsWithDirections++;
+      }
+      if (i >= 10) {
+        break;
+      }
+    }
+    return wayPointsWithDirections > 0;
   }
 
   String _mapFailureToMessage(Failure failure) {

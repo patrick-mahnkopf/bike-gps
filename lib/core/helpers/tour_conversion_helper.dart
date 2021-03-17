@@ -60,10 +60,12 @@ class TourConversionHelper {
       case '6':
         return 'GR01';
         break;
+      // TODO add icon
       // Enter roundabout
       case '7':
         return '';
         break;
+      // TODO add icon
       // Exit roundabout
       case '8':
         return '';
@@ -80,10 +82,12 @@ class TourConversionHelper {
       case '11':
         return 'GR01';
         break;
+      // TODO add icon
       // Keep left
       case '12':
         return '';
         break;
+      // TODO add icon
       // Keep right
       case '13':
         return '';

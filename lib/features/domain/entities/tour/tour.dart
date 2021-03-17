@@ -1,3 +1,4 @@
+import 'package:bike_gps/features/data/models/tour/models.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -34,6 +35,20 @@ class Tour extends Equatable {
 
   List<LatLng> get trackPointCoordinateList =>
       trackPoints.map((trackPoint) => trackPoint.latLng).toList();
+
+  void replaceWayPoint(WayPoint currentWayPoint, WayPoint newWayPoint) {
+    final TrackPoint currentTrackPoint = trackPointForWayPoint(currentWayPoint);
+    final int trackPointIndex = trackPoints.indexOf(currentTrackPoint);
+    final int wayPointIndex = wayPoints.indexOf(currentWayPoint);
+    trackPoints[trackPointIndex] = TrackPointModel(
+        latLng: newWayPoint.latLng,
+        elevation: newWayPoint.elevation,
+        distanceFromStart: newWayPoint.distanceFromStart,
+        surface: newWayPoint.surface,
+        isWayPoint: true,
+        wayPoint: newWayPoint);
+    wayPoints[wayPointIndex] = newWayPoint;
+  }
 
   @override
   List<Object> get props =>

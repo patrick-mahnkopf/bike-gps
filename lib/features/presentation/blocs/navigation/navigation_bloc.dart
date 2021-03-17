@@ -95,8 +95,9 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       {@required NavigationData navigationData,
       @required LatLng userLocation,
       @required NavigationLoaded event}) async* {
-    final double distanceToTour =
-        await distanceHelper.distanceToTour(userLocation, event.tour);
+    final double distanceToTour = await distanceHelper.distanceToTour(
+        userLocation, event.tour,
+        mapboxController: event.mapboxController);
     log('distanceToTour: $distanceToTour',
         name: 'NavigationBloc navigation _handleNavigation');
     // Not on tour -> navigate to tour

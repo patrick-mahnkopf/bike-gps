@@ -14,35 +14,39 @@ class LowerNavigationWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.zero,
-      margin: EdgeInsets.zero,
-      decoration: BoxDecoration(
-        color: Colors.green.shade800,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.4),
-          )
-        ],
-        borderRadius: const BorderRadius.only(
-          bottomRight: Radius.circular(8),
-          bottomLeft: Radius.circular(8),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              "Then",
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-            turnSymbolHelper.getTurnSymbolFromId(
-                iconId: nextWayPoint.turnSymboldId),
+    if (nextWayPoint != null) {
+      return Container(
+        padding: EdgeInsets.zero,
+        margin: EdgeInsets.zero,
+        decoration: BoxDecoration(
+          color: Colors.green.shade800,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.4),
+            )
           ],
+          borderRadius: const BorderRadius.only(
+            bottomRight: Radius.circular(8),
+            bottomLeft: Radius.circular(8),
+          ),
         ),
-      ),
-    );
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Then",
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+              turnSymbolHelper.getTurnSymbolFromId(
+                  iconId: nextWayPoint.turnSymboldId),
+            ],
+          ),
+        ),
+      );
+    } else {
+      return Container();
+    }
   }
 }

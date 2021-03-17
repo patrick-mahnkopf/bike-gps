@@ -59,7 +59,7 @@ class NavigationToTourLoadSuccess extends NavigationState {
 
   @override
   String toString() =>
-      'NavigationToTourLoadSuccess { currentWayPoint: ${currentWayPoint.latLng},${currentWayPoint.name}, nextWayPoint: ${nextWayPoint.latLng},${nextWayPoint.name}, currentWayPointDistance: $currentWayPointDistance, distanceToTourEnd: $distanceToTourEnd, userLocation: $userLocation, pathToTour: $pathToTour }';
+      'NavigationToTourLoadSuccess { currentWayPoint: ${currentWayPoint.latLng},${currentWayPoint.name}, nextWayPoint: ${nextWayPoint?.latLng},${nextWayPoint?.name}, currentWayPointDistance: $currentWayPointDistance, distanceToTourEnd: $distanceToTourEnd, userLocation: $userLocation, pathToTour: $pathToTour }';
 
   @override
   List<Object> get props => [

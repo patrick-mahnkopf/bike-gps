@@ -31,7 +31,7 @@ class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
   NavigationData _getNavigationData(
       {@required Tour tour, @required LatLng userLocation}) {
     final int closestTrackPointIndex =
-        _getClosestTrackPointIndex(tour, userLocation);
+        distanceHelper.getClosestTrackPointIndex(tour, userLocation);
     final double distanceToTourEnd =
         _getDistanceToTourEnd(tour, closestTrackPointIndex, userLocation);
     final List<TrackPoint> trackPoints = tour.trackPoints;
@@ -65,9 +65,9 @@ class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
         nextWayPoint = null;
       }
     }
-    log('tour: ${tour.name}, currentWayPointIndex: $currentWayPointIndex, currentWayPoint: ${currentWayPoint.direction ?? currentWayPoint.name}, nextWayPoint: ${nextWayPoint.direction ?? nextWayPoint.name}',
+    log('tour: ${tour.name}, currentWayPointIndex: $currentWayPointIndex, currentWayPoint: ${currentWayPoint.direction ?? currentWayPoint.name}, nextWayPoint: ${nextWayPoint?.direction ?? nextWayPoint?.name}',
         name: 'GetNavigationData navigation _getNavigationData');
-    log('tour: ${tour.name}, turnSymbol: ${currentWayPoint.turnSymboldId}',
+    log('tour: ${tour.name}, turnSymbol: ${currentWayPoint?.turnSymboldId}',
         name: 'GetNavigationData navigation turnSymbol _getNavigationData');
     return NavigationData(
         currentWayPoint: currentWayPoint,
@@ -76,6 +76,7 @@ class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
         distanceToTourEnd: distanceToTourEnd);
   }
 
+  // TODO remove
   int _getClosestTrackPointIndex(Tour tour, LatLng userLocation) {
     final List<TrackPoint> trackPoints = tour.trackPoints;
 
@@ -97,14 +98,15 @@ class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
       final TrackPoint currentTrackPoint = trackPoints[index];
       final TrackPoint nextTrackPoint = trackPoints[index + 1];
 
-      final double userDistanceToNextWayPoint = distanceHelper
+      final double userDistanceToNextTrackPoint = distanceHelper
           .distanceBetweenLatLngs(userLocation, nextTrackPoint.latLng);
-      final double distanceBetweenCurrentAndNextWayPoint =
+      final double distanceBetweenCurrentAndNextTrackPoint =
           distanceHelper.distanceBetweenLatLngs(
               currentTrackPoint.latLng, nextTrackPoint.latLng);
 
-      // User passed closest way point, should thus return the next one
-      if (userDistanceToNextWayPoint < distanceBetweenCurrentAndNextWayPoint) {
+      // User passed closest track point, should thus return the next one
+      if (userDistanceToNextTrackPoint <
+          distanceBetweenCurrentAndNextTrackPoint) {
         index++;
       }
     }

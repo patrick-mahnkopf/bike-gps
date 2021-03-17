@@ -1,6 +1,7 @@
 import 'package:bike_gps/features/data/data_sources/tour/tour_local_data_source.dart';
 import 'package:bike_gps/features/data/data_sources/tour/tour_remote_data_source.dart';
 import 'package:bike_gps/features/data/models/tour/models.dart';
+import 'package:bike_gps/features/domain/entities/tour/tour.dart';
 import 'package:bike_gps/features/domain/repositories/tour/tour_repository.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/widgets.dart';
@@ -48,6 +49,17 @@ class TourRepositoryImpl implements TourRepository {
       return Left(ParserFailure());
     } on TourListException {
       return Left(TourListFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Tour>> getEnhancedTour({Tour tour}) async {
+    try {
+      return Right(await remoteDataSource.getEnhancedTour(tour: tour));
+    } on ParserException {
+      return Left(ParserFailure());
+    } on ServerException {
+      return Left(ServerFailure());
     }
   }
 }
