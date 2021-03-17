@@ -16,10 +16,8 @@ class ConstantsHelper {
   final String applicationSupportDirectoryPath;
   String tourDirectoryPath;
   String searchHistoryPath;
-  static const String _mapSymbolPath = 'assets/images/map_symbols';
-  String get mapSymbolPath => _mapSymbolPath;
-  static const String _turnArrowsPath = 'assets/images/turn_arrows';
-  String get turnArrowsPath => _turnArrowsPath;
+  static const String mapSymbolPath = 'assets/images/map_symbols';
+  static const String turnArrowsPath = 'assets/images/turn_arrows';
   final Map<String, String> turnSymbolAssetPaths;
   final double navigationViewZoom = 16;
   final double tourViewZoom = 14;
@@ -82,14 +80,13 @@ class ConstantsHelper {
         jsonDecode(await rootBundle.loadString('AssetManifest.json'))
             as Map<String, dynamic>;
     final Iterable<String> iconPaths =
-        manifestMap.keys.where((String key) => key.contains(_turnArrowsPath));
+        manifestMap.keys.where((String key) => key.contains(turnArrowsPath));
 
     final Map<String, String> turnArrowPaths = {};
     for (final String iconPath in iconPaths) {
       final String fileName = p.basename(iconPath).replaceAll('%20', ' ');
       final String baseName = p.basenameWithoutExtension(fileName);
-      turnArrowPaths[baseName.toLowerCase()] =
-          p.join(_turnArrowsPath, fileName);
+      turnArrowPaths[baseName.toLowerCase()] = p.join(turnArrowsPath, fileName);
     }
     return turnArrowPaths;
   }

@@ -107,7 +107,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       yield* _startOrContinueNavigationToTour(
           userLocation: userLocation,
           event: event,
-          closestWayPoint: navigationData.nextWayPoint.latLng);
+          closestWayPoint: navigationData.nextWayPoint.latLng,
+          tourNavigationData: navigationData);
       // On tour -> continue navigation on tour
     } else {
       log('On tour -> continue navigation on tour',
@@ -125,7 +126,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
   Stream<NavigationState> _startOrContinueNavigationToTour(
       {@required LatLng userLocation,
       @required NavigationLoaded event,
-      @required LatLng closestWayPoint}) async* {
+      @required LatLng closestWayPoint,
+      @required NavigationData tourNavigationData}) async* {
     final NavigationState navigationState = state;
     // Already navigating to tour
     if (navigationState is NavigationToTourLoadSuccess) {
@@ -138,7 +140,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
           navigationToTourDataEither: navigationToTourDataEither,
           userLocation: userLocation,
           event: event,
-          closestWayPoint: closestWayPoint);
+          closestWayPoint: closestWayPoint,
+          tourNavigationData: tourNavigationData);
       // No previous path to tour
     } else {
       log('No previous path to tour',
@@ -146,10 +149,11 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       final Either<Failure, Tour> pathToTourEither = await getPathToTour(
           PathToTourParams(
               tourStart: closestWayPoint, userLocation: userLocation));
-      yield* _newPathToTourOrFailureState(
+      yield* _newPathToTourOrNavigationLoadSuccess(
           pathToTourEither: pathToTourEither,
           userLocation: userLocation,
-          event: event);
+          event: event,
+          tourNavigationData: tourNavigationData);
     }
   }
 
@@ -157,7 +161,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       {@required Either<Failure, NavigationData> navigationToTourDataEither,
       @required LatLng userLocation,
       @required NavigationLoaded event,
-      @required LatLng closestWayPoint}) async* {
+      @required LatLng closestWayPoint,
+      @required NavigationData tourNavigationData}) async* {
     if (navigationToTourDataEither.isRight()) {
       final NavigationData navigationToTourData =
           navigationToTourDataEither.getOrElse(() => null);
@@ -165,7 +170,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
           navigationToTourData: navigationToTourData,
           userLocation: userLocation,
           event: event,
-          closestWayPoint: closestWayPoint);
+          closestWayPoint: closestWayPoint,
+          tourNavigationData: tourNavigationData);
     } else {
       log('NavigationFailure',
           name:
@@ -179,7 +185,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       {@required NavigationData navigationToTourData,
       @required LatLng userLocation,
       @required NavigationLoaded event,
-      @required LatLng closestWayPoint}) async* {
+      @required LatLng closestWayPoint,
+      @required NavigationData tourNavigationData}) async* {
     final NavigationToTourLoadSuccess navigationState =
         state as NavigationToTourLoadSuccess;
     final double distanceToPath = await distanceHelper.distanceToTour(
@@ -193,10 +200,11 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       final Either<Failure, Tour> pathToTourEither = await getPathToTour(
           PathToTourParams(
               tourStart: closestWayPoint, userLocation: userLocation));
-      yield* _newPathToTourOrFailureState(
+      yield* _newPathToTourOrNavigationLoadSuccess(
           pathToTourEither: pathToTourEither,
           userLocation: userLocation,
-          event: event);
+          event: event,
+          tourNavigationData: tourNavigationData);
       // Still on path to tour -> continue navigation to tour
     } else {
       log('Still on path to tour -> continue navigation to tour',
@@ -212,10 +220,11 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     }
   }
 
-  Stream<NavigationState> _newPathToTourOrFailureState(
+  Stream<NavigationState> _newPathToTourOrNavigationLoadSuccess(
       {@required Either<Failure, Tour> pathToTourEither,
       @required LatLng userLocation,
-      @required NavigationLoaded event}) async* {
+      @required NavigationLoaded event,
+      @required NavigationData tourNavigationData}) async* {
     if (pathToTourEither.isRight()) {
       final Tour pathToTour = pathToTourEither.getOrElse(() => null);
       await event.mapboxController.addPathToTour(pathToTour);
@@ -232,6 +241,12 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
           name: 'NavigationBloc navigation _newPathToTourOrFailureState');
       yield const NavigationLoadFailure(
           message: 'Could not load path to tour navigation data');
+      yield NavigationLoadSuccess(
+          currentWayPoint: tourNavigationData.currentWayPoint,
+          nextWayPoint: tourNavigationData.nextWayPoint,
+          currentWayPointDistance: tourNavigationData.currentWayPointDistance,
+          distanceToTourEnd: tourNavigationData.distanceToTourEnd,
+          userLocation: userLocation);
     }
   }
 
