@@ -144,7 +144,7 @@ class MapboxController {
   Future<FunctionResult> onSelectTour(
       {@required Tour tour, List<Tour> alternativeTours}) async {
     try {
-      if (alternativeTours.isNotEmpty) {
+      if (alternativeTours != null && alternativeTours.isNotEmpty) {
         drawAlternativeTours(alternativeTours);
         animateCameraToTourBounds(
             tour: tour, alternativeTours: alternativeTours);
