@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bike_gps/features/data/models/tour/models.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
@@ -48,6 +50,35 @@ class Tour extends Equatable {
         isWayPoint: true,
         wayPoint: newWayPoint);
     wayPoints[wayPointIndex] = newWayPoint;
+  }
+
+  void addWayPointToTrackPoint(
+      TrackPoint trackPoint, WayPoint wayPoint, int i) {
+    log('trackPoint: latLng: ${trackPoint.latLng}, i: $i, latLng: ${trackPoints[i].latLng}',
+        name: 'Tour addWayPointToTrackPoint');
+    final int trackPointIndex = trackPoints.indexOf(trackPoint);
+    if (trackPointIndex == 0 || wayPoints.isEmpty) {
+      wayPoints.add(wayPoint);
+    } else {
+      for (var i = trackPointIndex; i < trackPoints.length; i++) {
+        final TrackPoint currentTrackPoint = trackPoints[i];
+        if (currentTrackPoint.isWayPoint) {
+          final int index = wayPoints.indexOf(currentTrackPoint.wayPoint);
+          wayPoints.insert(index, wayPoint);
+          break;
+        }
+        if (i == trackPoints.length - 1) {
+          wayPoints.add(wayPoint);
+        }
+      }
+    }
+    trackPoints[trackPointIndex] = TrackPointModel(
+        latLng: wayPoint.latLng,
+        elevation: wayPoint.elevation,
+        distanceFromStart: wayPoint.distanceFromStart,
+        surface: wayPoint.surface,
+        isWayPoint: true,
+        wayPoint: wayPoint);
   }
 
   @override

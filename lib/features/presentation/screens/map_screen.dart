@@ -154,8 +154,7 @@ class MapScreen extends StatelessWidget {
 
                   if (tourState is TourLoadSuccess &&
                       mapboxState is MapboxLoadSuccess) {
-                    if (tourState.alternativeTours != null &&
-                        tourState.alternativeTours.isNotEmpty) {
+                    if (tourState.alternativeTours.isNotEmpty) {
                       mapboxState.controller
                           .drawAlternativeTours(tourState.alternativeTours);
                     }

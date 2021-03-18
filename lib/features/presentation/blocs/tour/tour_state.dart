@@ -24,7 +24,8 @@ class TourLoadSuccess extends TourState {
   final Tour tour;
   final List<Tour> alternativeTours;
 
-  const TourLoadSuccess({@required this.tour, this.alternativeTours});
+  const TourLoadSuccess(
+      {@required this.tour, this.alternativeTours = const []});
 
   @override
   String toString() =>

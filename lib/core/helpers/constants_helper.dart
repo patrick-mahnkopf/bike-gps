@@ -29,7 +29,14 @@ class ConstantsHelper {
       {@required this.applicationDocumentsDirectoryPath,
       @required this.applicationSupportDirectoryPath,
       @required this.turnSymbolAssetPaths}) {
-    tourDirectoryPath = applicationDocumentsDirectoryPath;
+    if (Platform.isAndroid) {
+      tourDirectoryPath = p.join(
+        applicationSupportDirectoryPath,
+        'tours',
+      );
+    } else {
+      tourDirectoryPath = applicationDocumentsDirectoryPath;
+    }
     searchHistoryPath = p.join(
       applicationSupportDirectoryPath,
       'searchHistory.json',

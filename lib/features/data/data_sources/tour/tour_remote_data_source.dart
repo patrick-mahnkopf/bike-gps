@@ -37,7 +37,7 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
   Future<TourModel> getPathToTour(
       {@required LatLng userLocation,
       @required LatLng tourStart,
-      List<LatLng> wayPointCoordinates = const [],
+      List<LatLng> trackPointCoordinates = const [],
       String tourName = 'ORS'}) async {
     try {
       if (await _checkRouteServiceReady()) {
@@ -45,7 +45,7 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
             await _getTourFileContentFromRouteService(
                 userLocation: userLocation,
                 tourStart: tourStart,
-                wayPointCoordinates: wayPointCoordinates);
+                trackPointCoordinates: trackPointCoordinates);
         return tourParser.getTourFromFileContent(
             tourFileContent: tourFileContent,
             tourName: tourName,
@@ -83,14 +83,14 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
   Future<String> _getTourFileContentFromRouteService(
       {@required LatLng userLocation,
       @required LatLng tourStart,
-      List<LatLng> wayPointCoordinates}) async {
+      List<LatLng> trackPointCoordinates}) async {
     final String baseUrl =
         await rootBundle.loadString('assets/tokens/route_service_url.txt');
 
     final List<List<double>> coordinateList = _getCoordinateList(
         tourStart: tourStart,
         userLocation: userLocation,
-        wayPointCoordinates: wayPointCoordinates);
+        trackPointCoordinates: trackPointCoordinates);
     final String postBody = jsonEncode(<String, dynamic>{
       'coordinates': coordinateList,
       'elevation': 'true',
@@ -136,16 +136,16 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
   List<List<double>> _getCoordinateList(
       {@required LatLng userLocation,
       @required LatLng tourStart,
-      List<LatLng> wayPointCoordinates}) {
-    if (wayPointCoordinates.isEmpty) {
+      List<LatLng> trackPointCoordinates = const []}) {
+    if (trackPointCoordinates.isEmpty) {
       return [
         [userLocation.longitude, userLocation.latitude],
         [tourStart.longitude, tourStart.latitude]
       ];
     } else {
       final List<List<double>> coordinateList = [];
-      for (final LatLng wayPoint in wayPointCoordinates) {
-        coordinateList.add([wayPoint.longitude, wayPoint.latitude]);
+      for (final LatLng trackPoint in trackPointCoordinates) {
+        coordinateList.add([trackPoint.longitude, trackPoint.latitude]);
       }
       return coordinateList;
     }
@@ -164,44 +164,78 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
   Future<Tour> getEnhancedTour({Tour tour}) async {
     try {
       final List<LatLng> coordinateList =
-          tour.wayPoints.map((wayPoint) => wayPoint.latLng).toList();
+          tour.trackPoints.map((trackPoint) => trackPoint.latLng).toList();
       final TourModel tourResponse = await getPathToTour(
           userLocation: null,
           tourStart: null,
-          wayPointCoordinates: coordinateList,
+          trackPointCoordinates: coordinateList,
           tourName: tour.name);
-      for (var i = 0; i < tour.wayPoints.length; i++) {
-        final WayPoint tourWayPoint = tour.wayPoints[i];
+      for (var i = 0; i < tour.trackPoints.length; i++) {
         for (final WayPoint responseWayPoint in tourResponse.wayPoints) {
-          if (_haveSameCoordinates(
-                  tourWayPoint.latLng, responseWayPoint.latLng) &&
+          log('ResponseWayPoint: ${responseWayPoint.latLng}',
+              name: 'TourRemoteDataSource getEnhancedTour responseWayPoint');
+          final TrackPoint tourTrackPoint = tour.trackPoints[i];
+          final bool pointsHaveSameCoordinates = _haveSameCoordinates(
+              tourTrackPoint.latLng, responseWayPoint.latLng);
+          final bool responsePointHasDirection =
               responseWayPoint.direction != null &&
-              responseWayPoint.direction != '') {
-            log('firstName: ${tourWayPoint.name}, secondName: ${responseWayPoint.name},firstDirection: ${tourWayPoint.direction}, secondDirection: ${responseWayPoint.direction}',
-                name: 'TourRemoteDataSource getEnhancedTour sameWayPoint');
+                  responseWayPoint.direction != '';
+          if (pointsHaveSameCoordinates && responsePointHasDirection) {
+            String name;
+            String location;
+            String direction;
+            String turnSymboldId;
+            if (tourTrackPoint.isWayPoint) {
+              final WayPoint wayPoint = tourTrackPoint.wayPoint;
+              if (wayPoint.name != '') {
+                name = wayPoint.name;
+              } else {
+                name = responseWayPoint.name;
+              }
+              if (wayPoint.location != '') {
+                location = wayPoint.location;
+              } else {
+                location = responseWayPoint.location;
+              }
+              if (wayPoint.direction != '') {
+                direction = wayPoint.direction;
+              } else {
+                direction = responseWayPoint.direction;
+              }
+              if (wayPoint.turnSymboldId != '') {
+                turnSymboldId = wayPoint.turnSymboldId;
+              } else {
+                turnSymboldId = responseWayPoint.turnSymboldId;
+              }
+            } else {
+              name = responseWayPoint.name;
+              location = responseWayPoint.location;
+              direction = responseWayPoint.direction;
+              turnSymboldId = responseWayPoint.turnSymboldId;
+            }
+            // log('firstName: ${tourTrackPoint.name}, secondName: ${responseWayPoint.name},firstDirection: ${tourTrackPoint.direction}, secondDirection: ${responseWayPoint.direction}',
+            //     name: 'TourRemoteDataSource getEnhancedTour sameWayPoint');
             final WayPointModel newWayPoint = WayPointModel(
-                latLng: tourWayPoint.latLng,
-                distanceFromStart: tourWayPoint.distanceFromStart,
-                name: tourWayPoint.name,
-                elevation: tourWayPoint.elevation != 0.0
-                    ? tourWayPoint.elevation
+                latLng: tourTrackPoint.latLng,
+                distanceFromStart: tourTrackPoint.distanceFromStart,
+                name: name,
+                elevation: tourTrackPoint.elevation != 0.0
+                    ? tourTrackPoint.elevation
                     : responseWayPoint.elevation,
-                surface: tourWayPoint.surface != ''
-                    ? tourWayPoint.surface
+                surface: tourTrackPoint.surface != ''
+                    ? tourTrackPoint.surface
                     : responseWayPoint.surface,
-                location: tourWayPoint.location != ''
-                    ? tourWayPoint.location
-                    : responseWayPoint.location,
-                direction: tourWayPoint.direction != ''
-                    ? tourWayPoint.direction
-                    : responseWayPoint.direction,
-                turnSymboldId: tourWayPoint.turnSymboldId != ''
-                    ? tourWayPoint.turnSymboldId
-                    : responseWayPoint.turnSymboldId);
-            final WayPoint currentWayPoint = tour.wayPoints[i];
-            tour.replaceWayPoint(currentWayPoint, newWayPoint);
-            log('name: ${currentWayPoint.name}, direction: ${currentWayPoint.direction}, location: ${currentWayPoint.location}, turnSymboldId: ${currentWayPoint.turnSymboldId}, surface: ${currentWayPoint.surface}, ',
-                name: 'TourRemoteDataSource getEnhancedTour newWayPoint');
+                location: location,
+                direction: direction,
+                turnSymboldId: turnSymboldId);
+            if (tourTrackPoint.isWayPoint) {
+              final WayPoint currentWayPoint = tourTrackPoint.wayPoint;
+              tour.replaceWayPoint(currentWayPoint, newWayPoint);
+            } else {
+              tour.addWayPointToTrackPoint(tourTrackPoint, newWayPoint, i);
+            }
+            // log('name: ${currentWayPoint.name}, direction: ${currentWayPoint.direction}, location: ${currentWayPoint.location}, turnSymboldId: ${currentWayPoint.turnSymboldId}, surface: ${currentWayPoint.surface}, ',
+            //     name: 'TourRemoteDataSource getEnhancedTour newWayPoint');
           }
         }
       }

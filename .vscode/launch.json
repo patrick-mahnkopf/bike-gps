@@ -4,19 +4,35 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+
   
     {
-      "name": "Bike Gps Rtx",
+      "name": "Debug RTX: Bike Gps",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_rtx.dart",
+      "flutterMode": "debug"
+    },
+    {
+      "name": "Release RTX: Bike Gps",
       "type": "dart",
       "request": "launch",
       "program": "lib/main_rtx.dart",
       "flutterMode": "release"
     },
     {
-      "name": "Bike Gps Public",
+      "name": "Debug Public: Bike Gps",
       "type": "dart",
       "request": "launch",
-      "program": "lib/main.dart"
+      "program": "lib/main.dart",
+      "flutterMode": "debug"
+    },
+    {
+      "name": "Release Public: Bike Gps",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "flutterMode": "release"
     },
     {
       "name": "Dart: Run all Tests",

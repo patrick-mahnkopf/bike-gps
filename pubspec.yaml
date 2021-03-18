@@ -26,20 +26,20 @@ dependencies:
     sdk: flutter
   bike_gps_closed_source:
     path: ../bike_gps_closed_source
+  flutter_svg:
+    git:
+      url: git://github.com/gskinnerTeam/flutter_svg.git
+      ref: 12b55b464d2e253f411a17798527a7daa2c00ceb
   geocoder:
     git:
       url: https://github.com/otopba/flutter_geocoder.git
   charts_flutter_cf: ^0.10.3+cf
   cupertino_icons: ^1.0.0
   dartz: ^0.9.2
-  equatable: ^1.2.6
+  equatable: ^2.0.0
   fluro: ^1.7.8
-  flutter_bloc: ^6.1.1
+  flutter_bloc: ^7.0.0
   flutter_riverpod: ^0.12.4
-  flutter_svg:
-    git:
-      url: git://github.com/gskinnerTeam/flutter_svg.git
-      ref: 12b55b464d2e253f411a17798527a7daa2c00ceb
   geodesy: ^0.3.2
   geolocator: ^6.2.0
   get_it: ^5.0.6
@@ -54,10 +54,7 @@ dependencies:
   md5_plugin: ^1.0.2
   path: ^1.7.0
   path_provider: ^2.0.0
-  provider: ^4.3.3
-  receive_sharing_intent:
-    git:
-      url: https://github.com/LazyDave76/receive_sharing_intent.git
+  provider: ^5.0.0
   rxdart: ^0.25.0
   snapping_sheet: ^2.0.2
   tuple: ^1.0.3

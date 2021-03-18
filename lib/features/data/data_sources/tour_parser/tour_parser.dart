@@ -29,8 +29,6 @@ abstract class TourParser {
   Future<TourInfoModel> getTourInfo({@required File file});
 
   List<String> get fileExtensionPriority;
-
-  Future<TourModel> enrichTourWithNavigation({@required TourModel tour});
 }
 
 @Injectable(as: TourParser, env: ["public"])
@@ -64,7 +62,6 @@ class GpxParser extends TourParser {
     double tourLength = 0;
     final List<TrackPointModel> trackPoints = [];
     final List<WayPointModel> wayPoints = [];
-    // TODO enrich with RouteService data when online, especially surface and wayPoint turn info
     double previousDistanceFromStart = 0;
     final List<Wpt> combinedTourPoints = getCombinedPoints(tourGpx);
     for (int i = 0; i < combinedTourPoints.length; i++) {
@@ -107,8 +104,13 @@ class GpxParser extends TourParser {
         );
         if (tourType == TourType.route && i > 0) {
           final Wpt previousPoint = combinedTourPoints[i - 1];
+          const orsArrivalType = '10';
+          final bool isPrematureArrival =
+              currentPoint.extensions['type'] == orsArrivalType &&
+                  i != combinedTourPoints.length;
           if (currentPoint.extensions['step'] !=
-              previousPoint.extensions['step']) {
+                  previousPoint.extensions['step'] &&
+              !isPrematureArrival) {
             wayPoints.add(wayPoint);
 
             trackPoints.add(TrackPointModel(
@@ -202,10 +204,9 @@ class GpxParser extends TourParser {
 
   LatLngBounds getBounds(Gpx tourGpx, List<TrackPointModel> trackPoints) {
     if (tourGpx?.metadata?.bounds != null &&
-        (tourGpx.metadata.bounds.maxlon - tourGpx.metadata.bounds.minlon >=
-                0.000001 ||
-            tourGpx.metadata.bounds.maxlat - tourGpx.metadata.bounds.minlat >=
-                0.000001)) {
+        (tourGpx.metadata.bounds.maxlon - tourGpx.metadata.bounds.minlon > 0 ||
+            tourGpx.metadata.bounds.maxlat - tourGpx.metadata.bounds.minlat >
+                0)) {
       final Bounds bounds = tourGpx.metadata.bounds;
       return LatLngBounds(
           northeast: LatLng(bounds.maxlat, bounds.maxlon),
@@ -288,11 +289,5 @@ class GpxParser extends TourParser {
       }
     }
     return combinedPoints;
-  }
-
-  @override
-  Future<TourModel> enrichTourWithNavigation({TourModel tour}) {
-    // TODO: implement enrichTourWithNavigation
-    throw UnimplementedError();
   }
 }
