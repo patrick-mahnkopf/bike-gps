@@ -741,6 +741,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.5"
+  receive_sharing_intent:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "15d3b203a98e2dab66584de82569ffeecc75dd18"
+      url: "https://github.com/LazyDave76/receive_sharing_intent.git"
+    source: git
+    version: "1.4.3"
   riverpod:
     dependency: transitive
     description:
@@ -794,7 +803,7 @@ packages:
       name: source_span
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.8.0"
+    version: "1.8.1"
   stack_trace:
     dependency: transitive
     description:

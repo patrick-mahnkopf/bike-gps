@@ -57,6 +57,9 @@ dependencies:
   path: ^1.7.0
   path_provider: ^2.0.0
   provider: ^5.0.0
+  receive_sharing_intent:
+    git:
+      url: https://github.com/LazyDave76/receive_sharing_intent.git
   rxdart: ^0.25.0
   snapping_sheet: ^2.0.2
   ssh: ^0.0.7
