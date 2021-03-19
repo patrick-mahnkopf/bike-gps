@@ -21,13 +21,16 @@ class MapScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: MultiBlocProvider(
         providers: [
           BlocProvider(
             create: (_) => getIt<MapboxBloc>()
-              ..add(MapboxInitialized(mapboxController: getIt())),
+              ..add(MapboxInitialized(
+                  mapboxController: getIt(),
+                  devicePixelRatio: devicePixelRatio)),
           ),
           BlocProvider(
             create: (_) => getIt<TourBloc>(),

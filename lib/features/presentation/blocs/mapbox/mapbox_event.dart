@@ -9,15 +9,17 @@ abstract class MapboxEvent extends Equatable {
 
 class MapboxInitialized extends MapboxEvent {
   final MapboxController mapboxController;
+  final double devicePixelRatio;
 
-  const MapboxInitialized({@required this.mapboxController});
+  const MapboxInitialized(
+      {@required this.mapboxController, @required this.devicePixelRatio});
 
   @override
-  List<Object> get props => [mapboxController];
+  List<Object> get props => [mapboxController, devicePixelRatio];
 
   @override
   String toString() =>
-      'MapboxInitialized { mapboxController: $mapboxController }';
+      'MapboxInitialized { mapboxController: $mapboxController, devicePixelRatio: $devicePixelRatio }';
 }
 
 class MapboxLoaded extends MapboxEvent {

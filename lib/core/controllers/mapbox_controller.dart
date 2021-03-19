@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:bike_gps/core/function_results/function_result.dart';
 import 'package:bike_gps/core/helpers/constants_helper.dart';
@@ -8,8 +11,10 @@ import 'package:bike_gps/features/domain/entities/search/entities.dart';
 import 'package:bike_gps/features/domain/entities/tour/entities.dart';
 import 'package:bike_gps/features/presentation/blocs/search/search_bloc.dart';
 import 'package:bike_gps/features/presentation/blocs/tour/tour_bloc.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:injectable/injectable.dart';
 import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -29,6 +34,7 @@ class MapboxController {
   MyLocationRenderMode locationRenderMode;
   MapboxMapController mapboxMapController;
   final Map<String, String> styleStrings;
+  double devicePixelRatio;
   MyLocationTrackingMode myLocationTrackingMode;
   final ConstantsHelper constantsHelper;
   final TourListHelper tourListHelper;
@@ -37,11 +43,6 @@ class MapboxController {
   final List<TourLine> tourLines = [];
   final List<Symbol> activeTourSymbols = [];
   final List<Symbol> debugMarkings = [];
-  final List<String> assetImageBasenames = [
-    'start_location.png',
-    'end_location.png',
-    'place_pin.png'
-  ];
 
   MapboxController(
       {this.mapboxMapController,
@@ -56,31 +57,6 @@ class MapboxController {
       @required this.tourListHelper,
       @required this.searchBloc,
       @required this.tourBloc});
-
-  // MapboxController copyWith(
-  //     {String accessToken,
-  //     String activeStyleString,
-  //     bool compassEnabled,
-  //     MyLocationRenderMode locationRenderMode,
-  //     CameraPosition initialCameraPosition,
-  //     MapboxMapController mapboxMapController,
-  //     MyLocationTrackingMode myLocationTrackingMode}) {
-  //   return MapboxController(
-  //       mapboxMapController: mapboxMapController ?? this.mapboxMapController,
-  //       accessToken: accessToken ?? this.accessToken,
-  //       activeStyleString: activeStyleString ?? this.activeStyleString,
-  //       compassEnabled: compassEnabled ?? this.compassEnabled,
-  //       locationRenderMode: locationRenderMode ?? this.locationRenderMode,
-  //       initialCameraPosition:
-  //           initialCameraPosition ?? this.initialCameraPosition,
-  //       myLocationTrackingMode:
-  //           myLocationTrackingMode ?? this.myLocationTrackingMode,
-  //       styleStrings: styleStrings,
-  //       constantsHelper: constantsHelper,
-  //       tourListHelper: tourListHelper,
-  //       searchBloc: searchBloc,
-  //       tourBloc: tourBloc);
-  // }
 
   @factoryMethod
   static Future<MapboxController> create(
@@ -134,21 +110,53 @@ class MapboxController {
   }
 
   Future<FunctionResult> onStyleLoaded() async {
-    for (final String imageBasename in assetImageBasenames) {
-      await _addImageToController(imageBasename, mapboxMapController);
+    final List<String> symbolPaths = await _getSymbolPaths();
+    for (final String symbolPath in symbolPaths) {
+      await _addImageToController(
+        symbolPath,
+      );
     }
     return FunctionResultSuccess();
   }
 
-  Future<FunctionResult> _addImageToController(
-      String imageBasename, MapboxMapController mapboxMapController) async {
+  Future<List<String>> _getSymbolPaths() async {
+    final Map<String, dynamic> manifestMap =
+        jsonDecode(await rootBundle.loadString('AssetManifest.json'))
+            as Map<String, dynamic>;
+    final String mapSymbolsPath = ConstantsHelper.mapSymbolPath;
+    final Iterable<String> symbolPaths =
+        manifestMap.keys.where((String key) => key.contains(mapSymbolsPath));
+
+    final List<String> turnArrowPaths = [];
+    for (final String symbolPath in symbolPaths) {
+      final String cleanSymbolPath = symbolPath.replaceAll('%20', ' ');
+      turnArrowPaths.add(cleanSymbolPath);
+    }
+    return turnArrowPaths;
+  }
+
+  Future<FunctionResult> _addImageToController(String imagePath) async {
     try {
-      final String imagePath =
-          p.join(ConstantsHelper.mapSymbolPath, imageBasename);
-      final ByteData bytes = await rootBundle.load(imagePath);
+      ByteData bytes;
+      if (p.extension(imagePath) == '.svg') {
+        log('svg path: $imagePath',
+            name: 'MapboxController _addImageToController');
+        final String svgString = await rootBundle.loadString(imagePath);
+        final DrawableRoot svgRoot = await svg.fromSvgString(svgString, "");
+        final ui.Picture picture = svgRoot.toPicture(
+            colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn));
+        final ui.Image image = await picture.toImage(50, 50);
+        bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+      } else {
+        log('png path: $imagePath',
+            name: 'MapboxController _addImageToController');
+        bytes = await rootBundle.load(imagePath);
+      }
       final Uint8List list = bytes.buffer.asUint8List();
-      final String imageName = p.basenameWithoutExtension(imageBasename);
+      final String imageName = p.basenameWithoutExtension(imagePath);
       await mapboxMapController.addImage(imageName, list);
+      log('imageName: $imageName',
+          name: 'MapboxController _addImageToController');
       return FunctionResultSuccess();
     } on Exception catch (error, stackTrace) {
       return FunctionResultFailure(error: error, stackTrace: stackTrace);
@@ -260,8 +268,8 @@ class MapboxController {
     for (int i = 0; i < tour.wayPoints.length; i++) {
       final LatLng geometry = tour.wayPoints[i].latLng;
       debugMarkings.add(await mapboxMapController.addSymbol(SymbolOptions(
-        iconImage: 'place_pin',
-        iconSize: 0.1,
+        iconImage: 'end_location',
+        iconSize: 0.25,
         // iconOffset: const Offset(0, 15),
         iconAnchor: 'bottom',
         geometry: geometry,
@@ -373,27 +381,41 @@ class MapboxController {
 
   Future<FunctionResult> _drawTourStartAndEndIcons(
       LatLng startPoint, LatLng endPoint) async {
-    activeTourSymbols.add(await mapboxMapController.addSymbol(SymbolOptions(
+    const String primaryTourColor = '#0099ff';
+    const String backgroundLineColor = '#000000';
+    activeTourSymbols.add(await _addSymbol(SymbolOptions(
       iconImage: 'start_location',
-      iconSize: 0.1,
-      iconOffset: const Offset(0, 15),
+      iconSize: 0.25,
+      // iconOffset: const Offset(0, 15),
       iconAnchor: 'bottom',
+      iconColor: backgroundLineColor,
       geometry: startPoint,
       textField: 'Start',
-      textOffset: const Offset(0, -1.6),
+      textOffset: const Offset(0, 1),
       textAnchor: 'bottom',
     )));
-    activeTourSymbols.add(await mapboxMapController.addSymbol(SymbolOptions(
+    activeTourSymbols.add(await _addSymbol(SymbolOptions(
       iconImage: 'end_location',
-      iconSize: 0.12,
-      iconOffset: const Offset(0, 15),
+      iconSize: 0.25,
+      // iconOffset: const Offset(0, 15),
+      iconColor: primaryTourColor,
       iconAnchor: 'bottom',
       geometry: endPoint,
       textField: 'End',
-      textOffset: const Offset(0, -1.7),
+      textOffset: const Offset(0, 1),
       textAnchor: 'bottom',
     )));
     return FunctionResultSuccess();
+  }
+
+  Future<Symbol> _addSymbol(SymbolOptions symbolOptions) async {
+    double iconSize = symbolOptions.iconSize;
+    log('devicePixelRatio: $devicePixelRatio');
+    if (Platform.isAndroid) {
+      iconSize = devicePixelRatio * iconSize;
+    }
+    return mapboxMapController
+        .addSymbol(symbolOptions.copyWith(SymbolOptions(iconSize: iconSize)));
   }
 
   Future<FunctionResult> onLineTapped(Line line) async {
@@ -520,9 +542,9 @@ class MapboxController {
   Future<FunctionResult> _drawPlaceIcon(LatLng coordinates) async {
     try {
       await mapboxMapController.addSymbol(SymbolOptions(
-        iconImage: 'place_pin',
-        iconSize: 0.1,
-        iconOffset: const Offset(0, 15),
+        iconImage: 'end_location',
+        iconSize: 0.75,
+        // iconOffset: const Offset(0, 15),
         iconAnchor: 'bottom',
         geometry: coordinates,
       ));

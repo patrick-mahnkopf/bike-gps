@@ -29,6 +29,7 @@ class MapboxBloc extends Bloc<MapboxEvent, MapboxState> {
 
   Stream<MapboxState> _mapMapboxInitializedToState(
       MapboxInitialized event) async* {
+    event.mapboxController.devicePixelRatio = event.devicePixelRatio;
     yield MapboxInitial(controller: event.mapboxController);
   }
 
