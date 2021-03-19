@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bike_gps/core/helpers/constants_helper.dart';
 import 'package:bike_gps/core/helpers/distance_helper.dart';
 import 'package:bike_gps/features/data/models/tour/tour_info_model.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/widgets.dart';
 import 'package:gpx/gpx.dart';
 import 'package:injectable/injectable.dart';
@@ -57,6 +58,10 @@ class GpxParser extends TourParser {
       @required String tourName,
       @required TourType tourType}) async {
     final Gpx tourGpx = GpxReader().fromString(tourFileContent);
+    FLog.logThis(
+        text: 'tourGpx: $tourGpx',
+        type: LogLevel.INFO,
+        dataLogType: DataLogType.DATABASE.toString());
     double ascent = 0;
     double descent = 0;
     double tourLength = 0;
@@ -64,6 +69,10 @@ class GpxParser extends TourParser {
     final List<WayPointModel> wayPoints = [];
     double previousDistanceFromStart = 0;
     final List<Wpt> combinedTourPoints = getCombinedPoints(tourGpx);
+    FLog.logThis(
+        text: 'combinedTourPoints: $combinedTourPoints',
+        type: LogLevel.INFO,
+        dataLogType: DataLogType.DATABASE.toString());
     for (int i = 0; i < combinedTourPoints.length; i++) {
       final Wpt currentPoint = combinedTourPoints[i];
       double distanceFromStart;
@@ -102,6 +111,10 @@ class GpxParser extends TourParser {
           location: '',
           turnSymboldId: turnSymbolId ?? '',
         );
+        FLog.logThis(
+            text: 'wayPoint: $wayPoint',
+            type: LogLevel.INFO,
+            dataLogType: DataLogType.DATABASE.toString());
         if (tourType == TourType.route && i > 0) {
           final Wpt previousPoint = combinedTourPoints[i - 1];
           const orsArrivalType = '10';
@@ -111,6 +124,10 @@ class GpxParser extends TourParser {
           if (currentPoint.extensions['step'] !=
                   previousPoint.extensions['step'] &&
               !isPrematureArrival) {
+            FLog.logThis(
+                text: 'Adding WayPoint: $wayPoint',
+                type: LogLevel.INFO,
+                dataLogType: DataLogType.DATABASE.toString());
             wayPoints.add(wayPoint);
 
             trackPoints.add(TrackPointModel(
@@ -139,6 +156,10 @@ class GpxParser extends TourParser {
             surface: 'A',
           ));
         } else {
+          FLog.logThis(
+              text: 'Adding WayPoint: $wayPoint',
+              type: LogLevel.INFO,
+              dataLogType: DataLogType.DATABASE.toString());
           wayPoints.add(wayPoint);
 
           trackPoints.add(TrackPointModel(

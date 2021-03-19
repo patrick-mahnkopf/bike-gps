@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
-import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -110,6 +108,7 @@ class MapboxController {
   }
 
   Future<FunctionResult> onStyleLoaded() async {
+    // TODO use or remove (currently unused)
     final List<String> symbolPaths = await _getSymbolPaths();
     for (final String symbolPath in symbolPaths) {
       await _addImageToController(
@@ -138,9 +137,8 @@ class MapboxController {
   Future<FunctionResult> _addImageToController(String imagePath) async {
     try {
       ByteData bytes;
+      // TODO make loading of svg work
       if (p.extension(imagePath) == '.svg') {
-        log('svg path: $imagePath',
-            name: 'MapboxController _addImageToController');
         final String svgString = await rootBundle.loadString(imagePath);
         final DrawableRoot svgRoot = await svg.fromSvgString(svgString, "");
         final ui.Picture picture = svgRoot.toPicture(
@@ -148,15 +146,11 @@ class MapboxController {
         final ui.Image image = await picture.toImage(50, 50);
         bytes = await image.toByteData(format: ui.ImageByteFormat.png);
       } else {
-        log('png path: $imagePath',
-            name: 'MapboxController _addImageToController');
         bytes = await rootBundle.load(imagePath);
       }
       final Uint8List list = bytes.buffer.asUint8List();
       final String imageName = p.basenameWithoutExtension(imagePath);
       await mapboxMapController.addImage(imageName, list);
-      log('imageName: $imageName',
-          name: 'MapboxController _addImageToController');
       return FunctionResultSuccess();
     } on Exception catch (error, stackTrace) {
       return FunctionResultFailure(error: error, stackTrace: stackTrace);
@@ -181,14 +175,17 @@ class MapboxController {
   Future<FunctionResult> onSelectTour(
       {@required Tour tour, List<Tour> alternativeTours}) async {
     try {
+      if (tourLines.isNotEmpty) {
+        await onTourDismissed();
+      }
       if (alternativeTours != null && alternativeTours.isNotEmpty) {
-        drawAlternativeTours(alternativeTours);
-        animateCameraToTourBounds(
+        await drawAlternativeTours(alternativeTours);
+        await animateCameraToTourBounds(
             tour: tour, alternativeTours: alternativeTours);
       } else {
-        animateCameraToTourBounds(tour: tour);
+        await animateCameraToTourBounds(tour: tour);
       }
-      _drawMainTour(
+      await _drawMainTour(
           coordinateList: tour.trackPointCoordinateList, tourName: tour.name);
     } on Exception catch (exception, stacktrace) {
       return FunctionResultFailure(
@@ -260,6 +257,7 @@ class MapboxController {
     }
   }
 
+  // TODO use for debugging or remove
   Future<FunctionResult> _markWayPoints(Tour tour) async {
     if (debugMarkings.isNotEmpty) {
       mapboxMapController.removeSymbols(debugMarkings);
@@ -281,9 +279,9 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
-  void animateCameraToTourBounds(
-      {@required Tour tour, List<Tour> alternativeTours}) {
-    mapboxMapController
+  Future<FunctionResult> animateCameraToTourBounds(
+      {@required Tour tour, List<Tour> alternativeTours}) async {
+    await mapboxMapController
         .updateMyLocationTrackingMode(MyLocationTrackingMode.None);
     LatLngBounds bounds;
     if (alternativeTours != null && alternativeTours.isNotEmpty) {
@@ -292,7 +290,8 @@ class MapboxController {
       bounds = tour.bounds;
     }
     final CameraUpdate cameraUpdate = _getCameraUpdateFromBounds(bounds);
-    _animateCamera(cameraUpdate);
+    await _animateCamera(cameraUpdate);
+    return FunctionResultSuccess();
   }
 
   LatLngBounds _getCombinedBounds(Tour tour, List<Tour> alternativeTours) {
@@ -341,7 +340,7 @@ class MapboxController {
     const String touchAreaColor = '#00ff00';
     const String backgroundLineColor = '#000000';
     const String primaryTourColor = '#0099ff';
-    const String secondaryTourColor = '#00ff00';
+    const String secondaryTourColor = '#aab7b8 ';
 
     final Line backgroundLine = await mapboxMapController.addLine(
       LineOptions(
@@ -381,24 +380,19 @@ class MapboxController {
 
   Future<FunctionResult> _drawTourStartAndEndIcons(
       LatLng startPoint, LatLng endPoint) async {
-    const String primaryTourColor = '#0099ff';
-    const String backgroundLineColor = '#000000';
-    activeTourSymbols.add(await _addSymbol(SymbolOptions(
-      iconImage: 'start_location',
-      iconSize: 0.25,
-      // iconOffset: const Offset(0, 15),
+    final String mapSymbolPath = ConstantsHelper.mapSymbolPath;
+    activeTourSymbols.add(await mapboxMapController.addSymbol(SymbolOptions(
+      iconImage: p.join(mapSymbolPath, 'start_location.png'),
+      iconSize: 0.75,
       iconAnchor: 'bottom',
-      iconColor: backgroundLineColor,
       geometry: startPoint,
       textField: 'Start',
       textOffset: const Offset(0, 1),
       textAnchor: 'bottom',
     )));
-    activeTourSymbols.add(await _addSymbol(SymbolOptions(
-      iconImage: 'end_location',
-      iconSize: 0.25,
-      // iconOffset: const Offset(0, 15),
-      iconColor: primaryTourColor,
+    activeTourSymbols.add(await mapboxMapController.addSymbol(SymbolOptions(
+      iconImage: p.join(mapSymbolPath, 'end_location.png'),
+      iconSize: 0.75,
       iconAnchor: 'bottom',
       geometry: endPoint,
       textField: 'End',
@@ -408,22 +402,11 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
-  Future<Symbol> _addSymbol(SymbolOptions symbolOptions) async {
-    double iconSize = symbolOptions.iconSize;
-    log('devicePixelRatio: $devicePixelRatio');
-    if (Platform.isAndroid) {
-      iconSize = devicePixelRatio * iconSize;
-    }
-    return mapboxMapController
-        .addSymbol(symbolOptions.copyWith(SymbolOptions(iconSize: iconSize)));
-  }
-
   Future<FunctionResult> onLineTapped(Line line) async {
     for (final TourLine tourLine in tourLines) {
       if (tourLine.tour.options.geometry == line.options.geometry &&
           !tourLine.isActive &&
           !tourLine.isPathToTour) {
-        await _activateTourLine(tourLine);
         searchBloc.searchBarController.query = tourLine.tourName;
         tourBloc.add(
             TourLoaded(tourName: tourLine.tourName, mapboxController: this));
@@ -433,45 +416,18 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
-  Future<FunctionResult> _activateTourLine(TourLine tourLine) async {
-    await _deactivateActiveTourLine();
-    await _removeTourLine(tourLine);
-    await _removeActiveTourSymbols();
-    await _drawMainTour(
-        coordinateList: tourLine.tour.options.geometry,
-        tourName: tourLine.tourName);
-    return FunctionResultSuccess();
-  }
-
-  Future<FunctionResult> _deactivateActiveTourLine() async {
-    for (final TourLine tourLine in List<TourLine>.from(tourLines)) {
-      if (tourLine.isActive) {
-        await _removeTourLine(tourLine);
-        tourLines.add(await _drawTour(
-            lineCoordinateList: tourLine.tour.options.geometry,
-            tourName: tourLine.tourName));
-      }
-    }
-    return FunctionResultSuccess();
-  }
-
-  Future<FunctionResult> _removeActiveTourSymbols() async {
-    for (final Symbol symbol in List<Symbol>.from(activeTourSymbols)) {
-      await mapboxMapController.removeSymbol(symbol);
-      activeTourSymbols.remove(symbol);
-    }
-    return FunctionResultSuccess();
-  }
-
-  void onTourDismissed() {
-    _clearActiveDrawings();
+  Future<FunctionResult> onTourDismissed() async {
+    await _clearActiveDrawings();
     tourLines.clear();
+    activeTourSymbols.clear();
+    return FunctionResultSuccess();
   }
 
-  void _clearActiveDrawings() {
-    mapboxMapController.clearLines();
-    mapboxMapController.clearCircles();
-    mapboxMapController.clearSymbols();
+  Future<FunctionResult> _clearActiveDrawings() async {
+    await mapboxMapController.clearLines();
+    await mapboxMapController.clearCircles();
+    await mapboxMapController.clearSymbols();
+    return FunctionResultSuccess();
   }
 
   Future<FunctionResult> clearAlternativeTours() async {
@@ -491,8 +447,6 @@ class MapboxController {
     try {
       for (final TourLine tourLine in List<TourLine>.from(tourLines)) {
         if (tourLine.isPathToTour) {
-          log('pathToTour ids: background: ${tourLine.background.id}, tour: ${tourLine.tour.id}, touchArea: ${tourLine.touchArea.id}',
-              name: 'MapboxController clearPathToTour');
           await _removeTourLine(tourLine);
         }
       }
@@ -515,7 +469,6 @@ class MapboxController {
   }
 
   Future<FunctionResult> _removeLine(Line line) async {
-    log('line: id: ${line.id}', name: 'MapboxController lines _removeLine');
     if (mapboxMapController.lines.contains(line)) {
       final Line lineResult = mapboxMapController.lines.firstWhere((element) =>
           element.options.geometry == line.options.geometry &&
@@ -525,26 +478,28 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
-  void _moveCamera(CameraUpdate cameraUpdate) {
-    mapboxMapController
+  Future<FunctionResult> _moveCamera(CameraUpdate cameraUpdate) async {
+    await mapboxMapController
         .updateMyLocationTrackingMode(MyLocationTrackingMode.None);
-    mapboxMapController.moveCamera(CameraUpdate.bearingTo(0));
-    mapboxMapController.moveCamera(cameraUpdate);
+    await mapboxMapController.moveCamera(CameraUpdate.bearingTo(0));
+    await mapboxMapController.moveCamera(cameraUpdate);
+    return FunctionResultSuccess();
   }
 
-  void _animateCamera(CameraUpdate cameraUpdate) {
-    mapboxMapController
+  Future<FunctionResult> _animateCamera(CameraUpdate cameraUpdate) async {
+    await mapboxMapController
         .updateMyLocationTrackingMode(MyLocationTrackingMode.None);
-    mapboxMapController.moveCamera(CameraUpdate.bearingTo(0));
-    mapboxMapController.animateCamera(cameraUpdate);
+    await mapboxMapController.moveCamera(CameraUpdate.bearingTo(0));
+    await mapboxMapController.animateCamera(cameraUpdate);
+    return FunctionResultSuccess();
   }
 
   Future<FunctionResult> _drawPlaceIcon(LatLng coordinates) async {
     try {
+      final String mapSymbolPath = ConstantsHelper.mapSymbolPath;
       await mapboxMapController.addSymbol(SymbolOptions(
-        iconImage: 'end_location',
+        iconImage: p.join(mapSymbolPath, 'end_location.png'),
         iconSize: 0.75,
-        // iconOffset: const Offset(0, 15),
         iconAnchor: 'bottom',
         geometry: coordinates,
       ));

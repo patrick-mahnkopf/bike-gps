@@ -5,6 +5,7 @@ import 'package:bike_gps/core/helpers/constants_helper.dart';
 import 'package:bike_gps/core/helpers/tour_list_helper.dart';
 import 'package:bike_gps/features/data/data_sources/tour_parser/tour_parser.dart';
 import 'package:bike_gps/features/domain/entities/tour/entities.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/widgets.dart';
 import 'package:injectable/injectable.dart';
 
@@ -30,8 +31,14 @@ class TourLocalDataSourceImpl implements TourLocalDataSource {
   @override
   Future<TourModel> getTour({@required String name}) async {
     try {
+      FLog.info(text: 'getting Tour');
       final File tourFile = tourListHelper.getFile(name);
+      FLog.info(text: 'TourListHelper file: ${tourFile.path}');
       final TourModel tourModel = await tourParser.getTour(file: tourFile);
+      FLog.logThis(
+          text: 'TourModel: $tourModel',
+          type: LogLevel.INFO,
+          dataLogType: DataLogType.DATABASE.toString());
       if (tourModel == null) {
         throw ParserException();
       } else {
@@ -51,14 +58,19 @@ class TourLocalDataSourceImpl implements TourLocalDataSource {
   Future<List<TourModel>> getAlternativeTours(
       {@required String mainTourName}) async {
     try {
+      FLog.info(text: 'getting alternative Tours for tour $mainTourName');
       if (tourListHelper.contains(mainTourName)) {
         final List<TourModel> tourModels = [];
         final TourBounds mainTourBounds =
             tourListHelper.getBounds(mainTourName);
+        FLog.info(text: 'Main Tour bounds: $mainTourBounds');
 
         for (final TourBounds alternativeTourBounds
             in tourListHelper.getBoundsList()) {
           if (mainTourBounds != alternativeTourBounds) {
+            FLog.info(
+                text:
+                    'Overlap between ${mainTourBounds.name} and ${alternativeTourBounds.name}: ${mainTourBounds.getOverlap(alternativeTourBounds)}');
             if (mainTourBounds.getOverlap(alternativeTourBounds) >= 0.25) {
               final TourModel tourModel =
                   await getTour(name: alternativeTourBounds.name);
