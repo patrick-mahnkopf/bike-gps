@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:typed_data';
 
 import 'package:bike_gps/core/function_results/function_result.dart';
 import 'package:bike_gps/core/helpers/constants_helper.dart';
@@ -12,6 +13,7 @@ import 'package:flutter/widgets.dart';
 import 'package:injectable/injectable.dart';
 import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:path/path.dart' as p;
 
 import '../../injection_container.dart';
 
@@ -21,13 +23,13 @@ const bool _useMapbox = false;
 @singleton
 class MapboxController {
   final String accessToken;
-  final String activeStyleString;
+  String activeStyleString;
   final bool compassEnabled;
   final CameraPosition initialCameraPosition;
-  final MyLocationRenderMode locationRenderMode;
-  final MapboxMapController mapboxMapController;
+  MyLocationRenderMode locationRenderMode;
+  MapboxMapController mapboxMapController;
   final Map<String, String> styleStrings;
-  final MyLocationTrackingMode myLocationTrackingMode;
+  MyLocationTrackingMode myLocationTrackingMode;
   final ConstantsHelper constantsHelper;
   final TourListHelper tourListHelper;
   final SearchBloc searchBloc;
@@ -35,6 +37,11 @@ class MapboxController {
   final List<TourLine> tourLines = [];
   final List<Symbol> activeTourSymbols = [];
   final List<Symbol> debugMarkings = [];
+  final List<String> assetImageBasenames = [
+    'start_location.png',
+    'end_location.png',
+    'place_pin.png'
+  ];
 
   MapboxController(
       {this.mapboxMapController,
@@ -50,30 +57,30 @@ class MapboxController {
       @required this.searchBloc,
       @required this.tourBloc});
 
-  MapboxController copyWith(
-      {String accessToken,
-      String activeStyleString,
-      bool compassEnabled,
-      MyLocationRenderMode locationRenderMode,
-      CameraPosition initialCameraPosition,
-      MapboxMapController mapboxMapController,
-      MyLocationTrackingMode myLocationTrackingMode}) {
-    return MapboxController(
-        mapboxMapController: mapboxMapController ?? this.mapboxMapController,
-        accessToken: accessToken ?? this.accessToken,
-        activeStyleString: activeStyleString ?? this.activeStyleString,
-        compassEnabled: compassEnabled ?? this.compassEnabled,
-        locationRenderMode: locationRenderMode ?? this.locationRenderMode,
-        initialCameraPosition:
-            initialCameraPosition ?? this.initialCameraPosition,
-        myLocationTrackingMode:
-            myLocationTrackingMode ?? this.myLocationTrackingMode,
-        styleStrings: styleStrings,
-        constantsHelper: constantsHelper,
-        tourListHelper: tourListHelper,
-        searchBloc: searchBloc,
-        tourBloc: tourBloc);
-  }
+  // MapboxController copyWith(
+  //     {String accessToken,
+  //     String activeStyleString,
+  //     bool compassEnabled,
+  //     MyLocationRenderMode locationRenderMode,
+  //     CameraPosition initialCameraPosition,
+  //     MapboxMapController mapboxMapController,
+  //     MyLocationTrackingMode myLocationTrackingMode}) {
+  //   return MapboxController(
+  //       mapboxMapController: mapboxMapController ?? this.mapboxMapController,
+  //       accessToken: accessToken ?? this.accessToken,
+  //       activeStyleString: activeStyleString ?? this.activeStyleString,
+  //       compassEnabled: compassEnabled ?? this.compassEnabled,
+  //       locationRenderMode: locationRenderMode ?? this.locationRenderMode,
+  //       initialCameraPosition:
+  //           initialCameraPosition ?? this.initialCameraPosition,
+  //       myLocationTrackingMode:
+  //           myLocationTrackingMode ?? this.myLocationTrackingMode,
+  //       styleStrings: styleStrings,
+  //       constantsHelper: constantsHelper,
+  //       tourListHelper: tourListHelper,
+  //       searchBloc: searchBloc,
+  //       tourBloc: tourBloc);
+  // }
 
   @factoryMethod
   static Future<MapboxController> create(
@@ -124,6 +131,28 @@ class MapboxController {
     return CameraPosition(
         target: LatLng(locationData.latitude, locationData.longitude),
         zoom: constantsHelper.tourViewZoom);
+  }
+
+  Future<FunctionResult> onStyleLoaded() async {
+    for (final String imageBasename in assetImageBasenames) {
+      await _addImageToController(imageBasename, mapboxMapController);
+    }
+    return FunctionResultSuccess();
+  }
+
+  Future<FunctionResult> _addImageToController(
+      String imageBasename, MapboxMapController mapboxMapController) async {
+    try {
+      final String imagePath =
+          p.join(ConstantsHelper.mapSymbolPath, imageBasename);
+      final ByteData bytes = await rootBundle.load(imagePath);
+      final Uint8List list = bytes.buffer.asUint8List();
+      final String imageName = p.basenameWithoutExtension(imageBasename);
+      await mapboxMapController.addImage(imageName, list);
+      return FunctionResultSuccess();
+    } on Exception catch (error, stackTrace) {
+      return FunctionResultFailure(error: error, stackTrace: stackTrace);
+    }
   }
 
   Future<FunctionResult> onSelectPlace(SearchResult searchResult) async {

@@ -38,4 +38,8 @@ class WayPoint extends TrackPoint {
         direction,
         turnSymboldId
       ];
+
+  @override
+  String toString() =>
+      'WayPoint: { latLng: $latLng, elevation: $elevation, distanceFromStart: $distanceFromStart, surface: $surface, isWayPoint: $isWayPoint, name: $name, location: $location, direction: $direction, turnSymboldId: $turnSymboldId }';
 }

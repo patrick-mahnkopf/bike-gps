@@ -89,8 +89,8 @@ class RecenterMapWidget extends StatelessWidget {
       cameraUpdate = CameraUpdate.zoomTo(constantsHelper.tourViewZoom);
     }
     mapboxBloc.add(MapboxLoaded(
-      mapboxController: state.controller.copyWith(
-          myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass),
+      mapboxController: state.controller,
+      myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass,
       cameraUpdate: cameraUpdate,
     ));
   }

@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:path/path.dart' as p;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import 'core/function_results/function_result.dart';
@@ -11,10 +13,11 @@ import 'features/presentation/blocs/map/map_bloc.dart';
 import 'features/presentation/blocs/simple_bloc_observer.dart';
 import 'features/presentation/screens/map_screen.dart';
 import 'injection_container.dart';
-import 'package:path/path.dart' as p;
 
 Future<FunctionResult> appStart({@required String environment}) async {
   WidgetsFlutterBinding.ensureInitialized();
+  FLog.info(
+      text: 'Platform: ${Platform.operatingSystem}', methodName: 'appStart');
   await _init(environment: environment);
   Bloc.observer = SimpleBlocObserver();
   runApp(const MyApp());
@@ -25,9 +28,15 @@ Future<FunctionResult> _init({@required String environment}) async {
   try {
     await configureDependencies(environment: environment);
     await getIt.allReady();
+    FLog.trace(text: 'getIt allReady', methodName: '_init');
     await _systemInit();
     return FunctionResultSuccess();
   } on Exception catch (error, stacktrace) {
+    FLog.error(
+        text: 'Main Init Failure',
+        exception: error,
+        stacktrace: stacktrace,
+        methodName: '_init');
     return FunctionResultFailure(
         error: error, stackTrace: stacktrace, name: 'Main Init Failure');
   }
@@ -35,12 +44,17 @@ Future<FunctionResult> _init({@required String environment}) async {
 
 Future<FunctionResult> _systemInit() async {
   try {
+    FLog.trace(text: '_systemInit', methodName: '_systemInit');
     final ConstantsHelper constants = getIt<ConstantsHelper>();
     if (!await Directory(constants.tourDirectoryPath).exists()) {
       await Directory(constants.tourDirectoryPath).create(recursive: true);
+      FLog.trace(
+          text: 'tourDirectoryPath: ${constants.tourDirectoryPath} created');
     }
     if (!await File(constants.searchHistoryPath).exists()) {
       await File(constants.searchHistoryPath).create();
+      FLog.trace(
+          text: 'searchHistoryPath: ${constants.searchHistoryPath} created');
     }
     return FunctionResultSuccess();
   } on Exception catch (error, stacktrace) {
@@ -71,6 +85,7 @@ class _MyAppState extends State<MyApp> {
       for (final SharedMediaFile value in values) {
         final String path = value.path.replaceAll("%20", " ");
         final File file = File(path);
+        FLog.trace(text: 'Flutter got file: $path while running');
         print("Got file: $path");
         await _copyFileToTourDirectory(file: file);
       }
@@ -86,6 +101,7 @@ class _MyAppState extends State<MyApp> {
         for (final SharedMediaFile value in values) {
           final String path = value.path.replaceAll("%20", " ");
           final File file = File(path);
+          FLog.trace(text: 'Flutter got started with file: $path');
           print("Got file: $path");
           await _copyFileToTourDirectory(file: file);
         }
@@ -95,6 +111,7 @@ class _MyAppState extends State<MyApp> {
     // For sharing or opening urls/text coming from outside the app while the app is in the memory
     _intentDataStreamSubscription =
         ReceiveSharingIntent.getTextStream().listen((String value) {
+      FLog.trace(text: 'Flutter got url/text: $value while running');
       setState(() {
         _sharedText = value;
       });
@@ -105,6 +122,7 @@ class _MyAppState extends State<MyApp> {
 
     // For sharing or opening urls/text coming from outside the app while the app is closed
     ReceiveSharingIntent.getInitialText().then((String value) {
+      FLog.trace(text: 'Flutter got started with url/text: $value');
       setState(() {
         _sharedText = value;
       });
@@ -121,11 +139,14 @@ class _MyAppState extends State<MyApp> {
     copied
     */
     if (Platform.isIOS) {
+      FLog.trace(text: 'Handling moving incoming intent file on iOS');
       return _moveFile(
         file: file,
         newPath: newPath,
       );
     } else {
+      FLog.trace(
+          text: 'Handling moving incoming intent file on OS other than iOS');
       return file.copy(newPath);
     }
   }
@@ -133,6 +154,7 @@ class _MyAppState extends State<MyApp> {
   Future<File> _moveFile(
       {@required File file, @required String newPath}) async {
     try {
+      FLog.trace(text: 'Trying to rename ${file.path} to $newPath on iOS');
       /*
       prefer using rename, thus moving the file as it is probably faster,
       but this only works in the same directory path, thus we copy instead if
@@ -140,6 +162,7 @@ class _MyAppState extends State<MyApp> {
       */
       return await file.rename(newPath);
     } on FileSystemException {
+      FLog.info(text: 'iOS path rename failed -> copying instead');
       // if rename fails, copy the source file and then delete it
       final newFile = await file.copy(newPath);
       await file.delete();
@@ -149,6 +172,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
+    FLog.trace(text: 'Main dispose');
     _intentDataStreamSubscription.cancel();
     super.dispose();
   }

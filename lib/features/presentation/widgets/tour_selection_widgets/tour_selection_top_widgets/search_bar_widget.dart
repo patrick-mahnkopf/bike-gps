@@ -286,8 +286,8 @@ void _onSubmitted(
   final MapboxState mapboxState = mapboxBloc.state;
   if (mapboxState is MapboxLoadSuccess) {
     mapboxBloc.add(MapboxLoaded(
-        mapboxController: mapboxState.controller
-            .copyWith(myLocationTrackingMode: MyLocationTrackingMode.None)));
+        mapboxController: mapboxState.controller,
+        myLocationTrackingMode: MyLocationTrackingMode.None));
     if (searchResult.isTour) {
       if (mapboxState is MapboxLoadSuccess) {
         BlocProvider.of<TourBloc>(context).add(TourLoaded(

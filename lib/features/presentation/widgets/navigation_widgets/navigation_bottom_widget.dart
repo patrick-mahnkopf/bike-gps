@@ -113,8 +113,8 @@ class GrabSectionContent extends StatelessWidget {
       mapboxState.controller.animateCameraToTourBounds(
           tour: tourState.tour, alternativeTours: tourState.alternativeTours);
       mapboxBloc.add(MapboxLoaded(
-          mapboxController: mapboxState.controller
-              .copyWith(myLocationTrackingMode: MyLocationTrackingMode.None)));
+          mapboxController: mapboxState.controller,
+          myLocationTrackingMode: MyLocationTrackingMode.None));
     }
   }
 }

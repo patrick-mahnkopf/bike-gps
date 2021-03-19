@@ -48,7 +48,7 @@ class MapScreen extends StatelessWidget {
               builder: (context, state) {
                 if (state is MapboxInitial || state is MapboxLoadSuccess) {
                   return MapboxWidget(
-                    mapboxController: getIt<MapboxController>(),
+                    uninitializedMapboxController: getIt<MapboxController>(),
                   );
                 } else {
                   return const LoadingIndicator();
@@ -87,9 +87,9 @@ class MapScreen extends StatelessWidget {
                       mapboxState.controller.clearAlternativeTours();
                       mapboxBloc.add(
                         MapboxLoaded(
-                          mapboxController: mapboxState.controller.copyWith(
-                              myLocationTrackingMode:
-                                  MyLocationTrackingMode.TrackingCompass),
+                          mapboxController: mapboxState.controller,
+                          myLocationTrackingMode:
+                              MyLocationTrackingMode.TrackingCompass,
                           cameraUpdate: CameraUpdate.zoomTo(16),
                         ),
                       );

@@ -23,8 +23,24 @@ class MapboxInitialized extends MapboxEvent {
 class MapboxLoaded extends MapboxEvent {
   final MapboxController mapboxController;
   final CameraUpdate cameraUpdate;
+  final String accessToken;
+  final String activeStyleString;
+  final bool compassEnabled;
+  final MyLocationRenderMode locationRenderMode;
+  final CameraPosition initialCameraPosition;
+  final MapboxMapController mapboxMapController;
+  final MyLocationTrackingMode myLocationTrackingMode;
 
-  const MapboxLoaded({@required this.mapboxController, this.cameraUpdate});
+  const MapboxLoaded(
+      {@required this.mapboxController,
+      this.cameraUpdate,
+      this.accessToken,
+      this.activeStyleString,
+      this.compassEnabled,
+      this.locationRenderMode,
+      this.initialCameraPosition,
+      this.mapboxMapController,
+      this.myLocationTrackingMode});
 
   @override
   List<Object> get props => [

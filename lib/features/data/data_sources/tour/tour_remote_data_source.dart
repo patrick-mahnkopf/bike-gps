@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:bike_gps/core/helpers/constants_helper.dart';
 import 'package:bike_gps/features/data/data_sources/tour_parser/tour_parser.dart';
 import 'package:bike_gps/features/domain/entities/tour/entities.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart';
@@ -63,6 +64,7 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
     try {
       final String statusUrl = await rootBundle
           .loadString('assets/tokens/route_service_status_url.txt');
+      FLog.trace(text: 'server statusUrl: $statusUrl');
       final Response response = await client.get(
         statusUrl,
         headers: <String, String>{
@@ -73,8 +75,16 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
       );
       if (response.statusCode == 200 && response.body == '{"status":"ready"}') {
         return true;
+      } else {
+        FLog.error(
+            text:
+                'Server not ready (${response.statusCode}) body: ${response.body}');
       }
-    } on Exception {
+    } on Exception catch (error, stacktrace) {
+      FLog.error(
+          text: 'Status Check Exception',
+          exception: error,
+          stacktrace: stacktrace);
       return false;
     }
     return false;
@@ -86,6 +96,7 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
       List<LatLng> trackPointCoordinates}) async {
     final String baseUrl =
         await rootBundle.loadString('assets/tokens/route_service_url.txt');
+    FLog.trace(text: 'Server baseUrl: $baseUrl');
 
     final List<List<double>> coordinateList = _getCoordinateList(
         tourStart: tourStart,
@@ -106,9 +117,13 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
       'language': constantsHelper.language,
       'units': 'm',
     });
-    log("Sending body to ORS: $postBody",
-        name: 'TourRemoteDataSource getPathToTour PostBody',
-        time: DateTime.now());
+    FLog.logThis(
+        text: 'ORS request body: $postBody',
+        type: LogLevel.INFO,
+        dataLogType: DataLogType.NETWORK.toString());
+    // log("Sending body to ORS: $postBody",
+    //     name: 'TourRemoteDataSource getPathToTour PostBody',
+    //     time: DateTime.now());
     final Response response = await client.post(
       baseUrl,
       headers: <String, String>{
@@ -119,6 +134,11 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
       body: postBody,
     );
     if (response.statusCode == 200) {
+      FLog.trace(text: 'ORS response success (200)');
+      FLog.logThis(
+          text: 'ORS response tour: ${response.body}',
+          type: LogLevel.INFO,
+          dataLogType: DataLogType.NETWORK.toString());
       final String responseBody = _prepareResponseGpxForParser(response.body);
       // TODO remove when everything ORS related works
       // log("Code: ${response.statusCode}, Body: $responseBody",
@@ -126,6 +146,9 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
       //     time: DateTime.now());
       return responseBody;
     } else {
+      FLog.error(
+          text:
+              'ORS response unsuccessful (${response.statusCode}) body: ${response.body}');
       log("Code: ${response.statusCode}, Body: ${response.body}",
           name: 'TourRemoteDataSource getPathToTour Error',
           time: DateTime.now());
@@ -138,6 +161,7 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
       @required LatLng tourStart,
       List<LatLng> trackPointCoordinates = const []}) {
     if (trackPointCoordinates.isEmpty) {
+      FLog.trace(text: 'trackPointCoordinates empty -> getting path to tour');
       return [
         [userLocation.longitude, userLocation.latitude],
         [tourStart.longitude, tourStart.latitude]
@@ -147,6 +171,9 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
       for (final LatLng trackPoint in trackPointCoordinates) {
         coordinateList.add([trackPoint.longitude, trackPoint.latitude]);
       }
+      FLog.trace(
+          text:
+              'trackPointCoordinates not empty -> getting ORS tour for enhancement');
       return coordinateList;
     }
   }
@@ -170,10 +197,14 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
           tourStart: null,
           trackPointCoordinates: coordinateList,
           tourName: tour.name);
+      FLog.logThis(
+          text: 'ORS tour for enhancement: ${tourResponse.toGpx()}',
+          type: LogLevel.INFO,
+          dataLogType: DataLogType.DATABASE.toString());
       for (var i = 0; i < tour.trackPoints.length; i++) {
         for (final WayPoint responseWayPoint in tourResponse.wayPoints) {
-          log('ResponseWayPoint: ${responseWayPoint.latLng}',
-              name: 'TourRemoteDataSource getEnhancedTour responseWayPoint');
+          // log('ResponseWayPoint: ${responseWayPoint.latLng}',
+          //     name: 'TourRemoteDataSource getEnhancedTour responseWayPoint');
           final TrackPoint tourTrackPoint = tour.trackPoints[i];
           final bool pointsHaveSameCoordinates = _haveSameCoordinates(
               tourTrackPoint.latLng, responseWayPoint.latLng);
@@ -181,6 +212,8 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
               responseWayPoint.direction != null &&
                   responseWayPoint.direction != '';
           if (pointsHaveSameCoordinates && responsePointHasDirection) {
+            FLog.info(
+                text: 'Matched points: \n$tourTrackPoint\n$responseWayPoint');
             String name;
             String location;
             String direction;
@@ -228,6 +261,7 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
                 location: location,
                 direction: direction,
                 turnSymboldId: turnSymboldId);
+            FLog.info(text: 'newWayPoint: $newWayPoint');
             if (tourTrackPoint.isWayPoint) {
               final WayPoint currentWayPoint = tourTrackPoint.wayPoint;
               tour.replaceWayPoint(currentWayPoint, newWayPoint);
@@ -251,14 +285,20 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
     final double secondLat = _reduceDoublePrecision(second.latitude);
     final double secondLon = _reduceDoublePrecision(second.longitude);
     if (firstLat == secondLat && firstLon == secondLon) {
-      log('firstLat: $firstLat, secondLat: $secondLat, firstLon: $firstLon, secondLon: $secondLon',
-          name:
-              'TourRemoteDataSource getEnhancedTour _haveSameCoordinates found');
+      // log('firstLat: $firstLat, secondLat: $secondLat, firstLon: $firstLon, secondLon: $secondLon',
+      //     name:
+      //         'TourRemoteDataSource getEnhancedTour _haveSameCoordinates found');
+      FLog.info(
+          text:
+              'firstLat: $firstLat, secondLat: $secondLat, firstLon: $firstLon, secondLon: $secondLon');
       return true;
     } else {
-      log('firstLat: $firstLat, secondLat: $secondLat, firstLon: $firstLon, secondLon: $secondLon',
-          name:
-              'TourRemoteDataSource getEnhancedTour _haveSameCoordinates notfound');
+      // log('firstLat: $firstLat, secondLat: $secondLat, firstLon: $firstLon, secondLon: $secondLon',
+      //     name:
+      //         'TourRemoteDataSource getEnhancedTour _haveSameCoordinates notfound');
+      FLog.info(
+          text:
+              'firstLat: $firstLat, secondLat: $secondLat, firstLon: $firstLon, secondLon: $secondLon');
       return false;
     }
   }
