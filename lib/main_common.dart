@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:connectivity/connectivity.dart';
 import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:ssh/ssh.dart';
 
 import 'core/function_results/function_result.dart';
 import 'core/helpers/constants_helper.dart';
@@ -19,6 +22,7 @@ Future<FunctionResult> appStart({@required String environment}) async {
   FLog.info(
       text: 'Platform: ${Platform.operatingSystem}', methodName: 'appStart');
   await _init(environment: environment);
+  await _handleLogs();
   Bloc.observer = SimpleBlocObserver();
   runApp(const MyApp());
   return FunctionResultSuccess();
@@ -61,6 +65,62 @@ Future<FunctionResult> _systemInit() async {
     return FunctionResultFailure(
         error: error, stackTrace: stacktrace, name: 'System init failure');
   }
+}
+
+Future<FunctionResult> _handleLogs() async {
+  final ConnectivityResult connectivityResult =
+      await Connectivity().checkConnectivity();
+  if (connectivityResult == ConnectivityResult.wifi) {
+    await sendLogsToServer();
+  }
+  return FunctionResultSuccess();
+}
+
+Future<FunctionResult> sendLogsToServer() async {
+  SSHClient client;
+  try {
+    final List<String> logServerValues =
+        (await rootBundle.loadString('assets/tokens/log_server_values.txt'))
+            .split('\n');
+    client = SSHClient(
+        host: logServerValues[0].trim(),
+        port: 22,
+        username: logServerValues[1].trim(),
+        passwordOrKey: logServerValues[2].trim());
+
+    FLog.info(
+        text: 'Trying to connect to log server',
+        methodName: 'sendLogsToServer');
+    await client.connect();
+    FLog.info(text: 'Connected to log server', methodName: 'sendLogsToServer');
+    await client.connectSFTP();
+    FLog.info(
+        text: 'SFTP connected to log server', methodName: 'sendLogsToServer');
+    File logFile = await FLog.exportLogs();
+    logFile = await changeFileName(
+        logFile, '${DateTime.now().millisecondsSinceEpoch}.txt');
+    FLog.info(
+        text: 'Exported FLog file to ${logFile.path}',
+        methodName: 'sendLogsToServer');
+    await client.sftpUpload(path: logFile.path, toPath: './logs/');
+    FLog.info(
+        text: 'Uploaded FLog files to log server',
+        methodName: 'sendLogsToServer');
+  } on Exception catch (error, stackTrace) {
+    return FunctionResultFailure(
+        error: error, stackTrace: stackTrace, methodName: 'sendLogsToServer');
+  } finally {
+    client.disconnectSFTP();
+    client.disconnect();
+  }
+  return FunctionResultSuccess();
+}
+
+Future<File> changeFileName(File file, String newFileName) async {
+  final String path = file.path;
+  final int lastSeparator = path.lastIndexOf(Platform.pathSeparator);
+  final String newPath = path.substring(0, lastSeparator + 1) + newFileName;
+  return file.rename(newPath);
 }
 
 class MyApp extends StatefulWidget {
@@ -185,16 +245,17 @@ class _MyAppState extends State<MyApp> {
 
 MaterialApp _getMaterialApp() {
   return MaterialApp(
-      title: 'Bike GPS',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      routes: {
-        '/': (context) {
-          return BlocProvider(
-            create: (context) => getIt<MapBloc>(),
-            child: const MapScreen(),
-          );
-        }
-      });
+    title: 'Bike GPS',
+    theme: ThemeData(
+      primarySwatch: Colors.blue,
+    ),
+    routes: {
+      '/': (context) {
+        return BlocProvider(
+          create: (context) => getIt<MapBloc>(),
+          child: const MapScreen(),
+        );
+      }
+    },
+  );
 }
