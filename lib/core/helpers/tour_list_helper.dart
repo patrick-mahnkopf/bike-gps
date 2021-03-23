@@ -48,10 +48,13 @@ class TourListHelper {
               p.basenameWithoutExtension(event.path);
           _tourList.remove(baseNameWithoutExtension);
         } else {
-          if (await shouldAddTourToList(filePath: event.path)) {
-            await Future.delayed(const Duration(milliseconds: 100));
-            final File file = File(event.path);
-            _tourList.add(await tourParser.getTourInfo(file: file));
+          if (tourParser.fileExtensionPriority
+              .contains(p.extension(event.path))) {
+            if (await shouldAddTourToList(filePath: event.path)) {
+              await Future.delayed(const Duration(milliseconds: 100));
+              final File file = File(event.path);
+              _tourList.add(await tourParser.getTourInfo(file: file));
+            }
           }
         }
         _tourList.changeTourListCacheFile(constantsHelper.tourListPath);
@@ -71,11 +74,13 @@ class TourListHelper {
         Directory(constantsHelper.tourDirectoryPath).listSync();
     for (final FileSystemEntity entity in tourFiles) {
       FLog.info(text: 'Found potential tour file for tour list');
-      if (await shouldAddTourToList(filePath: entity.path)) {
-        FLog.info(text: 'Adding tour file to tour list');
-        final TourInfo tourInfo =
-            await tourParser.getTourInfo(file: entity as File);
-        _tourList.add(tourInfo);
+      if (tourParser.fileExtensionPriority.contains(p.extension(entity.path))) {
+        if (await shouldAddTourToList(filePath: entity.path)) {
+          FLog.info(text: 'Adding tour file to tour list');
+          final TourInfo tourInfo =
+              await tourParser.getTourInfo(file: entity as File);
+          _tourList.add(tourInfo);
+        }
       }
     }
     _tourList.changeTourListCacheFile(constantsHelper.tourListPath);
@@ -84,6 +89,9 @@ class TourListHelper {
 
   Future<bool> shouldAddTourToList({@required String filePath}) async {
     try {
+      if (!tourParser.fileExtensionPriority.contains(p.extension(filePath))) {
+        return false;
+      }
       FLog.info(text: 'Got file path: $filePath');
       final String fileBasename = p.basenameWithoutExtension(filePath);
       final File file = await _getFileWithBestExtension(fileBasename);
