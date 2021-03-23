@@ -106,6 +106,8 @@ Future<FunctionResult> sendLogsToServer() async {
     FLog.info(
         text: 'Uploaded FLog files to log server',
         methodName: 'sendLogsToServer');
+    await FLog.clearLogs();
+    FLog.info(text: 'Cleared local FLog db', methodName: 'sendLogsToServer');
   } on Exception catch (error, stackTrace) {
     return FunctionResultFailure(
         error: error, stackTrace: stackTrace, methodName: 'sendLogsToServer');

@@ -1,12 +1,15 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:bike_gps/core/controllers/controllers.dart';
 import 'package:bike_gps/features/domain/usecases/tour/get_alternative_tours.dart';
 import 'package:bike_gps/features/domain/usecases/tour/get_enhanced_tour.dart';
 import 'package:bike_gps/features/domain/usecases/tour/get_tour.dart';
 import 'package:bloc/bloc.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
@@ -87,7 +90,15 @@ class TourBloc extends Bloc<TourEvent, TourState> {
   Stream<TourState> _tourLoadSuccessOrEnhanceFirst(Tour tour,
       List<Tour> alternativeTours, MapboxController mapboxController) async* {
     Tour tourWithDirections = tour;
-    if (!_tourContainsDirections(tour)) {
+    final ConnectivityResult connectivityResult =
+        await Connectivity().checkConnectivity();
+    final bool wifiConnected = connectivityResult == ConnectivityResult.wifi;
+    if (!_tourContainsDirections(tour) && wifiConnected) {
+      log("Tour: ${tour.name} doesn't contain directions");
+      FLog.info(text: "Tour: ${tour.name} doesn't contain directions");
+      FLog.info(
+          text:
+              'Tour without directions and connected to WiFi -> enhancing tour');
       final Either<Failure, Tour> failureOrEnhancedTour =
           await getEnhancedTour(EnhancedTourParams(tour: tour));
       if (failureOrEnhancedTour.isRight()) {
@@ -107,6 +118,10 @@ class TourBloc extends Bloc<TourEvent, TourState> {
   }
 
   bool _tourContainsDirections(Tour tour) {
+    for (final WayPoint wayPoint in tour.wayPoints) {
+      log('WayPoint: ${wayPoint.name}, ${wayPoint.direction}',
+          name: '_tourContainsDirections');
+    }
     int wayPointsWithDirections = 0;
     for (var i = 0; i < tour.wayPoints.length; i++) {
       if (tour.wayPoints[i].direction != '') {

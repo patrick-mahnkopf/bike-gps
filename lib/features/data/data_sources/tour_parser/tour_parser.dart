@@ -97,19 +97,35 @@ class GpxParser extends TourParser {
       }
 
       if (_isWaypoint(currentPoint)) {
+        String direction = '';
+        String location = '';
+        String surface = 'A';
         String turnSymbolId = '';
+
+        if (currentPoint.extensions.containsKey('direction')) {
+          direction = currentPoint.extensions['direction'];
+        } else if (currentPoint.desc != null) {
+          direction = currentPoint.desc;
+        }
+        if (currentPoint.extensions.containsKey('location')) {
+          location = currentPoint.extensions['location'];
+        }
+        if (currentPoint.extensions.containsKey('surface')) {
+          surface = currentPoint.extensions['surface'];
+        }
         if (currentPoint.extensions.containsKey('type')) {
           turnSymbolId = currentPoint.extensions['type'];
         }
+
         final WayPointModel wayPoint = WayPointModel(
           latLng: LatLng(currentPoint.lat, currentPoint.lon),
           elevation: currentPoint.ele,
           distanceFromStart: distanceFromStart,
-          surface: 'A',
-          name: currentPoint.name,
-          direction: currentPoint.desc ?? '',
-          location: '',
-          turnSymboldId: turnSymbolId ?? '',
+          surface: surface,
+          name: currentPoint.name ?? '',
+          direction: direction,
+          location: location,
+          turnSymboldId: turnSymbolId,
         );
         FLog.logThis(
             text: 'wayPoint: $wayPoint',
@@ -136,7 +152,7 @@ class GpxParser extends TourParser {
               isWayPoint: true,
               wayPoint: wayPoint,
               distanceFromStart: distanceFromStart,
-              surface: 'A',
+              surface: wayPoint.surface,
             ));
           } else {
             trackPoints.add(TrackPointModel(
@@ -168,7 +184,7 @@ class GpxParser extends TourParser {
             isWayPoint: true,
             wayPoint: wayPoint,
             distanceFromStart: distanceFromStart,
-            surface: 'A',
+            surface: wayPoint.surface,
           ));
         }
       } else {
@@ -181,19 +197,6 @@ class GpxParser extends TourParser {
         ));
       }
     }
-    // if (tourType == TourType.route) {
-    //   final String basePath = (await getApplicationSupportDirectory()).path;
-    //   await File('$basePath/ORS_tour_${DateTime.now()}.gpx')
-    //       .writeAsString(TourModel(
-    //     name: tourName,
-    //     trackPoints: trackPoints,
-    //     wayPoints: wayPoints,
-    //     bounds: getBounds(tourGpx, trackPoints),
-    //     ascent: ascent,
-    //     descent: descent,
-    //     tourLength: tourLength,
-    //   ).toGpx());
-    // }
     return TourModel(
       name: tourName,
       trackPoints: trackPoints,
@@ -220,7 +223,8 @@ class GpxParser extends TourParser {
   }
 
   bool _isWaypoint(Wpt point) {
-    return point.name != null;
+    return point.name != null ||
+        (point.extensions != null && point.extensions['direction'] != '');
   }
 
   LatLngBounds getBounds(Gpx tourGpx, List<TrackPointModel> trackPoints) {

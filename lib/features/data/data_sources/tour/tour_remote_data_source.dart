@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
+import 'package:bike_gps/core/function_results/function_result.dart';
 import 'package:bike_gps/core/helpers/constants_helper.dart';
+import 'package:bike_gps/core/helpers/tour_list_helper.dart';
 import 'package:bike_gps/features/data/data_sources/tour_parser/tour_parser.dart';
 import 'package:bike_gps/features/domain/entities/tour/entities.dart';
 import 'package:f_logs/f_logs.dart';
@@ -25,11 +28,13 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
   final Client client;
   final TourParser tourParser;
   final ConstantsHelper constantsHelper;
+  final TourListHelper tourListHelper;
 
   TourRemoteDataSourceImpl(
       {@required this.tourParser,
       @required this.client,
-      @required this.constantsHelper});
+      @required this.constantsHelper,
+      @required this.tourListHelper});
 
   /// Calls the route service endpoint found in 'assets/token/route_service_url.txt'.
   ///
@@ -203,8 +208,6 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
           dataLogType: DataLogType.DATABASE.toString());
       for (var i = 0; i < tour.trackPoints.length; i++) {
         for (final WayPoint responseWayPoint in tourResponse.wayPoints) {
-          // log('ResponseWayPoint: ${responseWayPoint.latLng}',
-          //     name: 'TourRemoteDataSource getEnhancedTour responseWayPoint');
           final TrackPoint tourTrackPoint = tour.trackPoints[i];
           final bool pointsHaveSameCoordinates = _haveSameCoordinates(
               tourTrackPoint.latLng, responseWayPoint.latLng);
@@ -246,8 +249,6 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
               direction = responseWayPoint.direction;
               turnSymboldId = responseWayPoint.turnSymboldId;
             }
-            // log('firstName: ${tourTrackPoint.name}, secondName: ${responseWayPoint.name},firstDirection: ${tourTrackPoint.direction}, secondDirection: ${responseWayPoint.direction}',
-            //     name: 'TourRemoteDataSource getEnhancedTour sameWayPoint');
             final WayPointModel newWayPoint = WayPointModel(
                 latLng: tourTrackPoint.latLng,
                 distanceFromStart: tourTrackPoint.distanceFromStart,
@@ -268,11 +269,11 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
             } else {
               tour.addWayPointToTrackPoint(tourTrackPoint, newWayPoint, i);
             }
-            // log('name: ${currentWayPoint.name}, direction: ${currentWayPoint.direction}, location: ${currentWayPoint.location}, turnSymboldId: ${currentWayPoint.turnSymboldId}, surface: ${currentWayPoint.surface}, ',
-            //     name: 'TourRemoteDataSource getEnhancedTour newWayPoint');
           }
         }
       }
+
+      _overrideTourFileWithEnhancedTour(tour);
       return tour;
     } on Exception {
       rethrow;
@@ -285,18 +286,12 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
     final double secondLat = _reduceDoublePrecision(second.latitude);
     final double secondLon = _reduceDoublePrecision(second.longitude);
     if (firstLat == secondLat && firstLon == secondLon) {
-      // log('firstLat: $firstLat, secondLat: $secondLat, firstLon: $firstLon, secondLon: $secondLon',
-      //     name:
-      //         'TourRemoteDataSource getEnhancedTour _haveSameCoordinates found');
-      FLog.info(
+      FLog.trace(
           text:
               'firstLat: $firstLat, secondLat: $secondLat, firstLon: $firstLon, secondLon: $secondLon');
       return true;
     } else {
-      // log('firstLat: $firstLat, secondLat: $secondLat, firstLon: $firstLon, secondLon: $secondLon',
-      //     name:
-      //         'TourRemoteDataSource getEnhancedTour _haveSameCoordinates notfound');
-      FLog.info(
+      FLog.trace(
           text:
               'firstLat: $firstLat, secondLat: $secondLat, firstLon: $firstLon, secondLon: $secondLon');
       return false;
@@ -305,5 +300,39 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
 
   double _reduceDoublePrecision(double value) {
     return double.parse(value.toStringAsFixed(3));
+  }
+
+  Future<FunctionResult> _overrideTourFileWithEnhancedTour(Tour tour) async {
+    final String filePath = tourListHelper.getPath(tour.name);
+    final List<TrackPointModel> trackPoints = tour.trackPoints
+        .map((trackPoint) => TrackPointModel(
+            latLng: trackPoint.latLng,
+            elevation: trackPoint.elevation,
+            distanceFromStart: trackPoint.distanceFromStart,
+            surface: trackPoint.surface,
+            isWayPoint: trackPoint.isWayPoint,
+            wayPoint: trackPoint.wayPoint))
+        .toList();
+    final List<WayPointModel> wayPoints = tour.wayPoints
+        .map((wayPoint) => WayPointModel(
+            name: wayPoint.name,
+            latLng: wayPoint.latLng,
+            elevation: wayPoint.elevation,
+            distanceFromStart: wayPoint.distanceFromStart,
+            surface: wayPoint.surface,
+            direction: wayPoint.direction,
+            location: wayPoint.location,
+            turnSymboldId: wayPoint.turnSymboldId))
+        .toList();
+    await File(filePath).writeAsString(TourModel(
+            name: tour.name,
+            trackPoints: trackPoints,
+            wayPoints: wayPoints,
+            ascent: tour.ascent,
+            descent: tour.descent,
+            tourLength: tour.tourLength,
+            bounds: tour.bounds)
+        .toGpx());
+    return FunctionResultSuccess();
   }
 }

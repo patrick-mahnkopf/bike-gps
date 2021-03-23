@@ -66,7 +66,7 @@ class MainActivity: FlutterActivity() {
       print("Kotlin: originalPath: $originalPath")
       val originalFile = File(originalPath)
       val newFile = File(context.filesDir.resolve("tours"), originalFile.name)
-      originalFile.copyTo(target = newFile)
+      originalFile.copyTo(target = newFile, overwrite = true)
     }
   }
 }

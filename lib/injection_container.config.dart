@@ -14,13 +14,13 @@ import 'core/helpers/color_helper.dart' as _i4;
 import 'core/helpers/constants_helper.dart' as _i5;
 import 'core/helpers/distance_helper.dart' as _i6;
 import 'core/helpers/tour_conversion_helper.dart' as _i12;
-import 'core/helpers/tour_list_helper.dart' as _i15;
+import 'core/helpers/tour_list_helper.dart' as _i14;
 import 'features/data/data_sources/search/search_result_local_data_source.dart'
     as _i24;
 import 'features/data/data_sources/search/search_result_remote_data_source.dart'
     as _i25;
-import 'features/data/data_sources/tour/tour_local_data_source.dart' as _i16;
-import 'features/data/data_sources/tour/tour_remote_data_source.dart' as _i13;
+import 'features/data/data_sources/tour/tour_local_data_source.dart' as _i15;
+import 'features/data/data_sources/tour/tour_remote_data_source.dart' as _i16;
 import 'features/data/data_sources/tour_parser/rtx_parser.dart' as _i35;
 import 'features/data/data_sources/tour_parser/tour_parser.dart' as _i8;
 import 'features/data/repositories/search/search_result_repository_impl.dart'
@@ -37,7 +37,7 @@ import 'features/domain/usecases/tour/get_alternative_tours.dart' as _i19;
 import 'features/domain/usecases/tour/get_enhanced_tour.dart' as _i20;
 import 'features/domain/usecases/tour/get_path_to_tour.dart' as _i21;
 import 'features/domain/usecases/tour/get_tour.dart' as _i22;
-import 'features/presentation/blocs/height_map/height_map_bloc.dart' as _i14;
+import 'features/presentation/blocs/height_map/height_map_bloc.dart' as _i13;
 import 'features/presentation/blocs/map/map_bloc.dart' as _i10;
 import 'features/presentation/blocs/mapbox/mapbox_bloc.dart' as _i11;
 import 'features/presentation/blocs/navigation/navigation_bloc.dart' as _i23;
@@ -83,22 +83,23 @@ Future<_i1.GetIt> $initGetIt(_i1.GetIt get,
           constantsHelper: get<_i5.ConstantsHelper>(),
           distanceHelper: get<_i6.DistanceHelper>()),
       registerFor: {_public});
-  gh.factory<_i13.TourRemoteDataSource>(() => _i13.TourRemoteDataSourceImpl(
-      tourParser: get<_i8.TourParser>(),
-      client: get<_i3.Client>(),
-      constantsHelper: get<_i5.ConstantsHelper>()));
-  gh.factory<_i14.HeightMapBloc>(() => _i14.HeightMapBloc(
+  gh.factory<_i13.HeightMapBloc>(() => _i13.HeightMapBloc(
       tourConversionHelper: get<_i12.TourConversionHelper>()));
-  gh.lazySingleton<_i15.TourListHelper>(() => _i15.TourListHelper(
+  gh.lazySingleton<_i14.TourListHelper>(() => _i14.TourListHelper(
       constantsHelper: get<_i5.ConstantsHelper>(),
       tourParser: get<_i8.TourParser>()));
-  gh.factory<_i16.TourLocalDataSource>(() => _i16.TourLocalDataSourceImpl(
+  gh.factory<_i15.TourLocalDataSource>(() => _i15.TourLocalDataSourceImpl(
       tourParser: get<_i8.TourParser>(),
       constantsHelper: get<_i5.ConstantsHelper>(),
-      tourListHelper: get<_i15.TourListHelper>()));
+      tourListHelper: get<_i14.TourListHelper>()));
+  gh.factory<_i16.TourRemoteDataSource>(() => _i16.TourRemoteDataSourceImpl(
+      tourParser: get<_i8.TourParser>(),
+      client: get<_i3.Client>(),
+      constantsHelper: get<_i5.ConstantsHelper>(),
+      tourListHelper: get<_i14.TourListHelper>()));
   gh.factory<_i17.TourRepository>(() => _i18.TourRepositoryImpl(
-      localDataSource: get<_i16.TourLocalDataSource>(),
-      remoteDataSource: get<_i13.TourRemoteDataSource>()));
+      localDataSource: get<_i15.TourLocalDataSource>(),
+      remoteDataSource: get<_i16.TourRemoteDataSource>()));
   gh.lazySingleton<_i19.GetAlternativeTours>(
       () => _i19.GetAlternativeTours(repository: get<_i17.TourRepository>()));
   gh.lazySingleton<_i20.GetEnhancedTour>(
@@ -114,11 +115,11 @@ Future<_i1.GetIt> $initGetIt(_i1.GetIt get,
   await gh.factoryAsync<_i24.SearchResultLocalDataSource>(
       () => _i24.SearchResultLocalDataSourceImpl.create(
           constantsHelper: get<_i5.ConstantsHelper>(),
-          tourListHelper: get<_i15.TourListHelper>()),
+          tourListHelper: get<_i14.TourListHelper>()),
       preResolve: true);
   gh.factory<_i25.SearchResultRemoteDataSource>(() =>
       _i25.SearchResultRemoteDataSourceImpl(
-          tourListHelper: get<_i15.TourListHelper>(),
+          tourListHelper: get<_i14.TourListHelper>(),
           getTour: get<_i22.GetTour>()));
   gh.factory<_i26.SearchResultRepository>(() => _i27.SearchResultRepositoryImpl(
       localDataSource: get<_i24.SearchResultLocalDataSource>(),
@@ -141,7 +142,7 @@ Future<_i1.GetIt> $initGetIt(_i1.GetIt get,
       preResolve: true);
   gh.singletonAsync<_i33.MapboxController>(() => _i33.MapboxController.create(
       constantsHelper: get<_i5.ConstantsHelper>(),
-      tourListHelper: get<_i15.TourListHelper>(),
+      tourListHelper: get<_i14.TourListHelper>(),
       searchBloc: get<_i32.SearchBloc>(),
       tourBloc: get<_i28.TourBloc>()));
   return get;

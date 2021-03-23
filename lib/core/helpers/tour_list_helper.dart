@@ -49,6 +49,7 @@ class TourListHelper {
           _tourList.remove(baseNameWithoutExtension);
         } else {
           if (await shouldAddTourToList(filePath: event.path)) {
+            await Future.delayed(const Duration(milliseconds: 100));
             final File file = File(event.path);
             _tourList.add(await tourParser.getTourInfo(file: file));
           }
@@ -60,6 +61,12 @@ class TourListHelper {
 
   Future<FunctionResult> initializeTourList() async {
     _tourList = TourListModel.fromJson(constantsHelper.tourListPath);
+    for (final TourInfo tourInfo in _tourList.asList) {
+      if (!File(tourInfo.filePath).existsSync()) {
+        _tourList.remove(tourInfo.name);
+      }
+    }
+    _tourList.changeTourListCacheFile(constantsHelper.tourListPath);
     final List<FileSystemEntity> tourFiles =
         Directory(constantsHelper.tourDirectoryPath).listSync();
     for (final FileSystemEntity entity in tourFiles) {

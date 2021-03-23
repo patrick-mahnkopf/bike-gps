@@ -256,10 +256,20 @@ class RoadBook extends StatelessWidget {
           iconId: currentWayPoint.turnSymboldId,
           color: Colors.black,
         ),
-        title: Text(currentWayPoint.name ?? ''),
+        title: _getTileTitle(currentWayPoint),
         subtitle: _getTileSubtitle(currentWayPoint),
       );
     }
+  }
+
+  Widget _getTileTitle(WayPoint currentWayPoint) {
+    if (currentWayPoint.name != null && currentWayPoint.name != '') {
+      return Text(currentWayPoint.name);
+    } else if (currentWayPoint.location != null &&
+        currentWayPoint.location != '') {
+      return Text(currentWayPoint.location);
+    }
+    return Container();
   }
 
   Widget _getTileSubtitle(WayPoint currentWayPoint) {
