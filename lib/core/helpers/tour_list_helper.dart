@@ -1,9 +1,12 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:bike_gps/core/function_results/function_result.dart';
 import 'package:bike_gps/core/helpers/constants_helper.dart';
 import 'package:bike_gps/features/data/data_sources/tour_parser/tour_parser.dart';
+import 'package:bike_gps/features/data/models/tour/tour_list_model.dart';
 import 'package:bike_gps/features/domain/entities/tour/entities.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:injectable/injectable.dart';
 import 'package:path/path.dart' as p;
@@ -11,7 +14,7 @@ import 'package:watcher/watcher.dart';
 
 @lazySingleton
 class TourListHelper {
-  final TourList _tourList = TourList();
+  TourListModel _tourList;
   final ConstantsHelper constantsHelper;
   final TourParser tourParser;
 
@@ -50,39 +53,48 @@ class TourListHelper {
             _tourList.add(await tourParser.getTourInfo(file: file));
           }
         }
+        _tourList.changeTourListCacheFile(constantsHelper.tourListPath);
       },
     );
   }
 
-  Future<List<TourInfo>> initializeTourList() async {
+  Future<FunctionResult> initializeTourList() async {
+    _tourList = TourListModel.fromJson(constantsHelper.tourListPath);
     final List<FileSystemEntity> tourFiles =
         Directory(constantsHelper.tourDirectoryPath).listSync();
-    final List<TourInfo> initialTourList = [];
     for (final FileSystemEntity entity in tourFiles) {
+      FLog.info(text: 'Found potential tour file for tour list');
       if (await shouldAddTourToList(filePath: entity.path)) {
+        FLog.info(text: 'Adding tour file to tour list');
         final TourInfo tourInfo =
             await tourParser.getTourInfo(file: entity as File);
-        initialTourList.add(tourInfo);
         _tourList.add(tourInfo);
       }
     }
-    return initialTourList;
+    _tourList.changeTourListCacheFile(constantsHelper.tourListPath);
+    return FunctionResultSuccess();
   }
 
   Future<bool> shouldAddTourToList({@required String filePath}) async {
     try {
+      FLog.info(text: 'Got file path: $filePath');
       final String fileBasename = p.basenameWithoutExtension(filePath);
       final File file = await _getFileWithBestExtension(fileBasename);
+      FLog.info(text: 'Using file: ${file.path}');
       if (file != null) {
         if (_tourList.contains(fileBasename)) {
           final bool differentHash = _tourList.getFileHash(fileBasename) !=
               await constantsHelper.getFileHash(file.path);
           final bool differentExtension =
               _tourList.getExtension(fileBasename) != p.extension(file.path);
+          FLog.info(
+              text:
+                  'File already in tour list: differentHash? $differentHash, differentExtension? $differentExtension');
           if (differentHash || differentExtension) {
             return true;
           }
         } else {
+          FLog.info(text: 'File not yet in tour list');
           return true;
         }
       }

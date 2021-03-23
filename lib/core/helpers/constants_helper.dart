@@ -16,6 +16,7 @@ class ConstantsHelper {
   final String applicationSupportDirectoryPath;
   String tourDirectoryPath;
   String searchHistoryPath;
+  String tourListPath;
   static const String mapSymbolPath = 'assets/images/map_symbols';
   static const String turnArrowsPath = 'assets/images/turn_arrows';
   final Map<String, String> turnSymbolAssetPaths;
@@ -41,11 +42,18 @@ class ConstantsHelper {
       applicationSupportDirectoryPath,
       'searchHistory.json',
     );
+    tourListPath = p.join(
+      applicationSupportDirectoryPath,
+      'tourList.json',
+    );
     if (!Directory(tourDirectoryPath).existsSync()) {
       Directory(tourDirectoryPath).create(recursive: true);
     }
     if (!File(searchHistoryPath).existsSync()) {
       File(searchHistoryPath).create();
+    }
+    if (!File(tourListPath).existsSync()) {
+      File(tourListPath).create();
     }
   }
 

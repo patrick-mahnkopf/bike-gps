@@ -2,11 +2,19 @@ import 'dart:io';
 
 import 'package:bike_gps/features/domain/entities/tour/entities.dart';
 import 'package:bike_gps/features/domain/entities/tour/tour_info.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:path/path.dart' as p;
 
 class TourList {
-  final Map<String, TourInfo> _tourMap = {};
-  final Map<String, TourBounds> _tourBounds = {};
+  Map<String, TourInfo> _tourMap = {};
+  Map<String, TourBounds> _tourBounds = {};
+
+  TourList(
+      {@required Map<String, TourInfo> tourMap,
+      @required Map<String, TourBounds> tourBounds}) {
+    _tourMap = tourMap;
+    _tourBounds = tourBounds;
+  }
 
   List<TourInfo> get asList => _tourMap.values.toList();
 

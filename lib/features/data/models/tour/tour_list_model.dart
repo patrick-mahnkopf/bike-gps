@@ -1,11 +1,35 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:bike_gps/features/data/models/tour/tour_info_model.dart';
+import 'package:bike_gps/features/domain/entities/tour/entities.dart';
 import 'package:bike_gps/features/domain/entities/tour/tour_list.dart';
+import 'package:flutter/foundation.dart';
 
 class TourListModel extends TourList {
-  TourListModel() : super();
+  TourListModel(
+      {@required Map<String, TourInfoModel> tourMap,
+      @required Map<String, TourBounds> tourBounds})
+      : super(tourMap: tourMap, tourBounds: tourBounds);
 
-  // TODO implement fromJson
-  TourListModel.fromJson();
+  factory TourListModel.fromJson(String tourListPath) {
+    final Map<String, TourInfoModel> tourMap = {};
+    final Map<String, TourBounds> tourBounds = {};
+    final String tourListContent = File(tourListPath).readAsStringSync();
+    if (tourListContent != '') {
+      final List tourInfos = jsonDecode(tourListContent) as List;
+      for (final dynamic tourInfo in tourInfos) {
+        final TourInfoModel tourInfoModel =
+            TourInfoModel.fromJson(tourInfo as Map<String, dynamic>);
+        tourMap[tourInfoModel.name] = tourInfoModel;
+        tourBounds[tourInfoModel.name] =
+            TourBounds(bounds: tourInfoModel.bounds, name: tourInfoModel.name);
+      }
+    }
+    return TourListModel(tourMap: tourMap, tourBounds: tourBounds);
+  }
 
-  // TODO implement toJson
-  Map<String, dynamic> toJson() => {};
+  void changeTourListCacheFile(String tourListPath) {
+    File(tourListPath).writeAsStringSync(jsonEncode(asList), flush: true);
+  }
 }
