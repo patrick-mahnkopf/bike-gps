@@ -19,6 +19,7 @@ import 'injection_container.dart';
 
 Future<FunctionResult> appStart({@required String environment}) async {
   WidgetsFlutterBinding.ensureInitialized();
+  _initializeFLog();
   FLog.info(
       text: 'Platform: ${Platform.operatingSystem}', methodName: 'appStart');
   await _init(environment: environment);
@@ -26,6 +27,13 @@ Future<FunctionResult> appStart({@required String environment}) async {
   Bloc.observer = SimpleBlocObserver();
   runApp(const MyApp());
   return FunctionResultSuccess();
+}
+
+void _initializeFLog() {
+  final LogsConfig config = LogsConfig()
+    ..iOSDataBasePath = DataBaseDirectory.APPLICATIONSUPPORT
+    ..androidDataBasePath = DataBaseDirectory.APPLICATIONSUPPORT;
+  FLog.applyConfigurations(config);
 }
 
 Future<FunctionResult> _init({@required String environment}) async {
