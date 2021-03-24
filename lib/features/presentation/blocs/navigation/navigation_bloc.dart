@@ -69,14 +69,12 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       return LatLng(event.userLocation.latitude, event.userLocation.longitude);
     } else {
       LocationData locationData;
+      // Location().getLocation() gets stuck on iOS in current Location package version
       if (Platform.isIOS) {
-        getIt<Location>()
-            .onLocationChanged
-            .listen((LocationData currentLocation) {
-          locationData = currentLocation;
-        });
-        while (locationData == null) {
-          await Future.delayed(const Duration(milliseconds: 100));
+        await for (final LocationData userLocation
+            in getIt<Location>().onLocationChanged) {
+          locationData = userLocation;
+          break;
         }
       } else {
         locationData = await getIt<Location>().getLocation();
