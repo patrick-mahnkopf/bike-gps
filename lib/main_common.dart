@@ -108,11 +108,13 @@ Future<FunctionResult> sendLogsToServer() async {
         methodName: 'sendLogsToServer');
     await FLog.clearLogs();
     FLog.info(text: 'Cleared local FLog db', methodName: 'sendLogsToServer');
+    await logFile.delete();
+    FLog.info(
+        text: 'Deleted the local export file', methodName: 'sendLogsToServer');
   } on Exception catch (error, stackTrace) {
     return FunctionResultFailure(
         error: error, stackTrace: stackTrace, methodName: 'sendLogsToServer');
   } finally {
-    await client.disconnectSFTP();
     client.disconnect();
   }
   return FunctionResultSuccess();
