@@ -93,20 +93,25 @@ class GpxParser extends TourParser {
         String surface = 'A';
         String turnSymbolId = '';
 
-        if (currentPoint.extensions.containsKey('direction')) {
+        if (currentPoint.extensions.containsKey('direction') &&
+            currentPoint.extensions['direction'] != '') {
           direction = currentPoint.extensions['direction'];
         } else if (currentPoint.desc != null) {
           direction = currentPoint.desc;
         }
-        if (currentPoint.extensions.containsKey('location')) {
+        if (currentPoint.extensions.containsKey('location') &&
+            currentPoint.extensions['location'] != '') {
           location = currentPoint.extensions['location'];
         }
-        if (currentPoint.extensions.containsKey('surface')) {
+        if (currentPoint.extensions.containsKey('surface') &&
+            currentPoint.extensions['surface'] != '') {
           surface = currentPoint.extensions['surface'];
         }
-        if (currentPoint.extensions.containsKey('turnsymbolid')) {
+        if (currentPoint.extensions.containsKey('turnsymbolid') &&
+            currentPoint.extensions['turnsymbolid'] != '') {
           turnSymbolId = currentPoint.extensions['turnsymbolid'];
-        } else if (currentPoint.extensions.containsKey('type')) {
+        } else if (currentPoint.extensions.containsKey('type') &&
+            currentPoint.extensions['type'] != '') {
           turnSymbolId = currentPoint.extensions['type'];
         }
 
