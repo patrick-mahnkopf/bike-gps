@@ -309,13 +309,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
-  fluro:
-    dependency: "direct main"
-    description:
-      name: fluro
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.7.8"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -328,22 +321,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "7.0.0"
-  flutter_riverpod:
-    dependency: "direct main"
-    description:
-      name: flutter_riverpod
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.12.4"
   flutter_svg:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "12b55b464d2e253f411a17798527a7daa2c00ceb"
-      resolved-ref: "12b55b464d2e253f411a17798527a7daa2c00ceb"
-      url: "git://github.com/gskinnerTeam/flutter_svg.git"
-    source: git
-    version: "0.19.2+1"
+      name: flutter_svg
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.19.3"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -354,13 +338,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  freezed_annotation:
-    dependency: transitive
-    description:
-      name: freezed_annotation
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.14.1"
   geocoder:
     dependency: "direct main"
     description:
@@ -504,7 +481,7 @@ packages:
     source: hosted
     version: "4.0.1"
   latlong:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: latlong
       url: "https://pub.dartlang.org"
@@ -779,26 +756,10 @@ packages:
   receive_sharing_intent:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "15d3b203a98e2dab66584de82569ffeecc75dd18"
-      url: "https://github.com/LazyDave76/receive_sharing_intent.git"
-    source: git
-    version: "1.4.3"
-  riverpod:
-    dependency: transitive
-    description:
-      name: riverpod
+      name: receive_sharing_intent
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.4"
-  rxdart:
-    dependency: "direct main"
-    description:
-      name: rxdart
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.25.0"
+    version: "1.4.5"
   sembast:
     dependency: transitive
     description:
@@ -860,13 +821,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.10.0"
-  state_notifier:
-    dependency: transitive
-    description:
-      name: state_notifier
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.7.0"
   stream_channel:
     dependency: transitive
     description:
@@ -916,13 +870,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.1+3"
-  tuple:
-    dependency: "direct main"
-    description:
-      name: tuple
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.3"
   typed_data:
     dependency: transitive
     description:
@@ -930,13 +877,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.3.0"
-  uni_links:
-    dependency: "direct main"
-    description:
-      name: uni_links
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.4.0"
   uuid:
     dependency: transitive
     description:
@@ -1009,4 +949,4 @@ packages:
     version: "2.2.1"
 sdks:
   dart: ">=2.12.0 <3.0.0"
-  flutter: ">=1.24.0-6.0.pre"
+  flutter: ">=1.24.0-10.1.pre"
