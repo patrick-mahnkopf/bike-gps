@@ -126,7 +126,7 @@ packages:
       name: built_value
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "8.0.3"
+    version: "8.0.4"
   characters:
     dependency: transitive
     description:
@@ -277,11 +277,9 @@ packages:
   f_logs:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "484f30d8ddb703467fa10a66b74be3252358cd88"
-      url: "https://github.com/patrick-mahnkopf/Flogs.git"
-    source: git
+      name: f_logs
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "1.3.0-alpha-02"
   fake_async:
     dependency: transitive
@@ -504,7 +502,7 @@ packages:
       name: json_annotation
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.0.0"
+    version: "4.0.1"
   latlong:
     dependency: "direct main"
     description:
