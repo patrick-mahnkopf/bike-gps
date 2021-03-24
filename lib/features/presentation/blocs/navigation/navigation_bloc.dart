@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:bike_gps/core/controllers/controllers.dart';
 import 'package:bike_gps/core/helpers/constants_helper.dart';
@@ -67,7 +68,19 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     if (event.userLocation != null) {
       return LatLng(event.userLocation.latitude, event.userLocation.longitude);
     } else {
-      final LocationData locationData = await getIt<Location>().getLocation();
+      LocationData locationData;
+      if (Platform.isIOS) {
+        getIt<Location>()
+            .onLocationChanged
+            .listen((LocationData currentLocation) {
+          locationData = currentLocation;
+        });
+        while (locationData == null) {
+          await Future.delayed(const Duration(milliseconds: 100));
+        }
+      } else {
+        locationData = await getIt<Location>().getLocation();
+      }
       return LatLng(locationData.latitude, locationData.longitude);
     }
   }
