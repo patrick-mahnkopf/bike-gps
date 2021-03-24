@@ -104,7 +104,9 @@ class GpxParser extends TourParser {
         if (currentPoint.extensions.containsKey('surface')) {
           surface = currentPoint.extensions['surface'];
         }
-        if (currentPoint.extensions.containsKey('type')) {
+        if (currentPoint.extensions.containsKey('turnsymbolid')) {
+          turnSymbolId = currentPoint.extensions['turnsymbolid'];
+        } else if (currentPoint.extensions.containsKey('type')) {
           turnSymbolId = currentPoint.extensions['type'];
         }
 
@@ -202,8 +204,10 @@ class GpxParser extends TourParser {
   }
 
   bool _isWaypoint(Wpt point) {
-    return point.name != null ||
-        (point.extensions != null && point.extensions['direction'] != '');
+    return point.name != null && point.name != '' ||
+        (point.extensions != null &&
+            point.extensions['direction'] != null &&
+            point.extensions['direction'] != '');
   }
 
   LatLngBounds getBounds(Gpx tourGpx, List<TrackPointModel> trackPoints) {
