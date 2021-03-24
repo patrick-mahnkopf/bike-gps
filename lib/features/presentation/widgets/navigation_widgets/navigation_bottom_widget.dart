@@ -1,6 +1,7 @@
 import 'package:bike_gps/core/helpers/distance_helper.dart';
 import 'package:bike_gps/core/widgets/custom_widgets.dart';
 import 'package:bike_gps/features/presentation/blocs/mapbox/mapbox_bloc.dart';
+import 'package:bike_gps/features/presentation/blocs/navigation/navigation_bloc.dart';
 import 'package:bike_gps/features/presentation/blocs/tour/tour_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -109,7 +110,10 @@ class GrabSectionContent extends StatelessWidget {
     final TourState tourState = BlocProvider.of<TourBloc>(context).state;
     final MapboxBloc mapboxBloc = BlocProvider.of<MapboxBloc>(context);
     final MapboxState mapboxState = mapboxBloc.state;
+    final NavigationBloc navigationBloc =
+        BlocProvider.of<NavigationBloc>(context);
     if (mapboxState is MapboxLoadSuccess && tourState is TourLoadSuccess) {
+      navigationBloc.add(NavigationStopped());
       mapboxState.controller.animateCameraToTourBounds(
           tour: tourState.tour, alternativeTours: tourState.alternativeTours);
       mapboxState.controller.clearPathToTour();
