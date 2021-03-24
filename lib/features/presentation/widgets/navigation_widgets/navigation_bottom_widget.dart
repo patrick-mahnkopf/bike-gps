@@ -112,6 +112,7 @@ class GrabSectionContent extends StatelessWidget {
     if (mapboxState is MapboxLoadSuccess && tourState is TourLoadSuccess) {
       mapboxState.controller.animateCameraToTourBounds(
           tour: tourState.tour, alternativeTours: tourState.alternativeTours);
+      mapboxState.controller.clearPathToTour();
       mapboxBloc.add(MapboxLoaded(
           mapboxController: mapboxState.controller,
           myLocationTrackingMode: MyLocationTrackingMode.None));
