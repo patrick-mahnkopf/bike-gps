@@ -7,12 +7,12 @@
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
+			<key>CFBundleTypeIconFile</key>
+			<string>AppIcon</string>
 			<key>CFBundleTypeName</key>
 			<string>GPS Exchange Format (GPX)</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
-            <key>CFBundleTypeIconFile</key>
-            <string>AppIcon</string>
 			<key>LSHandlerRank</key>
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
@@ -22,12 +22,12 @@
 			</array>
 		</dict>
 		<dict>
+			<key>CFBundleTypeIconFile</key>
+			<string>AppIcon</string>
 			<key>CFBundleTypeName</key>
 			<string>RichTrack File Format (RTX)</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
-            <key>CFBundleTypeIconFile</key>
-            <string>AppIcon</string>
 			<key>LSHandlerRank</key>
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
@@ -64,22 +64,22 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-  <key>LSSupportsOpeningDocumentsInPlace</key>
-  <true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This app needs access to location when open and in the background.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>This app needs access to location when in the background.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app needs access to location when open.</string>
-	<!-- TODO remove FLogs when logging no longer needed-->
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>FLogs would like to save photos from the app to your gallery</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>FLogs would like to access your photo gallery for uploading images to the app</string>
-	<!-- End of FLogs permissions-->
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
