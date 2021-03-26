@@ -5,6 +5,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_archive/flutter_archive.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
@@ -151,7 +152,7 @@ class _MyAppState extends State<MyApp> {
         final File file = File(path);
         FLog.trace(text: 'Flutter got file: $path while running');
         print("Got file: $path");
-        await _copyFileToTourDirectory(file: file);
+        await _handleFile(file: file);
       }
     }, onError: (err) {
       // TODO present error dialog to User
@@ -167,7 +168,7 @@ class _MyAppState extends State<MyApp> {
           final File file = File(path);
           FLog.trace(text: 'Flutter got started with file: $path');
           print("Got file: $path");
-          await _copyFileToTourDirectory(file: file);
+          await _handleFile(file: file);
         }
       }
     });
@@ -191,6 +192,33 @@ class _MyAppState extends State<MyApp> {
         _sharedText = value;
       });
     });
+  }
+
+  Future<FunctionResult> _handleFile({@required File file}) async {
+    try {
+      final String extension = p.extension(file.path);
+      if (extension == '.zip') {
+        _handleZip(zipFile: file);
+      } else {
+        _copyFileToTourDirectory(file: file);
+      }
+      return FunctionResultSuccess();
+    } on Exception catch (error, stackTrace) {
+      return FunctionResultFailure(error: error, stackTrace: stackTrace);
+    }
+  }
+
+  Future<FunctionResult> _handleZip({@required File zipFile}) async {
+    try {
+      FLog.trace(text: 'Handling zip file');
+      final Directory destinationDir =
+          Directory(constantsHelper.tourDirectoryPath);
+      await ZipFile.extractToDirectory(
+          zipFile: zipFile, destinationDir: destinationDir);
+      return FunctionResultSuccess();
+    } on Exception catch (error, stackTrace) {
+      return FunctionResultFailure(error: error, stackTrace: stackTrace);
+    }
   }
 
   Future<File> _copyFileToTourDirectory({@required File file}) async {

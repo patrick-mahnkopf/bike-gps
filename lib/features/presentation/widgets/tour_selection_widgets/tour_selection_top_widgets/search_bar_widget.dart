@@ -46,8 +46,7 @@ class SearchBarWidget extends StatelessWidget {
                   if (searchBarController.query.isEmpty) {
                     return CircularButton(
                       icon: const Icon(Icons.menu),
-                      onPressed: () =>
-                          print('options menu not implemented yet'),
+                      onPressed: () => _displayOptionsMenu(),
                     );
                   } else {
                     return CircularButton(
@@ -111,6 +110,10 @@ class SearchBarWidget extends StatelessWidget {
     }
     _onSubmitted(
         searchBloc: searchBloc, context: context, searchResult: searchResult);
+  }
+
+  void _displayOptionsMenu() {
+    // TODO implement search bar options menu
   }
 }
 

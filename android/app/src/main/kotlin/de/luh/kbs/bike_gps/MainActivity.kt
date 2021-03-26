@@ -10,6 +10,7 @@ import android.os.Parcelable
 import androidx.core.app.ActivityCompat
 import io.flutter.embedding.android.FlutterActivity
 import java.io.File
+import java.util.zip.ZipFile
 
 class MainActivity: FlutterActivity() {
   private val uriPathHelper = URIPathHelper()
@@ -46,27 +47,53 @@ class MainActivity: FlutterActivity() {
 
   private fun handleSingleFile(intent: Intent) {
     val fileURI = intent.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri
-    if (fileURI != null) {
-      copyFileToAppStorage(fileURI)
-    }
+    val file = getFileFromUri(fileURI)
+    handleFile(file)
   }
 
   private fun handleMultipleFiles(intent: Intent) {
     val fileURIList = intent.getParcelableArrayListExtra<Parcelable>(Intent.EXTRA_STREAM) ?: arrayListOf()
     for (fileURI in fileURIList) {
-      if (fileURI != null) {
-        copyFileToAppStorage(fileURI as Uri)
+      val file = getFileFromUri(fileURI as Uri)
+      handleFile(file)
+    }
+  }
+
+  private fun getFileFromUri(fileURI: Uri?): File? {
+    if (fileURI != null) {
+      val filePath: String? = uriPathHelper.getPath(this, fileURI)
+      if (filePath != null) {
+        return File(filePath)
+      }
+    }
+    return null
+  }
+
+  private fun handleFile(file: File?) {
+    if (file != null) {
+      if (file.extension == "zip") {
+        handleZip(file)
+      } else {
+        copyFileToAppStorage(file)
       }
     }
   }
 
-  private fun copyFileToAppStorage(fileURI: Uri) {
-    val originalPath = uriPathHelper.getPath(this, fileURI)
-    if (originalPath != null) {
-      print("Kotlin: originalPath: $originalPath")
-      val originalFile = File(originalPath)
-      val newFile = File(context.filesDir.resolve("tours"), originalFile.name)
-      originalFile.copyTo(target = newFile, overwrite = true)
+  private fun handleZip(zipFile: File) {
+    ZipFile(zipFile).use { zip ->
+      zip.entries().asSequence().forEach { entry ->
+        zip.getInputStream(entry).use { input ->
+          File(context.filesDir.resolve("tours"), entry.name).outputStream().use { output ->
+            input.copyTo(output)
+          }
+        }
+      }
     }
+  }
+
+  private fun copyFileToAppStorage(file: File) {
+      print("Kotlin: originalPath: ${file.absolutePath}")
+      val newFile = File(context.filesDir.resolve("tours"), file.name)
+      file.copyTo(target = newFile, overwrite = true)
   }
 }

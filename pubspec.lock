@@ -314,6 +314,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_archive:
+    dependency: "direct main"
+    description:
+      name: flutter_archive
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.0"
   flutter_bloc:
     dependency: "direct main"
     description:
@@ -762,13 +769,6 @@ packages:
       url: "https://github.com/LazyDave76/receive_sharing_intent.git"
     source: git
     version: "1.4.3"
-  rxdart:
-    dependency: transitive
-    description:
-      name: rxdart
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.25.0"
   sembast:
     dependency: transitive
     description:
@@ -815,7 +815,7 @@ packages:
       name: source_span
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.8.1"
+    version: "1.8.0"
   ssh:
     dependency: "direct main"
     description:
