@@ -312,7 +312,7 @@ class ShareViewController: SLComposeServiceViewController {
 
         // Debug method to print out SharedMediaFile details in the console
         func toString() {
-            print("[SharedMediaFile] \n\tpath: \(self.path)\n\tthumbnail: \(self.thumbnail)\n\tduration: \(self.duration)\n\ttype: \(self.type)")
+            print("[SharedMediaFile] \n\tpath: \(self.path)\n\tthumbnail: \(String(describing: self.thumbnail))\n\tduration: \(String(describing: self.duration))\n\ttype: \(self.type)")
         }
     }
 

@@ -211,14 +211,39 @@ class _MyAppState extends State<MyApp> {
   Future<FunctionResult> _handleZip({@required File zipFile}) async {
     try {
       FLog.trace(text: 'Handling zip file');
-      final Directory destinationDir =
-          Directory(constantsHelper.tourDirectoryPath);
-      await ZipFile.extractToDirectory(
-          zipFile: zipFile, destinationDir: destinationDir);
+      await _extractZip(zipFile: zipFile);
       return FunctionResultSuccess();
     } on Exception catch (error, stackTrace) {
       return FunctionResultFailure(error: error, stackTrace: stackTrace);
     }
+  }
+
+  Future<FunctionResult> _extractZip({@required File zipFile}) async {
+    // Extract the zip archive to a temp directory
+    final destinationDirPath = constantsHelper.tourDirectoryPath;
+    final Directory tempDirectory =
+        await Directory(destinationDirPath).createTemp('.');
+    await ZipFile.extractToDirectory(
+        zipFile: zipFile, destinationDir: tempDirectory);
+
+    // Move all files from the temp directory to the destination directory
+    for (final FileSystemEntity entity in tempDirectory.listSync()) {
+      final File file = File(entity.path);
+      final String fileName = p.basename(file.path);
+      final String newPath = p.join(destinationDirPath, fileName);
+      await _moveFile(file: file, newPath: newPath);
+    }
+    await tempDirectory.delete();
+
+    // Delete the zip archive in the destination directory if it was copied there by the archive library
+    final String zipFileName = p.basename(zipFile.path);
+    final String zipFilePathToCheck = p.join(destinationDirPath, zipFileName);
+    final File copiedZipFile = File(zipFilePathToCheck);
+    if (copiedZipFile.existsSync()) {
+      await copiedZipFile.delete();
+    }
+
+    return FunctionResultSuccess();
   }
 
   Future<File> _copyFileToTourDirectory({@required File file}) async {

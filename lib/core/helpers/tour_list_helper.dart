@@ -43,21 +43,30 @@ class TourListHelper {
   void _startTourListChangeListener() {
     DirectoryWatcher(constantsHelper.tourDirectoryPath).events.listen(
       (WatchEvent event) async {
-        if (event.type == ChangeType.REMOVE) {
-          final String baseNameWithoutExtension =
-              p.basenameWithoutExtension(event.path);
-          _tourList.remove(baseNameWithoutExtension);
-        } else {
-          if (tourParser.fileExtensionPriority
-              .contains(p.extension(event.path))) {
-            if (await shouldAddTourToList(filePath: event.path)) {
-              await Future.delayed(const Duration(milliseconds: 100));
-              final File file = File(event.path);
-              _tourList.add(await tourParser.getTourInfo(file: file));
+        if (!event.path.contains('/.')) {
+          if (event.type == ChangeType.REMOVE) {
+            FLog.info(text: 'File at ${event.path} got removed');
+            final String baseNameWithoutExtension =
+                p.basenameWithoutExtension(event.path);
+            _tourList.remove(baseNameWithoutExtension);
+          } else {
+            log('File change event type: ${event.type}, path: ${event.path}');
+            if (tourParser.fileExtensionPriority
+                .contains(p.extension(event.path))) {
+              if (await shouldAddTourToList(filePath: event.path)) {
+                await Future.delayed(const Duration(milliseconds: 100));
+                log('Found potential tour file for tour list at ${event.path}',
+                    name: 'TourListHelper debug');
+                FLog.info(
+                    text:
+                        'Found potential tour file for tour list at ${event.path}');
+                final File file = File(event.path);
+                _tourList.add(await tourParser.getTourInfo(file: file));
+              }
             }
           }
+          _tourList.changeTourListCacheFile(constantsHelper.tourListPath);
         }
-        _tourList.changeTourListCacheFile(constantsHelper.tourListPath);
       },
     );
   }
@@ -73,13 +82,17 @@ class TourListHelper {
     final List<FileSystemEntity> tourFiles =
         Directory(constantsHelper.tourDirectoryPath).listSync();
     for (final FileSystemEntity entity in tourFiles) {
-      FLog.info(text: 'Found potential tour file for tour list');
-      if (tourParser.fileExtensionPriority.contains(p.extension(entity.path))) {
-        if (await shouldAddTourToList(filePath: entity.path)) {
-          FLog.info(text: 'Adding tour file to tour list');
-          final TourInfo tourInfo =
-              await tourParser.getTourInfo(file: entity as File);
-          _tourList.add(tourInfo);
+      if (!entity.path.contains('/.')) {
+        FLog.info(
+            text: 'Found potential tour file for tour list at ${entity.path}');
+        if (tourParser.fileExtensionPriority
+            .contains(p.extension(entity.path))) {
+          if (await shouldAddTourToList(filePath: entity.path)) {
+            FLog.info(text: 'Adding tour file to tour list');
+            final TourInfo tourInfo =
+                await tourParser.getTourInfo(file: entity as File);
+            _tourList.add(tourInfo);
+          }
         }
       }
     }
