@@ -83,6 +83,7 @@ flutter:
     - assets/images/
     - assets/images/turn_arrows/
     - assets/images/map_symbols/
+    - assets/images/branding/
     - assets/
     - assets/i18n/
     - assets/fonts/

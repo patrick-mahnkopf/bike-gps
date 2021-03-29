@@ -11,14 +11,6 @@ class TourSelectionBottomWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TourBloc, TourState>(
-      // buildWhen: (previousState, newState) {
-      //   if (previousState is TourLoading &&
-      //       previousState.previousState is TourEmpty) {
-      //     return true;
-      //   } else {
-      //     return false;
-      //   }
-      // },
       builder: (context, state) {
         if (state is TourLoadSuccess) {
           return Stack(
@@ -41,7 +33,15 @@ class TourSelectionBottomWidget extends StatelessWidget {
         } else if (state is TourLoading) {
           return const LoadingIndicator();
         } else {
-          return Container();
+          return Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 32),
+              child: RecenterMapWidget(
+                constantsHelper: getIt(),
+              ),
+            ),
+          );
         }
       },
     );

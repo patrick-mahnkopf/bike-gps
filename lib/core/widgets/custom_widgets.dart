@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'dart:math' show pi;
 
 import 'package:bike_gps/core/helpers/constants_helper.dart';
 import 'package:bike_gps/features/presentation/blocs/map/map_bloc.dart';
@@ -294,6 +294,172 @@ class RoundedContainer extends StatelessWidget {
         ),
       ),
       child: content,
+    );
+  }
+}
+
+void showBikeGpsDialog(
+    {@required BuildContext context,
+    @required List<BikeGpsDialogOption> dialogOptions,
+    @required int initialActiveDialogOptionIndex}) {
+  showGeneralDialog(
+    barrierLabel: "Barrier",
+    barrierDismissible: true,
+    barrierColor: Colors.black.withOpacity(0.5),
+    transitionDuration: const Duration(milliseconds: 100),
+    context: context,
+    pageBuilder: (_, __, ___) {
+      return BikeGpsDialogWidget(
+        dialogOptions: dialogOptions,
+        initialActiveDialogOptionIndex: initialActiveDialogOptionIndex,
+      );
+    },
+    transitionBuilder: (_, anim, __, child) {
+      return FadeTransition(
+        opacity: anim,
+        child: child,
+      );
+    },
+  );
+}
+
+class BikeGpsDialogWidget extends StatefulWidget {
+  final List<BikeGpsDialogOption> dialogOptions;
+  final int initialActiveDialogOptionIndex;
+
+  const BikeGpsDialogWidget(
+      {Key key,
+      @required this.dialogOptions,
+      @required this.initialActiveDialogOptionIndex})
+      : super(key: key);
+
+  @override
+  _BikeGpsDialogWidgetState createState() => _BikeGpsDialogWidgetState();
+}
+
+class _BikeGpsDialogWidgetState extends State<BikeGpsDialogWidget> {
+  int activeDialogOptionIndex;
+
+  @override
+  void initState() {
+    activeDialogOptionIndex = widget.initialActiveDialogOptionIndex;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      contentPadding: const EdgeInsets.all(0),
+      children: [
+        Row(
+          children: [
+            const Align(
+              alignment: Alignment.topLeft,
+              child: CloseButton(),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(48, 24, 16, 8),
+              child: Image.asset(
+                "assets/images/branding/bike_gps_logo.png",
+                color: Colors.blue,
+                scale: 2,
+              ),
+            )
+          ],
+        ),
+        ..._getDialogOptions(),
+      ],
+    );
+  }
+
+  List<BikeGpsDialogOption> _getDialogOptions() {
+    final List<BikeGpsDialogOption> dialogOptions = [];
+    for (var i = 0; i < widget.dialogOptions.length; i++) {
+      final BikeGpsDialogOption dialogOption = widget.dialogOptions[i];
+      if (i == activeDialogOptionIndex) {
+        dialogOptions.add(dialogOption.copyWith(
+            isActive: true, onTapped: _onTapped, optionIndex: i));
+      } else {
+        dialogOptions.add(dialogOption.copyWith(
+            isActive: false, onTapped: _onTapped, optionIndex: i));
+      }
+    }
+    return dialogOptions;
+  }
+
+  void _onTapped(int optionIndex) {
+    widget.dialogOptions[optionIndex].onPressedCallback();
+    setState(() {
+      activeDialogOptionIndex = optionIndex;
+    });
+  }
+}
+
+class BikeGpsDialogOption extends StatelessWidget {
+  final bool isActive;
+  final Function onPressedCallback;
+  final Function onTapped;
+  final IconData optionIcon;
+  final String optionText;
+  final int optionIndex;
+
+  const BikeGpsDialogOption({
+    @required this.optionIcon,
+    @required this.optionText,
+    @required this.onPressedCallback,
+    this.isActive = false,
+    this.onTapped,
+    this.optionIndex,
+  });
+
+  BikeGpsDialogOption copyWith({
+    IconData optionIcon,
+    String optionText,
+    bool isActive,
+    Function onTapped,
+    Function onPressedCallback,
+    int optionIndex,
+  }) {
+    return BikeGpsDialogOption(
+      optionIcon: optionIcon ?? this.optionIcon,
+      optionText: optionText ?? this.optionText,
+      isActive: isActive ?? this.isActive,
+      onTapped: onTapped ?? this.onTapped,
+      onPressedCallback: onPressedCallback ?? this.onPressedCallback,
+      optionIndex: optionIndex ?? this.optionIndex,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const Color activeOptionColor = Colors.blue;
+    const Color inactiveOptionColor = Colors.black;
+    return SimpleDialogOption(
+      onPressed: () => isActive ? null : onTapped(optionIndex),
+      child: Row(
+        children: [
+          Icon(
+            optionIcon,
+            color: isActive ? activeOptionColor : inactiveOptionColor,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              optionText,
+              style: TextStyle(
+                color: isActive ? activeOptionColor : inactiveOptionColor,
+              ),
+            ),
+          ),
+          if (isActive)
+            const Icon(
+              Icons.check,
+              color: activeOptionColor,
+            )
+          else
+            Container(),
+        ],
+      ),
     );
   }
 }

@@ -49,9 +49,11 @@ class MapboxLoaded extends MapboxEvent {
         mapboxController,
         mapboxController.myLocationTrackingMode,
         mapboxController.activeStyleString,
+        activeStyleString,
+        myLocationTrackingMode,
       ];
 
   @override
   String toString() =>
-      'MapboxLoaded { mapboxController: $mapboxController, myLocationTrackingMode: ${mapboxController.myLocationTrackingMode}, activeStyleString: ${mapboxController.activeStyleString} } }';
+      'MapboxLoaded { mapboxController: $mapboxController, myLocationTrackingMode: $myLocationTrackingMode, activeStyleString: $activeStyleString }';
 }

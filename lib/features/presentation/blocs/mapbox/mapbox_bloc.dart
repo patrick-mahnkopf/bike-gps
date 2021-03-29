@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:bike_gps/core/function_results/function_result.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
@@ -29,44 +28,39 @@ class MapboxBloc extends Bloc<MapboxEvent, MapboxState> {
 
   Stream<MapboxState> _mapMapboxInitializedToState(
       MapboxInitialized event) async* {
+    yield MapboxLoading(controller: event.mapboxController);
     event.mapboxController.devicePixelRatio = event.devicePixelRatio;
     yield MapboxInitial(controller: event.mapboxController);
   }
 
   Stream<MapboxState> _mapMapboxLoadedToState(MapboxLoaded event) async* {
-    await _applyControllerChanges(event);
-    yield MapboxLoadSuccess(controller: event.mapboxController);
-  }
-
-  Future<FunctionResult> _applyControllerChanges(MapboxLoaded event) async {
-    // final CameraUpdate cameraUpdate;
-    // final String activeStyleString;
-    // final bool compassEnabled;
-    // final MyLocationRenderMode locationRenderMode;
-    // final MapboxMapController mapboxMapController;
-    // final MyLocationTrackingMode myLocationTrackingMode;
-    if (event.mapboxController != null) {
+    final MapboxController controller = event.mapboxController;
+    MyLocationTrackingMode myLocationTrackingMode;
+    String activeStyleString;
+    if (controller != null) {
       if (event.cameraUpdate != null) {
-        await event.mapboxController.mapboxMapController
-            .moveCamera(event.cameraUpdate);
+        await controller.mapboxMapController.moveCamera(event.cameraUpdate);
       }
       if (event.mapboxMapController != null) {
-        event.mapboxController.mapboxMapController = event.mapboxMapController;
+        controller.mapboxMapController = event.mapboxMapController;
       }
       if (event.myLocationTrackingMode != null) {
-        event.mapboxController.myLocationTrackingMode =
-            event.myLocationTrackingMode;
-        event.mapboxController.mapboxMapController.updateMyLocationTrackingMode(
-            event.mapboxController.myLocationTrackingMode);
+        controller.myLocationTrackingMode = event.myLocationTrackingMode;
+        await controller.mapboxMapController
+            .updateMyLocationTrackingMode(controller.myLocationTrackingMode);
+        myLocationTrackingMode = event.myLocationTrackingMode;
       }
+      controller.mapboxMapController.onLineTapped
+          .remove(controller.onLineTapped);
+      controller.mapboxMapController.onLineTapped.add(controller.onLineTapped);
       if (event.activeStyleString != null) {
-        event.mapboxController.activeStyleString = event.activeStyleString;
+        controller.activeStyleString = event.activeStyleString;
+        activeStyleString = event.activeStyleString;
       }
-      event.mapboxController.mapboxMapController.onLineTapped
-          .remove(event.mapboxController.onLineTapped);
-      event.mapboxController.mapboxMapController.onLineTapped
-          .add(event.mapboxController.onLineTapped);
     }
-    return FunctionResultSuccess();
+    yield MapboxLoadSuccess(
+        controller: event.mapboxController,
+        activeStyleString: activeStyleString,
+        myLocationTrackingMode: myLocationTrackingMode);
   }
 }

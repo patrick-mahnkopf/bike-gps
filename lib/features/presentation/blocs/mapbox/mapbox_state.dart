@@ -28,14 +28,14 @@ class MapboxInitial extends MapboxState {
   List<Object> get props => [controller];
 }
 
-class MapboxLoadSuccess extends MapboxState {
+class MapboxLoading extends MapboxState {
   final MapboxController controller;
 
-  const MapboxLoadSuccess({@required this.controller});
+  const MapboxLoading({@required this.controller});
 
   @override
   String toString() =>
-      'MapboxLoadSuccess { controller: $controller, mapboxMapController: ${controller.mapboxMapController}, trackingMode: ${controller.myLocationTrackingMode} }';
+      'MapboxLoading { controller: $controller, mapboxMapController: ${controller.mapboxMapController}, trackingMode: ${controller.myLocationTrackingMode}, activeStyleString: ${controller.activeStyleString} }';
 
   @override
   List<Object> get props => [
@@ -44,6 +44,32 @@ class MapboxLoadSuccess extends MapboxState {
         controller.mapboxMapController,
         controller.myLocationTrackingMode,
         controller.tourLines
+      ];
+}
+
+class MapboxLoadSuccess extends MapboxState {
+  final MapboxController controller;
+  final String activeStyleString;
+  final MyLocationTrackingMode myLocationTrackingMode;
+
+  const MapboxLoadSuccess(
+      {@required this.controller,
+      this.activeStyleString,
+      this.myLocationTrackingMode});
+
+  @override
+  String toString() =>
+      'MapboxLoadSuccess { controller: $controller, mapboxMapController: ${controller.mapboxMapController}, trackingMode: ${controller.myLocationTrackingMode}, activeStyleString: ${controller.activeStyleString} }';
+
+  @override
+  List<Object> get props => [
+        controller,
+        controller.activeStyleString,
+        controller.mapboxMapController,
+        controller.myLocationTrackingMode,
+        controller.tourLines,
+        activeStyleString,
+        myLocationTrackingMode,
       ];
 }
 

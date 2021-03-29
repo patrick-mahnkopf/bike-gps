@@ -84,7 +84,7 @@ class MapboxController {
   static Future<String> _getMapboxAccessToken() async {
     if (_useMapbox) {
       return rootBundle
-          .loadString('${_mapStringsBasePath}mapbox_access_token.txt');
+          .loadString(p.join(_mapStringsBasePath, 'mapbox_access_token.txt'));
     } else {
       return 'random_string';
     }
@@ -93,9 +93,9 @@ class MapboxController {
   static Future<Map<String, String>> _getStyleStrings() async {
     return {
       'vector': await rootBundle
-          .loadString('${_mapStringsBasePath}vector_style_string.txt'),
+          .loadString(p.join(_mapStringsBasePath, 'vector_style_string.txt')),
       'raster': await rootBundle
-          .loadString('${_mapStringsBasePath}raster_style_string.txt')
+          .loadString(p.join(_mapStringsBasePath, 'raster_style_string.txt')),
     };
   }
 
