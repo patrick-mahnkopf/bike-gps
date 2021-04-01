@@ -78,7 +78,8 @@ class SearchResultRemoteDataSourceImpl implements SearchResultRemoteDataSource {
 
   Future<List<SearchResultModel>> _getGeocoderResults(String query) async {
     // TODO replace with self hosted alternative
-    final response = await http.get('https://photon.komoot.io/api/?q=$query');
+    final response =
+        await http.get(Uri.parse('https://photon.komoot.io/api/?q=$query'));
     final body = json.decode(utf8.decode(response.bodyBytes));
     final features = body['features'] as List;
 

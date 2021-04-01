@@ -69,8 +69,9 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
     try {
       final String statusUrl = await rootBundle
           .loadString('assets/tokens/route_service_status_url.txt');
+      final Uri statusUri = Uri.parse(statusUrl);
       final Response response = await client.get(
-        statusUrl,
+        statusUri,
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Accept':
@@ -100,6 +101,7 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
       List<LatLng> trackPointCoordinates}) async {
     final String baseUrl =
         await rootBundle.loadString('assets/tokens/route_service_url.txt');
+    final Uri baseUri = Uri.parse(baseUrl);
 
     final List<List<double>> coordinateList = _getCoordinateList(
         tourStart: tourStart,
@@ -128,7 +130,7 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
     //     name: 'TourRemoteDataSource getPathToTour PostBody',
     //     time: DateTime.now());
     final Response response = await client.post(
-      baseUrl,
+      baseUri,
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Accept':
