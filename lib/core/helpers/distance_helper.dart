@@ -1,6 +1,3 @@
-import 'dart:developer';
-
-import 'package:bike_gps/core/controllers/controllers.dart';
 import 'package:bike_gps/features/domain/entities/tour/entities.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:geodesy/geodesy.dart' as gd;
@@ -11,6 +8,8 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 
 @injectable
 class DistanceHelper {
+  static const _distanceNeededToPassTrackPoint = 5;
+
   double distanceBetweenLatLngs(LatLng first, LatLng second) {
     return Geolocator.distanceBetween(
         first.latitude, first.longitude, second.latitude, second.longitude);
@@ -30,13 +29,20 @@ class DistanceHelper {
     }
   }
 
-  Future<double> distanceToTour(LatLng userLocation, Tour tour,
-      {MapboxController mapboxController}) async {
-    final int closestTrackPointIndex =
-        getClosestTrackPointIndex(tour, userLocation);
+  Future<double> distanceToTour(
+    LatLng userLocation,
+    Tour tour,
+  ) async {
+    int closestTrackPointIndex = getClosestTrackPointIndex(tour, userLocation);
+    if (userPassedTrackPoint(
+            tour: tour,
+            userLocation: userLocation,
+            trackPointIndex: closestTrackPointIndex) &&
+        closestTrackPointIndex < tour.trackPoints.length - 1) {
+      closestTrackPointIndex++;
+    }
     final TrackPoint closestTrackPoint =
         tour.trackPoints[closestTrackPointIndex];
-    const bool debugMode = false;
     TrackPoint tourSegmentStart;
     TrackPoint tourSegmentEnd;
 
@@ -47,20 +53,149 @@ class DistanceHelper {
       tourSegmentStart = tour.trackPoints[closestTrackPointIndex - 1];
       tourSegmentEnd = closestTrackPoint;
     }
-    if (mapboxController != null && debugMode) {
-      final Line tourLine = await mapboxController.mapboxMapController.addLine(
-          LineOptions(
-              geometry: [tourSegmentStart.latLng, tourSegmentEnd.latLng],
-              lineColor: '#ff0000',
-              lineWidth: 10));
-      Future.delayed(const Duration(seconds: 2), () {
-        mapboxController.mapboxMapController.removeLine(tourLine);
-      });
-    }
-    return _distanceToCurrentTourSegment(
+    return _distanceToTourSegment(
         lineStart: tourSegmentStart.latLng,
         lineEnd: tourSegmentEnd.latLng,
         point: userLocation);
+  }
+
+  bool userPassedTrackPoint(
+      {Tour tour, LatLng userLocation, int trackPointIndex}) {
+    final List<TrackPoint> trackPoints = tour.trackPoints;
+    final bool currentIsLastPointInTour =
+        trackPointIndex == trackPoints.length - 1;
+    final LatLng currentPointLatLng = trackPoints[trackPointIndex].latLng;
+
+    if (currentIsLastPointInTour) {
+      final LatLng previousPointLatLng =
+          trackPoints[trackPointIndex - 1].latLng;
+      return _userPassedLastPoint(
+          previousPointLatLng: previousPointLatLng,
+          currentPointLatLng: currentPointLatLng,
+          userLocation: userLocation);
+    } else {
+      final LatLng nextPointLatLng = trackPoints[trackPointIndex + 1].latLng;
+      return _userPassedCurrentPoint(
+          trackPoints: trackPoints,
+          trackPointIndex: trackPointIndex,
+          currentPointLatLng: currentPointLatLng,
+          nextPointLatLng: nextPointLatLng,
+          userLocation: userLocation);
+    }
+  }
+
+  bool _userPassedLastPoint({
+    @required LatLng previousPointLatLng,
+    @required LatLng currentPointLatLng,
+    @required LatLng userLocation,
+  }) {
+    final double distanceUserPreviousPoint =
+        distanceBetweenLatLngs(userLocation, previousPointLatLng);
+    final double distanceUserCurrentPoint =
+        distanceBetweenLatLngs(userLocation, currentPointLatLng);
+    if (!_pointIsBetweenLineEnds(
+            previousPointLatLng, currentPointLatLng, userLocation) &&
+        distanceUserCurrentPoint < distanceUserPreviousPoint) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool _userPassedCurrentPoint({
+    @required List<TrackPoint> trackPoints,
+    @required int trackPointIndex,
+    @required LatLng currentPointLatLng,
+    @required LatLng nextPointLatLng,
+    @required LatLng userLocation,
+  }) {
+    final bool userBetweenCurrentAndNextPoint = _pointIsBetweenLineEnds(
+        currentPointLatLng, nextPointLatLng, userLocation);
+    if (userBetweenCurrentAndNextPoint) {
+      return _userBetweenAllThreePoints(
+          trackPoints: trackPoints,
+          trackPointIndex: trackPointIndex,
+          currentPointLatLng: currentPointLatLng,
+          nextPointLatLng: nextPointLatLng,
+          userLocation: userLocation);
+    } else {
+      return false;
+    }
+  }
+
+  bool _userBetweenAllThreePoints({
+    @required int trackPointIndex,
+    @required List<TrackPoint> trackPoints,
+    @required LatLng currentPointLatLng,
+    @required LatLng userLocation,
+    @required LatLng nextPointLatLng,
+  }) {
+    if (trackPointIndex > 0) {
+      final LatLng previousPointLatLng =
+          trackPoints[trackPointIndex - 1].latLng;
+      return _userBetweenPreviousAndCurrentPoint(
+          previousPointLatLng: previousPointLatLng,
+          currentPointLatLng: currentPointLatLng,
+          nextPointLatLng: nextPointLatLng,
+          userLocation: userLocation);
+    } else {
+      return true;
+    }
+  }
+
+  bool _userBetweenPreviousAndCurrentPoint({
+    @required LatLng previousPointLatLng,
+    @required LatLng currentPointLatLng,
+    @required LatLng userLocation,
+    @required LatLng nextPointLatLng,
+  }) {
+    final bool userBetweenPreviousAndCurrentPoint = _pointIsBetweenLineEnds(
+        previousPointLatLng, currentPointLatLng, userLocation);
+    final double distanceUserCurrentPoint =
+        distanceBetweenLatLngs(userLocation, currentPointLatLng);
+    if (userBetweenPreviousAndCurrentPoint) {
+      return _userCloserToNextTourSegment(
+          previousPointLatLng: previousPointLatLng,
+          currentPointLatLng: currentPointLatLng,
+          nextPointLatLng: nextPointLatLng,
+          userLocation: userLocation);
+    } else if (distanceUserCurrentPoint >= _distanceNeededToPassTrackPoint) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool _userCloserToNextTourSegment({
+    @required LatLng previousPointLatLng,
+    @required LatLng currentPointLatLng,
+    @required LatLng userLocation,
+    @required LatLng nextPointLatLng,
+  }) {
+    final double distanceUserFirstTourSegment = _distanceToTourSegment(
+        lineStart: previousPointLatLng,
+        lineEnd: currentPointLatLng,
+        point: userLocation);
+    final double distanceUserSecondTourSegment = _distanceToTourSegment(
+        lineStart: currentPointLatLng,
+        lineEnd: nextPointLatLng,
+        point: userLocation);
+    final double distanceUserCurrentPoint =
+        distanceBetweenLatLngs(userLocation, currentPointLatLng);
+    if (distanceUserSecondTourSegment <= distanceUserFirstTourSegment &&
+        distanceUserCurrentPoint >= _distanceNeededToPassTrackPoint) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  double distanceBetweenTourTrackPoints(
+      Tour tour, int firstIndex, int secondIndex) {
+    final firstTrackPoint = tour.trackPoints[firstIndex];
+    final secondTrackPoint = tour.trackPoints[secondIndex];
+    return secondTrackPoint.distanceFromStart -
+        firstTrackPoint.distanceFromStart;
   }
 
   int getClosestTrackPointIndex(Tour tour, LatLng userLocation) {
@@ -79,58 +214,10 @@ class DistanceHelper {
       }
     }
 
-    final bool currentIsLastPointInTour = index == trackPoints.length;
-    if (!currentIsLastPointInTour) {
-      final TrackPoint currentTrackPoint = trackPoints[index];
-      final TrackPoint nextTrackPoint = trackPoints[index + 1];
-
-      final double userDistanceToNextTrackPoint =
-          distanceBetweenLatLngs(userLocation, nextTrackPoint.latLng);
-      final double distanceBetweenCurrentAndNextTrackPoint =
-          distanceBetweenLatLngs(
-              currentTrackPoint.latLng, nextTrackPoint.latLng);
-
-      // User passed closest track point, should thus return the next one
-      if (userDistanceToNextTrackPoint <
-          distanceBetweenCurrentAndNextTrackPoint) {
-        index++;
-      }
-    }
     return index;
   }
 
-  // TODO remove
-  int getClosestUnvisitedTrackPointIndex(Tour tour, LatLng userLocation,
-      {MapboxController mapboxController}) {
-    double shortestDistance = double.infinity;
-    int index = 0;
-    for (int i = 0; i < tour.trackPoints.length; i++) {
-      final TrackPoint trackPoint = tour.trackPoints[i];
-      final double distance =
-          distanceBetweenLatLngs(userLocation, trackPoint.latLng);
-      log('i: $i, distance: $distance, shortestDistance: $shortestDistance',
-          name: 'DistanceHelper getClosestTrackPointIndex');
-      if (mapboxController != null) {
-        mapboxController.mapboxMapController.addSymbol(SymbolOptions(
-          iconImage: 'start_location',
-          iconSize: 0.1,
-          iconOffset: const Offset(0, 15),
-          iconAnchor: 'bottom',
-          geometry: trackPoint.latLng,
-          textField: distance.toString(),
-          textOffset: const Offset(0, -1.6),
-          textAnchor: 'bottom',
-        ));
-      }
-      if (distance < shortestDistance) {
-        shortestDistance = distance;
-        index = i;
-      }
-    }
-    return index;
-  }
-
-  double _distanceToCurrentTourSegment(
+  double _distanceToTourSegment(
       {@required LatLng lineStart,
       @required LatLng lineEnd,
       @required LatLng point}) {

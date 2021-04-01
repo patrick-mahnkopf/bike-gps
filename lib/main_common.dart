@@ -144,7 +144,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-    // For sharing images coming from outside the app while the app is in the memory
+    // For shared images coming from outside the app while the app is in memory
     _intentDataStreamSubscription = ReceiveSharingIntent.getMediaStream()
         .listen((List<SharedMediaFile> values) async {
       for (final SharedMediaFile value in values) {
@@ -159,7 +159,7 @@ class _MyAppState extends State<MyApp> {
       print("getIntentDataStream error: $err");
     });
 
-    // For sharing images coming from outside the app while the app is closed
+    // For shared images coming from outside the app while the app is closed
     ReceiveSharingIntent.getInitialMedia()
         .then((List<SharedMediaFile> values) async {
       if (values != null) {
@@ -173,7 +173,7 @@ class _MyAppState extends State<MyApp> {
       }
     });
 
-    // For sharing or opening urls/text coming from outside the app while the app is in the memory
+    // For shared or opened urls/text coming from outside the app while the app is in memory
     _intentDataStreamSubscription =
         ReceiveSharingIntent.getTextStream().listen((String value) {
       FLog.trace(text: 'Flutter got url/text: $value while running');
@@ -185,7 +185,7 @@ class _MyAppState extends State<MyApp> {
       print("getLinkStream error: $err");
     });
 
-    // For sharing or opening urls/text coming from outside the app while the app is closed
+    // For shared or opened urls/text coming from outside the app while the app is closed
     ReceiveSharingIntent.getInitialText().then((String value) {
       FLog.trace(text: 'Flutter got started with url/text: $value');
       setState(() {
@@ -251,8 +251,8 @@ class _MyAppState extends State<MyApp> {
     final String newPath =
         p.join(constantsHelper.tourDirectoryPath, baseNameWithExtension);
     /*
-    According to the receive_sharing_intent package the received file has
-    already been copied to a temp folder and will thus be moved instead of
+    According to the receive_sharing_intent package, on iOS, the received file 
+    has already been copied to a temp folder and will thus be moved instead of
     copied
     */
     if (Platform.isIOS) {

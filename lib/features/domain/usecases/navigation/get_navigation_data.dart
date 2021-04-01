@@ -30,96 +30,79 @@ class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
 
   NavigationData _getNavigationData(
       {@required Tour tour, @required LatLng userLocation}) {
+    final List<TrackPoint> trackPoints = tour.trackPoints;
     final int closestTrackPointIndex =
         distanceHelper.getClosestTrackPointIndex(tour, userLocation);
-    final double distanceToTourEnd =
-        _getDistanceToTourEnd(tour, closestTrackPointIndex, userLocation);
-    final List<TrackPoint> trackPoints = tour.trackPoints;
+    final bool userPassedTrackPoint = distanceHelper.userPassedTrackPoint(
+        tour: tour,
+        userLocation: userLocation,
+        trackPointIndex: closestTrackPointIndex);
+    int currentTrackPointIndex = closestTrackPointIndex;
+    if (userPassedTrackPoint &&
+        currentTrackPointIndex < trackPoints.length - 1) {
+      currentTrackPointIndex++;
+    }
 
     WayPoint currentWayPoint;
+    double distanceToCurrentWayPoint;
     WayPoint nextWayPoint;
-    double currentWayPointDistance = 0;
-    int currentWayPointIndex;
-    for (int i = closestTrackPointIndex; i < trackPoints.length; i++) {
-      if (i == closestTrackPointIndex) {
-        currentWayPointDistance += distanceHelper.distanceBetweenLatLngs(
-            userLocation, trackPoints[i].latLng);
-      } else {
-        currentWayPointDistance += distanceHelper.distanceBetweenLatLngs(
-            trackPoints[i - 1].latLng, trackPoints[i].latLng);
-      }
-      if (trackPoints[i].isWayPoint) {
-        currentWayPoint = trackPoints[i].wayPoint;
-        currentWayPointIndex = i;
-        break;
-      }
+    final double distanceToTourEnd =
+        _getDistanceToTourEnd(tour, currentTrackPointIndex, userLocation);
+
+    final int currentWayPointIndex =
+        _closestUpcomingWayPointIndex(tour, currentTrackPointIndex);
+    currentWayPoint = trackPoints[currentWayPointIndex].wayPoint;
+
+    final TrackPoint closestTrackPoint = trackPoints[currentTrackPointIndex];
+    final double distanceUserClosestTrackPoint = distanceHelper
+        .distanceBetweenLatLngs(userLocation, closestTrackPoint.latLng);
+    final double distanceClosestTrackPointCurrentWayPoint =
+        distanceHelper.distanceBetweenTourTrackPoints(
+            tour, currentTrackPointIndex, currentWayPointIndex);
+
+    if (userPassedTrackPoint) {
+      distanceToCurrentWayPoint = distanceClosestTrackPointCurrentWayPoint +
+          distanceUserClosestTrackPoint;
+    } else {
+      distanceToCurrentWayPoint = (distanceClosestTrackPointCurrentWayPoint -
+              distanceUserClosestTrackPoint)
+          .abs();
     }
 
-    if (currentWayPointIndex != null &&
-        currentWayPointIndex + 1 <= trackPoints.length) {
-      final int nextWayPointIndex = trackPoints.indexWhere(
-          (trackPoint) => trackPoint.isWayPoint, currentWayPointIndex + 1);
-      if (nextWayPointIndex != -1) {
-        nextWayPoint = trackPoints[nextWayPointIndex].wayPoint;
-      } else {
-        nextWayPoint = null;
-      }
+    final int nextWayPointIndex =
+        _closestUpcomingWayPointIndex(tour, currentWayPointIndex);
+    if (nextWayPointIndex != -1) {
+      nextWayPoint = trackPoints[nextWayPointIndex].wayPoint;
     }
-    log('tour: ${tour.name}, currentWayPointIndex: $currentWayPointIndex, currentWayPoint: ${currentWayPoint.direction ?? currentWayPoint.name}, nextWayPoint: ${nextWayPoint?.direction ?? nextWayPoint?.name}',
-        name: 'GetNavigationData navigation _getNavigationData');
-    log('tour: ${tour.name}, turnSymbol: ${currentWayPoint?.turnSymboldId}',
-        name: 'GetNavigationData navigation turnSymbol _getNavigationData');
+
     return NavigationData(
         currentWayPoint: currentWayPoint,
         nextWayPoint: nextWayPoint,
-        currentWayPointDistance: currentWayPointDistance,
+        distanceToCurrentWayPoint: distanceToCurrentWayPoint,
         distanceToTourEnd: distanceToTourEnd);
   }
 
-  // TODO remove
-  int _getClosestTrackPointIndex(Tour tour, LatLng userLocation) {
+  int _closestUpcomingWayPointIndex(Tour tour, int currentTrackPointIndex) {
     final List<TrackPoint> trackPoints = tour.trackPoints;
-
-    double shortestDistance = double.infinity;
-    int index = -1;
-    for (int i = 0; i < trackPoints.length; i++) {
-      final TrackPoint currentTrackPoint = trackPoints[i];
-      final double currentDistance = distanceHelper.distanceBetweenLatLngs(
-          currentTrackPoint.latLng, userLocation);
-
-      if (currentDistance < shortestDistance) {
-        shortestDistance = currentDistance;
-        index = i;
+    for (var i = currentTrackPointIndex; i < trackPoints.length; i++) {
+      final TrackPoint trackPoint = trackPoints[i];
+      if (trackPoint.isWayPoint) {
+        return i;
       }
     }
-
-    final bool currentIsLastPointInTour = index == trackPoints.length;
-    if (!currentIsLastPointInTour) {
-      final TrackPoint currentTrackPoint = trackPoints[index];
-      final TrackPoint nextTrackPoint = trackPoints[index + 1];
-
-      final double userDistanceToNextTrackPoint = distanceHelper
-          .distanceBetweenLatLngs(userLocation, nextTrackPoint.latLng);
-      final double distanceBetweenCurrentAndNextTrackPoint =
-          distanceHelper.distanceBetweenLatLngs(
-              currentTrackPoint.latLng, nextTrackPoint.latLng);
-
-      // User passed closest track point, should thus return the next one
-      if (userDistanceToNextTrackPoint <
-          distanceBetweenCurrentAndNextTrackPoint) {
-        index++;
-      }
-    }
-    return index;
+    return -1;
   }
 
   double _getDistanceToTourEnd(
       Tour tour, int closestTrackPointIndex, LatLng userLocation) {
     final TrackPoint closestTrackPoint =
         tour.trackPoints[closestTrackPointIndex];
-    return (tour.tourLength - closestTrackPoint.distanceFromStart) +
-        distanceHelper.distanceBetweenLatLngs(
-            userLocation, closestTrackPoint.latLng);
+    final double distanceClosestTrackPointTourEnd =
+        distanceHelper.distanceBetweenTourTrackPoints(
+            tour, closestTrackPointIndex, tour.trackPoints.length - 1);
+    final double distanceUserClosestTrackPoint = distanceHelper
+        .distanceBetweenLatLngs(userLocation, closestTrackPoint.latLng);
+    return distanceClosestTrackPointTourEnd + distanceUserClosestTrackPoint;
   }
 }
 
@@ -136,17 +119,17 @@ class NavigationDataParams extends Equatable {
 
 class NavigationData extends Equatable {
   final WayPoint currentWayPoint;
-  final double currentWayPointDistance;
+  final double distanceToCurrentWayPoint;
   final WayPoint nextWayPoint;
   final double distanceToTourEnd;
 
   const NavigationData(
       {@required this.currentWayPoint,
       @required this.nextWayPoint,
-      @required this.currentWayPointDistance,
+      @required this.distanceToCurrentWayPoint,
       @required this.distanceToTourEnd});
 
   @override
   List<Object> get props =>
-      [currentWayPoint, currentWayPointDistance, nextWayPoint];
+      [currentWayPoint, distanceToCurrentWayPoint, nextWayPoint];
 }

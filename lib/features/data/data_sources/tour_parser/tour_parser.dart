@@ -66,11 +66,9 @@ class GpxParser extends TourParser {
     final List<Wpt> combinedTourPoints = getCombinedPoints(tourGpx);
     for (int i = 0; i < combinedTourPoints.length; i++) {
       final Wpt currentPoint = combinedTourPoints[i];
-      double distanceFromStart;
+      double distanceFromStart = 0;
 
-      if (i == 0) {
-        distanceFromStart = 0;
-      } else {
+      if (i > 0) {
         final Wpt previousPoint = combinedTourPoints[i - 1];
         final double distanceToPrevious =
             distanceHelper.distanceBetweenWpts(previousPoint, currentPoint);
@@ -78,111 +76,20 @@ class GpxParser extends TourParser {
         distanceFromStart = distanceToPrevious + previousDistanceFromStart;
         previousDistanceFromStart = distanceFromStart;
 
-        if (currentPoint.ele != null) {
-          if (currentPoint.ele > previousPoint.ele) {
-            ascent += currentPoint.ele - previousPoint.ele;
-          } else {
-            descent += previousPoint.ele - currentPoint.ele;
-          }
+        if (currentPoint.ele != null && currentPoint.ele > previousPoint.ele) {
+          ascent += currentPoint.ele - previousPoint.ele;
+        } else {
+          descent += previousPoint.ele - currentPoint.ele;
         }
       }
 
-      if (_isWaypoint(currentPoint)) {
-        String direction = '';
-        String location = '';
-        String surface = 'A';
-        String turnSymbolId = '';
-
-        if (currentPoint.extensions.containsKey('direction') &&
-            currentPoint.extensions['direction'] != '') {
-          direction = currentPoint.extensions['direction'];
-        } else if (currentPoint.desc != null) {
-          direction = currentPoint.desc;
-        }
-        if (currentPoint.extensions.containsKey('location') &&
-            currentPoint.extensions['location'] != '') {
-          location = currentPoint.extensions['location'];
-        }
-        if (currentPoint.extensions.containsKey('surface') &&
-            currentPoint.extensions['surface'] != '') {
-          surface = currentPoint.extensions['surface'];
-        }
-        if (currentPoint.extensions.containsKey('turnsymbolid') &&
-            currentPoint.extensions['turnsymbolid'] != '') {
-          turnSymbolId = currentPoint.extensions['turnsymbolid'];
-        } else if (currentPoint.extensions.containsKey('type') &&
-            currentPoint.extensions['type'] != '') {
-          turnSymbolId = currentPoint.extensions['type'];
-        }
-
-        final WayPointModel wayPoint = WayPointModel(
-          latLng: LatLng(currentPoint.lat, currentPoint.lon),
-          elevation: currentPoint.ele,
-          distanceFromStart: distanceFromStart,
-          surface: surface,
-          name: currentPoint.name ?? '',
-          direction: direction,
-          location: location,
-          turnSymboldId: turnSymbolId,
-        );
-        if (tourType == TourType.route && i > 0) {
-          final Wpt previousPoint = combinedTourPoints[i - 1];
-          const orsArrivalType = '10';
-          final bool isPrematureArrival =
-              currentPoint.extensions['type'] == orsArrivalType &&
-                  i != combinedTourPoints.length;
-          if (currentPoint.extensions['step'] !=
-                  previousPoint.extensions['step'] &&
-              !isPrematureArrival) {
-            wayPoints.add(wayPoint);
-
-            trackPoints.add(TrackPointModel(
-              latLng: LatLng(currentPoint.lat, currentPoint.lon),
-              elevation: currentPoint.ele,
-              isWayPoint: true,
-              wayPoint: wayPoint,
-              distanceFromStart: distanceFromStart,
-              surface: wayPoint.surface,
-            ));
-          } else {
-            trackPoints.add(TrackPointModel(
-              latLng: LatLng(currentPoint.lat, currentPoint.lon),
-              elevation: currentPoint.ele,
-              isWayPoint: false,
-              distanceFromStart: distanceFromStart,
-              surface: 'A',
-            ));
-          }
-        } else if (tourType == TourType.route && i == 0) {
-          trackPoints.add(TrackPointModel(
-            latLng: LatLng(currentPoint.lat, currentPoint.lon),
-            elevation: currentPoint.ele,
-            isWayPoint: false,
-            distanceFromStart: distanceFromStart,
-            surface: 'A',
-          ));
-        } else {
-          wayPoints.add(wayPoint);
-
-          trackPoints.add(TrackPointModel(
-            latLng: LatLng(currentPoint.lat, currentPoint.lon),
-            elevation: currentPoint.ele,
-            isWayPoint: true,
-            wayPoint: wayPoint,
-            distanceFromStart: distanceFromStart,
-            surface: wayPoint.surface,
-          ));
-        }
+      if (_shouldAddWayPoint(tourType, i, combinedTourPoints, currentPoint)) {
+        _addWayPoint(currentPoint, distanceFromStart, trackPoints, wayPoints);
       } else {
-        trackPoints.add(TrackPointModel(
-          latLng: LatLng(currentPoint.lat, currentPoint.lon),
-          elevation: currentPoint.ele,
-          isWayPoint: false,
-          distanceFromStart: distanceFromStart,
-          surface: 'A',
-        ));
+        _addTrackPoint(currentPoint, distanceFromStart, trackPoints);
       }
     }
+
     return TourModel(
       name: tourName,
       trackPoints: trackPoints,
@@ -192,6 +99,118 @@ class GpxParser extends TourParser {
       descent: descent,
       tourLength: tourLength,
     );
+  }
+
+  bool _shouldAddWayPoint(TourType tourType, int i,
+      List<Wpt> combinedTourPoints, Wpt currentPoint) {
+    if (_isWaypoint(currentPoint)) {
+      if (tourType == TourType.route) {
+        return _shouldAddRouteWayPoint(i, currentPoint, combinedTourPoints);
+      } else {
+        return true;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  bool _shouldAddRouteWayPoint(
+      int i, Wpt currentPoint, List<Wpt> combinedTourPoints) {
+    if (i > 0) {
+      final Wpt previousPoint = combinedTourPoints[i - 1];
+      const orsArrivalType = '10';
+      final bool isPrematureArrival =
+          currentPoint.extensions['type'] == orsArrivalType &&
+              i != combinedTourPoints.length - 1;
+      if (currentPoint.extensions['step'] != previousPoint.extensions['step'] &&
+          !isPrematureArrival) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  void _addWayPoint(Wpt currentPoint, double distanceFromStart,
+      List<TrackPointModel> trackPoints, List<WayPointModel> wayPoints) {
+    final String direction = _getDirection(currentPoint);
+    final String location = _getLocation(currentPoint);
+    final String surface = _getSurface(currentPoint);
+    final String turnSymbolId = _getTurnSymbolId(currentPoint);
+
+    final WayPointModel wayPoint = WayPointModel(
+      latLng: LatLng(currentPoint.lat, currentPoint.lon),
+      elevation: currentPoint.ele,
+      distanceFromStart: distanceFromStart,
+      surface: surface,
+      name: currentPoint.name ?? '',
+      direction: direction,
+      location: location,
+      turnSymboldId: turnSymbolId,
+    );
+    final TrackPointModel trackPointWithWayPoint = TrackPointModel(
+      latLng: LatLng(currentPoint.lat, currentPoint.lon),
+      elevation: currentPoint.ele,
+      isWayPoint: true,
+      wayPoint: wayPoint,
+      distanceFromStart: distanceFromStart,
+      surface: wayPoint.surface,
+    );
+
+    trackPoints.add(trackPointWithWayPoint);
+    wayPoints.add(wayPoint);
+  }
+
+  void _addTrackPoint(Wpt currentPoint, double distanceFromStart,
+      List<TrackPointModel> trackPoints) {
+    final TrackPointModel trackPointWithoutWayPoint = TrackPointModel(
+      latLng: LatLng(currentPoint.lat, currentPoint.lon),
+      elevation: currentPoint.ele,
+      isWayPoint: false,
+      distanceFromStart: distanceFromStart,
+      surface: 'A',
+    );
+
+    trackPoints.add(trackPointWithoutWayPoint);
+  }
+
+  String _getDirection(Wpt currentPoint) {
+    if (currentPoint.extensions.containsKey('direction') &&
+        currentPoint.extensions['direction'] != '') {
+      return currentPoint.extensions['direction'];
+    } else if (currentPoint.desc != null) {
+      return currentPoint.desc;
+    }
+    return '';
+  }
+
+  String _getLocation(Wpt currentPoint) {
+    if (currentPoint.extensions.containsKey('location') &&
+        currentPoint.extensions['location'] != '') {
+      return currentPoint.extensions['location'];
+    }
+    return '';
+  }
+
+  String _getSurface(Wpt currentPoint) {
+    if (currentPoint.extensions.containsKey('surface') &&
+        currentPoint.extensions['surface'] != '') {
+      return currentPoint.extensions['surface'];
+    }
+    return 'A';
+  }
+
+  String _getTurnSymbolId(Wpt currentPoint) {
+    if (currentPoint.extensions.containsKey('turnsymbolid') &&
+        currentPoint.extensions['turnsymbolid'] != '') {
+      return currentPoint.extensions['turnsymbolid'];
+    } else if (currentPoint.extensions.containsKey('type') &&
+        currentPoint.extensions['type'] != '') {
+      return currentPoint.extensions['type'];
+    }
+    return '';
   }
 
   @override
@@ -209,10 +228,24 @@ class GpxParser extends TourParser {
   }
 
   bool _isWaypoint(Wpt point) {
-    return point.name != null && point.name != '' ||
-        (point.extensions != null &&
-            point.extensions['direction'] != null &&
-            point.extensions['direction'] != '');
+    if (point.name != null && point.name != '') {
+      return true;
+    }
+    if (point.desc != null && point.desc != '') {
+      return true;
+    }
+
+    if (point.extensions != null) {
+      if (point.extensions['direction'] != null &&
+          point.extensions['direction'] != '') {
+        return true;
+      }
+      if (point.extensions['turnsymbolid'] != null &&
+          point.extensions['turnsymbolid'] != '') {
+        return true;
+      }
+    }
+    return false;
   }
 
   LatLngBounds getBounds(Gpx tourGpx, List<TrackPointModel> trackPoints) {

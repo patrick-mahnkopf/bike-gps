@@ -106,9 +106,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       {@required NavigationData navigationData,
       @required LatLng userLocation,
       @required NavigationLoaded event}) async* {
-    final double distanceToTour = await distanceHelper.distanceToTour(
-        userLocation, event.tour,
-        mapboxController: event.mapboxController);
+    final double distanceToTour =
+        await distanceHelper.distanceToTour(userLocation, event.tour);
     log('distanceToTour: $distanceToTour',
         name: 'NavigationBloc navigation _handleNavigation');
     // Not on tour -> navigate to tour
@@ -128,7 +127,7 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       yield NavigationLoadSuccess(
           currentWayPoint: navigationData.currentWayPoint,
           nextWayPoint: navigationData.nextWayPoint,
-          currentWayPointDistance: navigationData.currentWayPointDistance,
+          currentWayPointDistance: navigationData.distanceToCurrentWayPoint,
           distanceToTourEnd: navigationData.distanceToTourEnd,
           userLocation: userLocation);
     }
@@ -255,7 +254,7 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       yield NavigationLoadSuccess(
           currentWayPoint: tourNavigationData.currentWayPoint,
           nextWayPoint: tourNavigationData.nextWayPoint,
-          currentWayPointDistance: tourNavigationData.currentWayPointDistance,
+          currentWayPointDistance: tourNavigationData.distanceToCurrentWayPoint,
           distanceToTourEnd: tourNavigationData.distanceToTourEnd,
           userLocation: userLocation);
     }
@@ -275,7 +274,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       yield NavigationToTourLoadSuccess(
           currentWayPoint: navigationToTourData.currentWayPoint,
           nextWayPoint: navigationToTourData.nextWayPoint,
-          currentWayPointDistance: navigationToTourData.currentWayPointDistance,
+          currentWayPointDistance:
+              navigationToTourData.distanceToCurrentWayPoint,
           distanceToTourEnd: navigationToTourData.distanceToTourEnd,
           userLocation: userLocation,
           pathToTour: pathToTour);

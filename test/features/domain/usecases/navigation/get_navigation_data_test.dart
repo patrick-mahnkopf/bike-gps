@@ -86,7 +86,7 @@ void main() {
     const NavigationData tNavigationData = NavigationData(
         currentWayPoint: tFirstWayPoint,
         nextWayPoint: tSecondWayPoint,
-        currentWayPointDistance: 0,
+        distanceToCurrentWayPoint: 0,
         distanceToTourEnd: 3 * degreeDistance);
     // act
     final result = await usecase(
@@ -183,7 +183,7 @@ void main() {
               NavigationDataParams(tour: tTour, userLocation: userLocation)))
           .getOrElse(null);
       // assert
-      expect(result.currentWayPointDistance, tCurrentWayPointDistance);
+      expect(result.distanceToCurrentWayPoint, tCurrentWayPointDistance);
     });
   });
 
