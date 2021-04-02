@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:bike_gps/core/controllers/controllers.dart';
 import 'package:bike_gps/core/helpers/constants_helper.dart';
 import 'package:bike_gps/core/helpers/distance_helper.dart';
+import 'package:bike_gps/core/helpers/settings_helper.dart';
 import 'package:bike_gps/features/domain/usecases/tour/get_path_to_tour.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
@@ -28,11 +29,13 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
   final GetNavigationData getNavigationData;
   final GetPathToTour getPathToTour;
   final DistanceHelper distanceHelper;
+  final SettingsHelper settingsHelper;
 
   NavigationBloc(
       {@required this.getNavigationData,
       @required this.getPathToTour,
-      @required this.distanceHelper})
+      @required this.distanceHelper,
+      @required this.settingsHelper})
       : assert(getNavigationData != null),
         assert(getPathToTour != null),
         super(NavigationInitial());
@@ -111,7 +114,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     log('distanceToTour: $distanceToTour',
         name: 'NavigationBloc navigation _handleNavigation');
     // Not on tour -> navigate to tour
-    if (distanceToTour >= ConstantsHelper.maxAllowedDistanceToTour) {
+    if (distanceToTour >= ConstantsHelper.maxAllowedDistanceToTour &&
+        settingsHelper.navigateToTourEnabled) {
       log('Not on tour -> navigating to tour',
           name: 'NavigationBloc navigation _handleNavigation');
       yield* _startOrContinueNavigationToTour(
@@ -121,7 +125,7 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
           tourNavigationData: navigationData);
       // On tour -> continue navigation on tour
     } else {
-      log('On tour -> continue navigation on tour',
+      log('On tour or navigation to tour disabled -> continue navigation on tour, navigateToTourEnabled: ${settingsHelper.navigateToTourEnabled}',
           name: 'NavigationBloc navigation _handleNavigation');
       event.mapboxController.clearPathToTour();
       yield NavigationLoadSuccess(

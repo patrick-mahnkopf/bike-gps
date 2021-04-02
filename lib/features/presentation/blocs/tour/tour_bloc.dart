@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:bike_gps/core/controllers/controllers.dart';
+import 'package:bike_gps/core/helpers/settings_helper.dart';
 import 'package:bike_gps/features/domain/usecases/tour/get_alternative_tours.dart';
 import 'package:bike_gps/features/domain/usecases/tour/get_enhanced_tour.dart';
 import 'package:bike_gps/features/domain/usecases/tour/get_tour.dart';
@@ -28,11 +29,13 @@ class TourBloc extends Bloc<TourEvent, TourState> {
   final GetTour getTour;
   final GetAlternativeTours getAlternativeTours;
   final GetEnhancedTour getEnhancedTour;
+  final SettingsHelper settingsHelper;
 
   TourBloc(
       {@required this.getTour,
       @required this.getAlternativeTours,
-      @required this.getEnhancedTour})
+      @required this.getEnhancedTour,
+      @required this.settingsHelper})
       : assert(getTour != null),
         assert(getAlternativeTours != null),
         assert(getEnhancedTour != null),
@@ -93,7 +96,9 @@ class TourBloc extends Bloc<TourEvent, TourState> {
     final ConnectivityResult connectivityResult =
         await Connectivity().checkConnectivity();
     final bool wifiConnected = connectivityResult == ConnectivityResult.wifi;
-    if (!_tourContainsDirections(tour) && wifiConnected) {
+    if (!_tourContainsDirections(tour) &&
+        wifiConnected &&
+        settingsHelper.enhanceToursEnabled) {
       log("Tour: ${tour.name} doesn't contain directions");
       FLog.info(text: "Tour: ${tour.name} doesn't contain directions");
       FLog.info(

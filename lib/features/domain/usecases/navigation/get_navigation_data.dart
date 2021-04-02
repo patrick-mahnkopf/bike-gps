@@ -51,6 +51,14 @@ class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
 
     final int currentWayPointIndex =
         _closestUpcomingWayPointIndex(tour, currentTrackPointIndex);
+
+    if (currentWayPointIndex == -1) {
+      return NavigationData(
+          currentWayPoint: null,
+          nextWayPoint: null,
+          distanceToCurrentWayPoint: null,
+          distanceToTourEnd: distanceToTourEnd);
+    }
     currentWayPoint = trackPoints[currentWayPointIndex].wayPoint;
 
     final TrackPoint closestTrackPoint = trackPoints[currentTrackPointIndex];
@@ -70,7 +78,7 @@ class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
     }
 
     final int nextWayPointIndex =
-        _closestUpcomingWayPointIndex(tour, currentWayPointIndex);
+        _closestUpcomingWayPointIndex(tour, currentWayPointIndex + 1);
     if (nextWayPointIndex != -1) {
       nextWayPoint = trackPoints[nextWayPointIndex].wayPoint;
     }

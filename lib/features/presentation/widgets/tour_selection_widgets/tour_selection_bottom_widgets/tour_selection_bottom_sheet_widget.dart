@@ -247,7 +247,7 @@ class RoadBook extends StatelessWidget {
     if (tour.wayPoints.isEmpty) {
       return const ListTile(
         leading: Icon(Icons.error),
-        title: Text('This route file does not include road book information'),
+        title: Text('This tour file does not include road book information'),
       );
     } else {
       final WayPoint currentWayPoint = tour.wayPoints[index];

@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:bike_gps/core/function_results/function_result.dart';
-import 'package:bike_gps/core/helpers/constants_helper.dart';
+import 'package:bike_gps/core/helpers/settings_helper.dart';
 import 'package:bike_gps/core/helpers/tour_list_helper.dart';
 import 'package:bike_gps/features/data/data_sources/tour_parser/tour_parser.dart';
 import 'package:bike_gps/features/domain/entities/tour/entities.dart';
@@ -27,13 +27,13 @@ abstract class TourRemoteDataSource {
 class TourRemoteDataSourceImpl implements TourRemoteDataSource {
   final Client client;
   final TourParser tourParser;
-  final ConstantsHelper constantsHelper;
+  final SettingsHelper settingsHelper;
   final TourListHelper tourListHelper;
 
   TourRemoteDataSourceImpl(
       {@required this.tourParser,
       @required this.client,
-      @required this.constantsHelper,
+      @required this.settingsHelper,
       @required this.tourListHelper});
 
   /// Calls the route service endpoint found in 'assets/token/route_service_url.txt'.
@@ -119,7 +119,7 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
       'instructions': 'true',
       'instructions_format': 'text',
       'roundabout_exits': 'true',
-      'language': constantsHelper.language,
+      'language': settingsHelper.language,
       'units': 'm',
     });
     FLog.logThis(

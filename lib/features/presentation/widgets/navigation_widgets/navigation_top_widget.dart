@@ -22,31 +22,49 @@ class NavigationTopWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Flexible(
-              child: UpperNavigationWidget(
-                currentWayPoint: currentWayPoint,
-                nextWayPoint: nextWayPoint,
-                currentWayPointDistance: currentWayPointDistance,
-                locationHelper: getIt<DistanceHelper>(),
-                turnSymbolHelper: getIt<TourConversionHelper>(),
+    if (_navigationDataAvailable()) {
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                child: UpperNavigationWidget(
+                  currentWayPoint: currentWayPoint,
+                  nextWayPoint: nextWayPoint,
+                  currentWayPointDistance: currentWayPointDistance,
+                  locationHelper: getIt<DistanceHelper>(),
+                  turnSymbolHelper: getIt<TourConversionHelper>(),
+                ),
               ),
-            ),
-            Flexible(
-              child: LowerNavigationWidget(
-                nextWayPoint: nextWayPoint,
-                turnSymbolHelper: getIt<TourConversionHelper>(),
+              Flexible(
+                child: LowerNavigationWidget(
+                  nextWayPoint: nextWayPoint,
+                  turnSymbolHelper: getIt<TourConversionHelper>(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      return Container();
+    }
+  }
+
+  bool _navigationDataAvailable() {
+    if (currentWayPoint != null) {
+      final bool hasDirection =
+          currentWayPoint.direction != null && currentWayPoint.direction != '';
+      final bool hasTurnSymbolId = currentWayPoint.turnSymboldId != null &&
+          currentWayPoint.turnSymboldId != '';
+
+      if (hasDirection || hasTurnSymbolId) {
+        return true;
+      }
+    }
+    return false;
   }
 }

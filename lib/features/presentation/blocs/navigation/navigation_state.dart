@@ -27,8 +27,13 @@ class NavigationLoadSuccess extends NavigationState {
   });
 
   @override
-  String toString() =>
-      'NavigationLoadSuccess { currentWayPoint: ${currentWayPoint.latLng},${currentWayPoint.name}, nextWayPoint: ${nextWayPoint.latLng},${nextWayPoint.name}, currentWayPointDistance: $currentWayPointDistance, distanceToTourEnd: $distanceToTourEnd, userLocation: $userLocation }';
+  String toString() {
+    if (currentWayPoint != null) {
+      return 'NavigationLoadSuccess { currentWayPoint: ${currentWayPoint.latLng},${currentWayPoint.name}, nextWayPoint: ${nextWayPoint.latLng},${nextWayPoint.name}, currentWayPointDistance: $currentWayPointDistance, distanceToTourEnd: $distanceToTourEnd, userLocation: $userLocation }';
+    } else {
+      return 'NavigationLoadSuccess { currentWayPoint: None, distanceToTourEnd: $distanceToTourEnd, userLocation: $userLocation }';
+    }
+  }
 
   @override
   List<Object> get props => [

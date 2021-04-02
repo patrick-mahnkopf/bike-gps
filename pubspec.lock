@@ -819,9 +819,11 @@ packages:
   ssh:
     dependency: "direct main"
     description:
-      name: ssh
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: fefe6b80f3900ae4b3f870f4799176fd31df31d2
+      url: "https://github.com/patrick-mahnkopf/flutter_ssh.git"
+    source: git
     version: "0.0.7"
   stack_trace:
     dependency: transitive

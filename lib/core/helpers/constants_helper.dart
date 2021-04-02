@@ -23,8 +23,6 @@ class ConstantsHelper {
   final double navigationViewZoom = 16;
   final double tourViewZoom = 14;
   static const double maxAllowedDistanceToTour = 20;
-  // TODO use system / config language
-  final String language = 'en-us';
 
   ConstantsHelper(
       {@required this.applicationDocumentsDirectoryPath,
