@@ -108,6 +108,9 @@ Future<FunctionResult> sendLogsToServer() async {
         text: 'Uploaded FLog files to log server',
         methodName: 'sendLogsToServer');
     await FLog.clearLogs();
+    FLog.info(
+        text: 'Platform: ${Platform.operatingSystem}',
+        methodName: 'sendLogsToServer');
     FLog.info(text: 'Cleared local FLog db', methodName: 'sendLogsToServer');
     await logFile.delete();
     FLog.info(
