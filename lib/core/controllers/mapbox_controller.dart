@@ -1,7 +1,3 @@
-import 'dart:convert';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
-
 import 'package:bike_gps/core/function_results/function_result.dart';
 import 'package:bike_gps/core/helpers/constants_helper.dart';
 import 'package:bike_gps/core/helpers/tour_list_helper.dart';
@@ -12,7 +8,6 @@ import 'package:bike_gps/features/presentation/blocs/tour/tour_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:injectable/injectable.dart';
 import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -105,56 +100,6 @@ class MapboxController {
     return CameraPosition(
         target: LatLng(locationData.latitude, locationData.longitude),
         zoom: constantsHelper.tourViewZoom);
-  }
-
-  Future<FunctionResult> onStyleLoaded() async {
-    // TODO use or remove (currently unused)
-    final List<String> symbolPaths = await _getSymbolPaths();
-    for (final String symbolPath in symbolPaths) {
-      await _addImageToController(
-        symbolPath,
-      );
-    }
-    return FunctionResultSuccess();
-  }
-
-  Future<List<String>> _getSymbolPaths() async {
-    final Map<String, dynamic> manifestMap =
-        jsonDecode(await rootBundle.loadString('AssetManifest.json'))
-            as Map<String, dynamic>;
-    final String mapSymbolsPath = ConstantsHelper.mapSymbolPath;
-    final Iterable<String> symbolPaths =
-        manifestMap.keys.where((String key) => key.contains(mapSymbolsPath));
-
-    final List<String> turnArrowPaths = [];
-    for (final String symbolPath in symbolPaths) {
-      final String cleanSymbolPath = symbolPath.replaceAll('%20', ' ');
-      turnArrowPaths.add(cleanSymbolPath);
-    }
-    return turnArrowPaths;
-  }
-
-  Future<FunctionResult> _addImageToController(String imagePath) async {
-    try {
-      ByteData bytes;
-      // TODO make loading of svg work
-      if (p.extension(imagePath) == '.svg') {
-        final String svgString = await rootBundle.loadString(imagePath);
-        final DrawableRoot svgRoot = await svg.fromSvgString(svgString, "");
-        final ui.Picture picture = svgRoot.toPicture(
-            colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn));
-        final ui.Image image = await picture.toImage(50, 50);
-        bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-      } else {
-        bytes = await rootBundle.load(imagePath);
-      }
-      final Uint8List list = bytes.buffer.asUint8List();
-      final String imageName = p.basenameWithoutExtension(imagePath);
-      await mapboxMapController.addImage(imageName, list);
-      return FunctionResultSuccess();
-    } on Exception catch (error, stackTrace) {
-      return FunctionResultFailure(error: error, stackTrace: stackTrace);
-    }
   }
 
   Future<FunctionResult> onSelectPlace(SearchResult searchResult) async {

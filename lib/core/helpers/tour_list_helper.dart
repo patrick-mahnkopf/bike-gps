@@ -43,7 +43,7 @@ class TourListHelper {
   void _startTourListChangeListener() {
     DirectoryWatcher(constantsHelper.tourDirectoryPath).events.listen(
       (WatchEvent event) async {
-        if (!event.path.contains('/.')) {
+        if (!_isHiddenFolder(event.path)) {
           if (event.type == ChangeType.REMOVE) {
             FLog.info(text: 'File at ${event.path} got removed');
             final String baseNameWithoutExtension =
@@ -71,6 +71,10 @@ class TourListHelper {
     );
   }
 
+  bool _isHiddenFolder(String path) {
+    return path.contains('/.');
+  }
+
   Future<FunctionResult> initializeTourList() async {
     _tourList = TourListModel.fromJson(constantsHelper.tourListPath);
     for (final TourInfo tourInfo in _tourList.asList) {
@@ -80,9 +84,9 @@ class TourListHelper {
     }
     _tourList.changeTourListCacheFile(constantsHelper.tourListPath);
     final List<FileSystemEntity> tourFiles =
-        Directory(constantsHelper.tourDirectoryPath).listSync();
+        Directory(constantsHelper.tourDirectoryPath).listSync(recursive: true);
     for (final FileSystemEntity entity in tourFiles) {
-      if (!entity.path.contains('/.')) {
+      if (!_isHiddenFolder(entity.path)) {
         FLog.info(
             text: 'Found potential tour file for tour list at ${entity.path}');
         if (tourParser.fileExtensionPriority
