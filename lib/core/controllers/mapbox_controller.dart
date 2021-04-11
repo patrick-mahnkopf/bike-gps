@@ -285,7 +285,6 @@ class MapboxController {
     const String touchAreaColor = '#00ff00';
     const String backgroundLineColor = '#000000';
     const String primaryTourColor = '#0099ff';
-    // TODO fix secondary color turning to black on iOS
     const String secondaryTourColor = '#aab7b8';
 
     final Line backgroundLine = await mapboxMapController.addLine(

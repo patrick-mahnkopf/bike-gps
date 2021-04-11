@@ -40,8 +40,9 @@ class TourBounds {
         other.east <= west ||
         north <= other.south ||
         other.north <= south) return 0;
-    final double overlapArea = (max(west, other.west) - min(east, other.east)) *
-        (max(south, other.south) - min(north, other.north));
+    final double overlapArea = (min(east, other.east) - max(west, other.west)) *
+        (min(north, other.north) - max(south, other.south));
+    print(overlapArea);
     return max(0, overlapArea / (area + other.area - overlapArea));
   }
 

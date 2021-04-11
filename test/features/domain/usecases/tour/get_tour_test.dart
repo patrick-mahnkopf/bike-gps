@@ -25,7 +25,14 @@ void main() {
       descent: 1,
       name: "testName",
       tourLength: 3,
-      trackPoints: const [],
+      trackPoints: const [
+        TrackPoint(
+            latLng: LatLng(0, 0),
+            elevation: 0,
+            distanceFromStart: 0,
+            surface: 'A',
+            isWayPoint: false)
+      ],
       wayPoints: const []);
 
   test('should get the tour with the specified name', () async {

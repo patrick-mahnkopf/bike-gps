@@ -139,7 +139,13 @@ class DistanceHelper {
           nextPointLatLng: nextPointLatLng,
           userLocation: userLocation);
     } else {
-      return true;
+      final double distanceUserCurrentPoint =
+          distanceBetweenLatLngs(userLocation, currentPointLatLng);
+      if (distanceUserCurrentPoint >= _distanceNeededToPassTrackPoint) {
+        return true;
+      } else {
+        return false;
+      }
     }
   }
 

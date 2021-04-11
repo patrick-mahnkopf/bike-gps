@@ -96,10 +96,10 @@ void main() {
   });
 
   group('currentWayPoint', () {
-    test('should get first way point as current way point when on it',
+    test('should get first way point as current way point when in front of it',
         () async {
       // arrange
-      const LatLng userLocation = LatLng(0, 0);
+      const LatLng userLocation = LatLng(-1, 0);
       // act
       final NavigationData result = (await usecase(
               NavigationDataParams(tour: tTour, userLocation: userLocation)))
@@ -108,10 +108,10 @@ void main() {
       expect(result.currentWayPoint, tFirstWayPoint);
     });
 
-    test('should get first way point as current way point when in front of it',
+    test('should get first way point as current way point when on it',
         () async {
       // arrange
-      const LatLng userLocation = LatLng(-1, 0);
+      const LatLng userLocation = LatLng(0, 0);
       // act
       final NavigationData result = (await usecase(
               NavigationDataParams(tour: tTour, userLocation: userLocation)))

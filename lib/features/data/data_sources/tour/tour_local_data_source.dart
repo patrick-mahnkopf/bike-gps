@@ -33,7 +33,9 @@ class TourLocalDataSourceImpl implements TourLocalDataSource {
     try {
       FLog.info(text: 'getting Tour');
       final File tourFile = tourListHelper.getFile(name);
-      FLog.info(text: 'TourListHelper file: ${tourFile.path}');
+      if (tourFile != null) {
+        FLog.info(text: 'TourListHelper file: ${tourFile.path}');
+      }
       final TourModel tourModel = await tourParser.getTour(file: tourFile);
       FLog.logThis(
           text: 'TourModel: $tourModel',

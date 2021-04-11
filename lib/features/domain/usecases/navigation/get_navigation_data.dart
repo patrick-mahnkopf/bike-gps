@@ -37,6 +37,7 @@ class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
         tour: tour,
         userLocation: userLocation,
         trackPointIndex: closestTrackPointIndex);
+    print('passed: $userPassedTrackPoint');
     int currentTrackPointIndex = closestTrackPointIndex;
     if (userPassedTrackPoint &&
         currentTrackPointIndex < trackPoints.length - 1) {

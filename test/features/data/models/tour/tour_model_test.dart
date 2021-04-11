@@ -11,7 +11,14 @@ void main() {
       descent: 1,
       name: "testName",
       tourLength: 3,
-      trackPoints: const [],
+      trackPoints: const [
+        TrackPointModel(
+            latLng: LatLng(0, 0),
+            elevation: 0,
+            distanceFromStart: 0,
+            surface: 'A',
+            isWayPoint: false)
+      ],
       wayPoints: const []);
 
   test('should be a subclass of Tour entity', () async {
