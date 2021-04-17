@@ -147,22 +147,20 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-    // For shared images coming from outside the app while the app is in memory
+    // For shared files coming from outside the app while the app is in memory
     _intentDataStreamSubscription = ReceiveSharingIntent.getMediaStream()
         .listen((List<SharedMediaFile> values) async {
       for (final SharedMediaFile value in values) {
         final String path = value.path.replaceAll("%20", " ");
         final File file = File(path);
         FLog.trace(text: 'Flutter got file: $path while running');
-        print("Got file: $path");
         await _handleFile(file: file);
       }
     }, onError: (err) {
       // TODO present error dialog to User
-      print("getIntentDataStream error: $err");
     });
 
-    // For shared images coming from outside the app while the app is closed
+    // For shared files coming from outside the app while the app is closed
     ReceiveSharingIntent.getInitialMedia()
         .then((List<SharedMediaFile> values) async {
       if (values != null) {
@@ -170,7 +168,6 @@ class _MyAppState extends State<MyApp> {
           final String path = value.path.replaceAll("%20", " ");
           final File file = File(path);
           FLog.trace(text: 'Flutter got started with file: $path');
-          print("Got file: $path");
           await _handleFile(file: file);
         }
       }
@@ -185,7 +182,6 @@ class _MyAppState extends State<MyApp> {
       });
     }, onError: (err) {
       // TODO present error dialog to User
-      print("getLinkStream error: $err");
     });
 
     // For shared or opened urls/text coming from outside the app while the app is closed

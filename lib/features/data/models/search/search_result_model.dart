@@ -28,10 +28,15 @@ class SearchResultModel extends SearchResult {
       {@required TourListHelper tourListHelper}) {
     final props = map['properties'];
     final coordinates = map['geometry']['coordinates'];
-    final isTour = tourListHelper.contains(props['name'].toString());
+    final String name = props['name'].toString();
+    final isTour = tourListHelper.contains(name);
+
+    if (name.isEmpty || name == null || name == 'null') {
+      return null;
+    }
 
     return SearchResultModel(
-      name: props['name'].toString() ?? '',
+      name: name ?? '',
       street: props['street'].toString() ?? '',
       city: props['city'].toString() ?? '',
       state: props['state'].toString() ?? '',

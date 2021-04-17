@@ -17,6 +17,8 @@ class ConstantsHelper {
   String tourDirectoryPath;
   String searchHistoryPath;
   String tourListPath;
+  final Uri serverStatusUri;
+  final Uri serverRouteServiceUri;
   static const String mapSymbolPath = 'assets/images/map_symbols';
   static const String turnArrowsPath = 'assets/images/turn_arrows';
   final Map<String, String> turnSymbolAssetPaths;
@@ -27,7 +29,9 @@ class ConstantsHelper {
   ConstantsHelper(
       {@required this.applicationDocumentsDirectoryPath,
       @required this.applicationSupportDirectoryPath,
-      @required this.turnSymbolAssetPaths}) {
+      @required this.turnSymbolAssetPaths,
+      @required this.serverStatusUri,
+      @required this.serverRouteServiceUri}) {
     if (Platform.isAndroid) {
       tourDirectoryPath = p.join(
         applicationSupportDirectoryPath,
@@ -80,12 +84,18 @@ class ConstantsHelper {
   @factoryMethod
   static Future<ConstantsHelper> create() async {
     final Map<String, String> turnArrowPaths = await _getTurnArrowPaths();
+    final String serverRouteServiceUrl =
+        await rootBundle.loadString('assets/tokens/route_service_url.txt');
+    final String serverStatusUrl = await rootBundle
+        .loadString('assets/tokens/route_service_status_url.txt');
     return ConstantsHelper(
         applicationDocumentsDirectoryPath:
             (await getApplicationDocumentsDirectory()).path,
         applicationSupportDirectoryPath:
             (await getApplicationSupportDirectory()).path,
-        turnSymbolAssetPaths: turnArrowPaths);
+        turnSymbolAssetPaths: turnArrowPaths,
+        serverStatusUri: Uri.parse(serverStatusUrl),
+        serverRouteServiceUri: Uri.parse(serverRouteServiceUrl));
   }
 
   static Future<Map<String, String>> _getTurnArrowPaths() async {

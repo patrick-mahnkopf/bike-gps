@@ -3,10 +3,13 @@ import 'package:bike_gps/core/helpers/tour_conversion_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
+
+class MockConstantsHelper extends Mock implements ConstantsHelper {}
 
 void main() {
   TourConversionHelper tourConversionHelper;
-  ConstantsHelper constantsHelper;
+  MockConstantsHelper mockConstantsHelper;
   final Map<String, String> tTurnSymbolAssetPaths = {
     'testid': 'test/assets/turnArrows/A01.svg'
   };
@@ -25,13 +28,15 @@ void main() {
   const Icon tInfoIcon = Icon(Icons.info);
 
   setUp(() async {
-    constantsHelper = ConstantsHelper(
-        applicationDocumentsDirectoryPath: '',
-        applicationSupportDirectoryPath: '',
-        turnSymbolAssetPaths: tTurnSymbolAssetPaths);
+    mockConstantsHelper = MockConstantsHelper();
     tourConversionHelper =
-        TourConversionHelper(constantsHelper: constantsHelper);
+        TourConversionHelper(constantsHelper: mockConstantsHelper);
   });
+
+  void setUpConstantsHelper() {
+    when(mockConstantsHelper.turnSymbolAssetPaths)
+        .thenReturn(tTurnSymbolAssetPaths);
+  }
 
   bool svgPicturesEqual(SvgPicture first, SvgPicture second) {
     if (first.width == second.width &&
@@ -46,6 +51,7 @@ void main() {
   group('getTurnSymbolFromId', () {
     test('should return icon with id testId in white', () {
       // arrange
+      setUpConstantsHelper();
       // act
       final SvgPicture result = tourConversionHelper.getTurnSymbolFromId(
           iconId: 'testid') as SvgPicture;
@@ -55,6 +61,7 @@ void main() {
 
     test('should return icon with id testId in black', () {
       // arrange
+      setUpConstantsHelper();
       // act
       final SvgPicture result = tourConversionHelper.getTurnSymbolFromId(
           iconId: 'testid', color: Colors.black) as SvgPicture;
@@ -74,6 +81,7 @@ void main() {
 
     test('should return info icon for unknown icon ids', () {
       // arrange
+      setUpConstantsHelper();
       // act
       final Icon result =
           tourConversionHelper.getTurnSymbolFromId(iconId: 'unknown') as Icon;

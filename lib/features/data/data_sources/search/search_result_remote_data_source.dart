@@ -83,12 +83,14 @@ class SearchResultRemoteDataSourceImpl implements SearchResultRemoteDataSource {
     final body = json.decode(utf8.decode(response.bodyBytes));
     final features = body['features'] as List;
 
-    return features
+    final List<SearchResultModel> searchResultList = features
         .map((searchResult) => SearchResultModel.fromJson(
             searchResult as Map<String, dynamic>,
             tourListHelper: getIt()))
         .toSet()
         .toList();
+    searchResultList.removeWhere((searchResult) => searchResult == null);
+    return searchResultList;
   }
 
   Future<SearchResultModel> _getSearchResultModelFromTourInfo(

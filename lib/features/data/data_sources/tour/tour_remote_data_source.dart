@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:bike_gps/core/function_results/function_result.dart';
+import 'package:bike_gps/core/helpers/constants_helper.dart';
 import 'package:bike_gps/core/helpers/settings_helper.dart';
 import 'package:bike_gps/core/helpers/tour_list_helper.dart';
 import 'package:bike_gps/features/data/data_sources/tour_parser/tour_parser.dart';
@@ -29,12 +30,14 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
   final TourParser tourParser;
   final SettingsHelper settingsHelper;
   final TourListHelper tourListHelper;
+  final ConstantsHelper constantsHelper;
 
   TourRemoteDataSourceImpl(
       {@required this.tourParser,
       @required this.client,
       @required this.settingsHelper,
-      @required this.tourListHelper});
+      @required this.tourListHelper,
+      @required this.constantsHelper});
 
   /// Calls the route service endpoint found in 'assets/token/route_service_url.txt'.
   ///
@@ -67,11 +70,8 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
 
   Future<bool> _checkRouteServiceReady() async {
     try {
-      final String statusUrl = await rootBundle
-          .loadString('assets/tokens/route_service_status_url.txt');
-      final Uri statusUri = Uri.parse(statusUrl);
       final Response response = await client.get(
-        statusUri,
+        constantsHelper.serverStatusUri,
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Accept':
@@ -130,7 +130,7 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
     //     name: 'TourRemoteDataSource getPathToTour PostBody',
     //     time: DateTime.now());
     final Response response = await client.post(
-      baseUri,
+      constantsHelper.serverRouteServiceUri,
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Accept':

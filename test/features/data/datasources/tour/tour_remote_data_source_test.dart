@@ -1,7 +1,5 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:bike_gps/core/error/exception.dart';
+import 'package:bike_gps/core/helpers/constants_helper.dart';
 import 'package:bike_gps/core/helpers/settings_helper.dart';
 import 'package:bike_gps/core/helpers/tour_list_helper.dart';
 import 'package:bike_gps/features/data/data_sources/tour/tour_remote_data_source.dart';
@@ -22,6 +20,8 @@ class MockTourListHelper extends Mock implements TourListHelper {}
 
 class MockSettingsHelper extends Mock implements SettingsHelper {}
 
+class MockConstantsHelper extends Mock implements ConstantsHelper {}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   TourRemoteDataSourceImpl dataSource;
@@ -29,29 +29,11 @@ void main() {
   MockTourParser mockTourParser;
   MockTourListHelper mockTourListHelper;
   MockSettingsHelper mockSettingsHelper;
-  Uri serverStatusUri;
-  Uri serverTourUri;
+  MockConstantsHelper mockConstantsHelper;
+  Uri tServerStatusUri;
+  Uri tServerRouteServiceUri;
   const tUserLocation = LatLng(0, 0);
   const tTourStart = LatLng(0, 0);
-  final Map<String, String> headers = {
-    'Content-Type': 'application/json; charset=UTF-8',
-    'Accept':
-        'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8',
-  };
-  final body = jsonEncode(<String, dynamic>{
-    'coordinates': [
-      [tUserLocation.longitude, tUserLocation.latitude],
-      [tTourStart.longitude, tTourStart.latitude]
-    ],
-    'extra_info': [
-      'surface',
-      'waycategory',
-      'waytype',
-      'traildifficulty',
-    ],
-    'instructions': 'true',
-    'instructions_format': 'text',
-  });
   final TourModel tTourModel = TourModel(
       ascent: 1,
       bounds: LatLngBounds(
@@ -71,42 +53,46 @@ void main() {
       wayPoints: const []);
 
   setUp(() {
-    serverStatusUri = Uri.parse(
-        File('assets/tokens/route_service_status_url.txt').readAsStringSync());
-    serverTourUri = Uri.parse(
-        File('assets/tokens/route_service_url.txt').readAsStringSync());
+    tServerStatusUri = Uri.parse('testStatusUri');
+    tServerRouteServiceUri = Uri.parse('testRouteServiceUri');
     mockHttpClient = MockHttpClient();
     mockTourParser = MockTourParser();
     mockTourListHelper = MockTourListHelper();
     mockSettingsHelper = MockSettingsHelper();
+    mockConstantsHelper = MockConstantsHelper();
     dataSource = TourRemoteDataSourceImpl(
         client: mockHttpClient,
         tourParser: mockTourParser,
         tourListHelper: mockTourListHelper,
-        settingsHelper: mockSettingsHelper);
+        settingsHelper: mockSettingsHelper,
+        constantsHelper: mockConstantsHelper);
   });
 
+  void setUpMockConstantsHelper() {
+    when(mockConstantsHelper.serverStatusUri).thenReturn(tServerStatusUri);
+    when(mockConstantsHelper.serverRouteServiceUri)
+        .thenReturn(tServerRouteServiceUri);
+  }
+
   void setUpMockHttpClientTourSuccess200() {
-    print('ServerURL: $serverTourUri');
-    when(mockHttpClient.post(serverTourUri,
+    when(mockHttpClient.post(tServerRouteServiceUri,
             headers: anyNamed('headers'), body: anyNamed('body')))
         .thenAnswer((_) async => http.Response(fixture('tour.gpx'), 200));
   }
 
   void setUpMockHttpClientTourFailure404() {
-    when(mockHttpClient.post(serverTourUri,
+    when(mockHttpClient.post(tServerRouteServiceUri,
             headers: anyNamed('headers'), body: anyNamed('body')))
         .thenAnswer((_) async => http.Response('Something went wrong', 404));
   }
 
   void setUpMockHttpClientStatusSuccess200() {
-    print('StatusURL: $serverStatusUri');
-    when(mockHttpClient.get(serverStatusUri, headers: anyNamed('headers')))
+    when(mockHttpClient.get(tServerStatusUri, headers: anyNamed('headers')))
         .thenAnswer((_) async => http.Response('{"status":"ready"}', 200));
   }
 
   void setUpMockHttpClientStatusFailure404() {
-    when(mockHttpClient.get(serverStatusUri, headers: anyNamed('headers')))
+    when(mockHttpClient.get(tServerStatusUri, headers: anyNamed('headers')))
         .thenAnswer((_) async => http.Response('Something went wrong', 404));
   }
 
@@ -121,16 +107,10 @@ void main() {
   test('should return a Tour when the response code is 200 (success)',
       () async {
     // arrange
+    setUpMockConstantsHelper();
     setUpMockHttpClientStatusSuccess200();
     setUpMockHttpClientTourSuccess200();
     setUpTourParserGetTourFromFileContentSuccess();
-    final response =
-        await mockHttpClient.get(serverStatusUri, headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-      'Accept':
-          '	text/html, application/xhtml+xml, application/xml; charset=utf-8',
-    });
-    print('response ${response.statusCode}');
     // act
     final result = await dataSource.getPathToTour(
         tourStart: tTourStart, userLocation: tUserLocation);
@@ -144,6 +124,7 @@ void main() {
       'should throw a ServerException when the server status response code is 404 or something other than 200',
       () async {
     // arrange
+    setUpMockConstantsHelper();
     setUpMockHttpClientStatusFailure404();
     setUpTourParserGetTourFromFileContentSuccess();
     // act
@@ -157,6 +138,7 @@ void main() {
       'should throw a ServerException when the response code is 404 or something other than 200',
       () async {
     // arrange
+    setUpMockConstantsHelper();
     setUpMockHttpClientStatusSuccess200();
     setUpMockHttpClientTourFailure404();
     setUpTourParserGetTourFromFileContentSuccess();
