@@ -26,9 +26,7 @@ dependencies:
     sdk: flutter
   bike_gps_closed_source:
     path: ../bike_gps_closed_source
-  geocoder:
-    git:
-      url: https://github.com/otopba/flutter_geocoder.git
+  flutter_geocoder: ^0.2.2-nullsafety
   receive_sharing_intent:
     git:
       url: https://github.com/LazyDave76/receive_sharing_intent.git

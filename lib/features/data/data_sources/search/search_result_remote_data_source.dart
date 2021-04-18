@@ -7,7 +7,7 @@ import 'package:bike_gps/features/domain/usecases/tour/get_tour.dart';
 import 'package:bike_gps/injection_container.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:geocoder/geocoder.dart';
+import 'package:flutter_geocoder/geocoder.dart';
 import 'package:http/http.dart' as http;
 import 'package:injectable/injectable.dart';
 

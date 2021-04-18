@@ -274,7 +274,14 @@ class RoadBook extends StatelessWidget {
 
   Widget _getTileSubtitle(WayPoint currentWayPoint) {
     String subtitleContent = '';
-    if (currentWayPoint.location != null && currentWayPoint.location != '') {
+    final Widget tileTitle = _getTileTitle(currentWayPoint);
+    String tileTitleText = '';
+    if (tileTitle is Text) {
+      tileTitleText = tileTitle.data;
+    }
+    if (currentWayPoint.location != null &&
+        currentWayPoint.location != '' &&
+        tileTitleText != currentWayPoint.location) {
       subtitleContent += "${currentWayPoint.location}\n\n";
     }
     if (currentWayPoint.direction != null && currentWayPoint.direction != '') {

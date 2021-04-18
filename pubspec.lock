@@ -328,6 +328,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "7.0.0"
+  flutter_geocoder:
+    dependency: "direct main"
+    description:
+      name: flutter_geocoder
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.2-nullsafety"
   flutter_svg:
     dependency: "direct main"
     description:
@@ -345,15 +352,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  geocoder:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: HEAD
-      resolved-ref: a861a7fb6fdcc5e9bccece8df475be6c3df35dab
-      url: "https://github.com/otopba/flutter_geocoder.git"
-    source: git
-    version: "0.2.1"
   geodesy:
     dependency: "direct main"
     description:
@@ -960,4 +958,4 @@ packages:
     version: "2.2.1"
 sdks:
   dart: ">=2.12.0 <3.0.0"
-  flutter: ">=1.24.0-10.1.pre"
+  flutter: ">=2.0.0"
