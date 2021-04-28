@@ -3,6 +3,7 @@ import 'package:bike_gps/features/domain/entities/search/search_result.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
+/// Represents a search result.
 class SearchResultModel extends SearchResult {
   const SearchResultModel(
       {@required String name,
@@ -24,6 +25,7 @@ class SearchResultModel extends SearchResult {
             state: state,
             isTour: isTour);
 
+  /// Converts the Json [map] to a [SearchResultModel].
   factory SearchResultModel.fromJson(Map<String, dynamic> map,
       {@required TourListHelper tourListHelper}) {
     final props = map['properties'];

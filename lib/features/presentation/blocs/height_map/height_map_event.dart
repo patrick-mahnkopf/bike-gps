@@ -7,6 +7,7 @@ abstract class HeightMapEvent extends Equatable {
   List<Object> get props => [];
 }
 
+/// Event of the HeightMapBloc when loading was initiated.
 class HeightMapLoaded extends HeightMapEvent {
   final Tour tour;
 

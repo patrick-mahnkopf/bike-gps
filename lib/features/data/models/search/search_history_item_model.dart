@@ -4,6 +4,7 @@ import 'package:bike_gps/features/domain/entities/search/entities.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
+/// Represents an entry of the search history.
 class SearchHistoryItemModel extends SearchResultModel {
   const SearchHistoryItemModel(
       {@required String name,
@@ -25,6 +26,7 @@ class SearchHistoryItemModel extends SearchResultModel {
             state: state,
             isTour: isTour);
 
+  /// Converts a [SearchResult] to a [SearchHistoryItemModel].
   factory SearchHistoryItemModel.fromSearchResult(
       {@required SearchResult searchResult}) {
     return SearchHistoryItemModel(
@@ -37,6 +39,7 @@ class SearchHistoryItemModel extends SearchResultModel {
         street: searchResult.street);
   }
 
+  /// Converts the Json [map] to a [SearchHistoryItemModel].
   factory SearchHistoryItemModel.fromJson(Map<String, dynamic> map,
       {@required TourListHelper tourListHelper}) {
     final properties = map['properties'];
@@ -57,6 +60,7 @@ class SearchHistoryItemModel extends SearchResultModel {
     );
   }
 
+  /// Converts this [SearchHistoryItemModel] to Json.
   Map<String, dynamic> toJson() => {
         'properties': {
           'name': name,

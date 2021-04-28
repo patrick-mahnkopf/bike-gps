@@ -8,6 +8,7 @@ import 'package:injectable/injectable.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/usecases/usecase.dart';
 
+/// A use case that gets the search results.
 @lazySingleton
 class GetSearchResults
     extends UseCase<List<SearchResult>, GetSearchResultsParams> {
@@ -15,6 +16,7 @@ class GetSearchResults
 
   GetSearchResults({@required this.repository});
 
+  /// Get the search results for the query.
   @override
   Future<Either<Failure, List<SearchResult>>> call(
       GetSearchResultsParams params) async {

@@ -4,6 +4,7 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 
 import 'entities.dart';
 
+/// The app's internal trackpoint representation.
 class TrackPoint extends Equatable {
   final double distanceFromStart;
   final double elevation;

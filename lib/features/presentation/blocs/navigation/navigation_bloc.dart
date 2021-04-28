@@ -24,6 +24,7 @@ import '../../../domain/usecases/navigation/get_navigation_data.dart';
 part 'navigation_event.dart';
 part 'navigation_state.dart';
 
+/// BLoC responsible for the navigation.
 @injectable
 class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
   final GetNavigationData getNavigationData;
@@ -51,6 +52,12 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     }
   }
 
+  /// Handles the current navigation step.
+  ///
+  /// Yields [NavigationLoadSuccess] state if regular navigation succeeds.
+  /// Yields [NavigationToTourLoadSuccess] state if the user is too far from
+  /// the track and the navigation to tour setting is turned on. Yields
+  /// [NavigationLoadFailure] state on errors.
   Stream<NavigationState> _mapNavigationLoadedToState(
       NavigationLoaded event) async* {
     try {
@@ -67,6 +74,10 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     }
   }
 
+  /// Gets the current user location.
+  ///
+  /// If the event doesn't contain the [userLocation], it is instead requested
+  /// from the Location module.
   Future<LatLng> _getUserLocationFromEvent(NavigationLoaded event) async {
     if (event.userLocation != null) {
       return LatLng(event.userLocation.latitude, event.userLocation.longitude);
@@ -86,6 +97,10 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     }
   }
 
+  /// Checks if [NavigationData] or a Failure was returned by the use case and
+  /// handles accordingly.
+  ///
+  /// Yields [NavigationLoadFailure] state on error.
   Stream<NavigationState> _handleNavigationOrFailureState(
       {@required Either<Failure, NavigationData> navigationDataEither,
       @required LatLng userLocation,
@@ -105,6 +120,9 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     }
   }
 
+  /// Navigates to the tour or continues navigation when already on it.
+  ///
+  /// Yields [NavigationLoadSuccess] state if continuing navigation on the tour.
   Stream<NavigationState> _handleNavigation(
       {@required NavigationData navigationData,
       @required LatLng userLocation,
@@ -113,7 +131,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
         await distanceHelper.distanceToTour(userLocation, event.tour);
     log('distanceToTour: $distanceToTour',
         name: 'NavigationBloc navigation _handleNavigation');
-    // Not on tour -> navigate to tour
+    // The user is not on the tour. Start navigating to it if the setting is
+    // enabled.
     if (distanceToTour >= ConstantsHelper.maxAllowedDistanceToTour &&
         settingsHelper.navigateToTourEnabled) {
       log('Not on tour -> navigating to tour',
@@ -123,7 +142,7 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
           event: event,
           closestWayPoint: navigationData.nextWayPoint.latLng,
           tourNavigationData: navigationData);
-      // On tour -> continue navigation on tour
+      // The user is on the tour. Continue navigation on the tour.
     } else {
       log('On tour or navigation to tour disabled -> continue navigation on tour, navigateToTourEnabled: ${settingsHelper.navigateToTourEnabled}',
           name: 'NavigationBloc navigation _handleNavigation');
@@ -137,13 +156,15 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     }
   }
 
+  /// Starts navigation to the tour or continues if already navigating to it.
   Stream<NavigationState> _startOrContinueNavigationToTour(
       {@required LatLng userLocation,
       @required NavigationLoaded event,
       @required LatLng closestWayPoint,
       @required NavigationData tourNavigationData}) async* {
     final NavigationState navigationState = state;
-    // Already navigating to tour
+
+    /// Already navigating to the tour. Continue navigating on it.
     if (navigationState is NavigationToTourLoadSuccess) {
       log('Already navigating to tour',
           name: 'NavigationBloc navigation _startOrContinueNavigationToTour');
@@ -156,7 +177,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
           event: event,
           closestWayPoint: closestWayPoint,
           tourNavigationData: tourNavigationData);
-      // No previous path to tour
+
+      /// No previous path to the tour. Start navigating to the tour.
     } else {
       log('No previous path to tour',
           name: 'NavigationBloc navigation _startOrContinueNavigationToTour');
@@ -171,6 +193,10 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     }
   }
 
+  /// Checks if [NavigationData] or a Failure was returned by the use case and
+  /// handles accordingly.
+  ///
+  /// Yields [NavigationLoadFailure] state on error.
   Stream<NavigationState> _continueNavigationToTourOrFailureState(
       {@required Either<Failure, NavigationData> navigationToTourDataEither,
       @required LatLng userLocation,
@@ -195,6 +221,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     }
   }
 
+  /// Continues navigation on the path to the tour or requests a new path if
+  /// the user left the previous one.
   Stream<NavigationState> _continueOnPathToTourOrGetNewPath(
       {@required NavigationData navigationToTourData,
       @required LatLng userLocation,
@@ -207,7 +235,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
         userLocation, navigationState.pathToTour);
     log('distanceToPath: $distanceToPath',
         name: 'NavigationBloc navigation _continueOnPathToTourOrGetNewPath');
-    // Left path to tour -> navigate along new path to tour
+
+    /// The user left the path to the tour. Navigate on a new path to it.
     if (distanceToPath >= ConstantsHelper.maxAllowedDistanceToTour) {
       log('Left path to tour -> navigate along new path to tour',
           name: 'NavigationBloc navigation _continueOnPathToTourOrGetNewPath');
@@ -219,7 +248,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
           userLocation: userLocation,
           event: event,
           tourNavigationData: tourNavigationData);
-      // Still on path to tour -> continue navigation to tour
+
+      /// The user is still on the path to the tour. Continue navigating on it.
     } else {
       log('Still on path to tour -> continue navigation to tour',
           name: 'NavigationBloc navigation _continueOnPathToTourOrGetNewPath');
@@ -234,6 +264,11 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     }
   }
 
+  /// Checks if the path to the tour or a Failure was returned by the use case
+  /// and handles accordingly.
+  ///
+  /// Yields a [NavigationLoadFailure] state on error, followed by a
+  /// [NavigationLoadSuccess] state for the regular navigation on the tour.
   Stream<NavigationState> _newPathToTourOrNavigationLoadSuccess(
       {@required Either<Failure, Tour> pathToTourEither,
       @required LatLng userLocation,
@@ -264,6 +299,11 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     }
   }
 
+  /// Checks if [NavigationData] or a Failure was returned by the use case and
+  /// handles accordingly.
+  ///
+  /// Yields [NavigationLoadFailure] state on error. Yields
+  /// [NavigationToTourLoadSuccess] state if successful.
   Stream<NavigationState> _navigateOnPathToTourOrFailureState(
       {@required Either<Failure, NavigationData> navigationToTourDataEither,
       @required Tour pathToTour,
@@ -291,6 +331,9 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     }
   }
 
+  /// Stops the current navigation.
+  ///
+  /// Yields [NavigationInitial] state.
   Stream<NavigationState> _mapNavigationStoppedToState(
       NavigationStopped event) async* {
     yield NavigationInitial();

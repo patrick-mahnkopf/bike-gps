@@ -12,6 +12,7 @@ import 'package:injectable/injectable.dart';
 import '../../../../core/error/exception.dart';
 import '../../models/tour/models.dart';
 
+/// Class responsible for loading local tour files.
 abstract class TourLocalDataSource {
   Future<TourModel> getTour({@required String name});
   Future<List<TourModel>> getAlternativeTours({@required String mainTourName});
@@ -28,6 +29,9 @@ class TourLocalDataSourceImpl implements TourLocalDataSource {
       @required this.constantsHelper,
       @required this.tourListHelper});
 
+  /// Returns the local tour for [name].
+  ///
+  /// Throws a [ParserException] if the tour is null or parsing failed.
   @override
   Future<TourModel> getTour({@required String name}) async {
     try {
@@ -56,9 +60,16 @@ class TourLocalDataSourceImpl implements TourLocalDataSource {
     }
   }
 
+  /// Returns a list of tours that overlap the [mainTourName] tour.
+  ///
+  /// Compares the bounds of the [mainTourName] tour with all others and returns
+  /// a list of those with an overlap reaching or surpassing the threshold.
+  /// Throws a [TourListException] on error or if the tour list doesn't contain
+  /// [mainTourName].
   @override
   Future<List<TourModel>> getAlternativeTours(
       {@required String mainTourName}) async {
+    const double minOverLapPercentage = 0.25;
     try {
       FLog.info(text: 'getting alternative Tours for tour $mainTourName');
       if (tourListHelper.contains(mainTourName)) {
@@ -73,7 +84,10 @@ class TourLocalDataSourceImpl implements TourLocalDataSource {
             FLog.info(
                 text:
                     'Overlap between ${mainTourBounds.name} and ${alternativeTourBounds.name}: ${mainTourBounds.getOverlap(alternativeTourBounds)}');
-            if (mainTourBounds.getOverlap(alternativeTourBounds) >= 0.25) {
+
+            /// Add current tour to alternatives if the overlap is >= minOverLapPercentage.
+            if (mainTourBounds.getOverlap(alternativeTourBounds) >=
+                minOverLapPercentage) {
               final TourModel tourModel =
                   await getTour(name: alternativeTourBounds.name);
               tourModels.add(tourModel);

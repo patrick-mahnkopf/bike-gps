@@ -4,6 +4,7 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 
 import '../../../domain/entities/tour/entities.dart';
 
+/// Represents a tour.
 class TourModel extends Tour {
   TourModel({
     @required String name,
@@ -22,6 +23,7 @@ class TourModel extends Tour {
             descent: descent,
             tourLength: tourLength);
 
+  /// Converts this [Tour] to a gpx xml format string.
   String toGpx() {
     final StringBuffer sb = StringBuffer();
     sb.writeln('<?xml version="1.0" encoding="UTF-8"?>');
@@ -33,6 +35,7 @@ class TourModel extends Tour {
     return sb.toString();
   }
 
+  /// Writes the gpx metadata part to the StringBuffer [sb].
   void _writeGpxMetadataToBuffer(StringBuffer sb) {
     final DateTime dateTime = DateTime.now();
     _writeIndentation(sb, 1);
@@ -50,6 +53,7 @@ class TourModel extends Tour {
     sb.writeln('</metadata>');
   }
 
+  /// Writes the gpx track part to the StringBuffer [sb].
   void _writeGpxTrackDataToBuffer(StringBuffer sb) {
     _writeIndentation(sb, 1);
     sb.writeln('<trk>');
@@ -89,6 +93,7 @@ class TourModel extends Tour {
     sb.writeln('</trk>');
   }
 
+  /// Convenience method to write [indentLevel] * 4 whitespaces to [sb].
   void _writeIndentation(StringBuffer sb, int indentLevel) {
     const String indentation = '    ';
     for (int i = 0; i < indentLevel; i++) {

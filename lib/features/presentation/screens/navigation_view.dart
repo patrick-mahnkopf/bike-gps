@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/navigation/navigation_bloc.dart';
 import '../widgets/navigation_widgets/navigation_top_widget.dart';
 
+/// The active view during navigation.
 class NavigationView extends StatelessWidget {
   const NavigationView({Key key}) : super(key: key);
 
@@ -17,12 +18,17 @@ class NavigationView extends StatelessWidget {
         children: [
           BlocBuilder<NavigationBloc, NavigationState>(
             builder: (context, state) {
+              /// Rebuilds the navigation widgets at the top when the
+              /// navigation data for the tour changed.
               if (state is NavigationLoadSuccess) {
                 return NavigationTopWidget(
                   currentWayPoint: state.currentWayPoint,
                   nextWayPoint: state.nextWayPoint,
                   currentWayPointDistance: state.currentWayPointDistance,
                 );
+
+                /// Rebuilds the navigation widgets at the top when the
+                /// navigation data to the tour changed.
               } else if (state is NavigationToTourLoadSuccess) {
                 return NavigationTopWidget(
                   currentWayPoint: state.currentWayPoint,
@@ -38,10 +44,15 @@ class NavigationView extends StatelessWidget {
           ),
           BlocBuilder<NavigationBloc, NavigationState>(
             builder: (context, state) {
+              /// Rebuilds the navigation widgets at the bottom when the
+              /// navigation data for the tour changed.
               if (state is NavigationLoadSuccess) {
                 return NavigationBottomWidget(
                   distanceToTourEnd: state.distanceToTourEnd,
                 );
+
+                /// Rebuilds the navigation widgets at the bottom when the
+                /// navigation data to the tour changed.
               } else if (state is NavigationToTourLoadSuccess) {
                 return NavigationBottomWidget(
                   distanceToTourEnd: state.distanceToTourEnd,

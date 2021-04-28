@@ -11,6 +11,8 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:injectable/injectable.dart';
 
+/// The SearchResultRepository handling communication with the search data
+/// sources.
 @Injectable(as: SearchResultRepository)
 class SearchResultRepositoryImpl implements SearchResultRepository {
   final SearchResultLocalDataSource localDataSource;
@@ -19,6 +21,9 @@ class SearchResultRepositoryImpl implements SearchResultRepository {
   SearchResultRepositoryImpl(
       {@required this.localDataSource, @required this.remoteDataSource});
 
+  /// Gets the current search history.
+  ///
+  /// Returns a [FileFailure] in case of a [FileException].
   @override
   Future<Either<Failure, List<SearchResult>>> getSearchHistory() async {
     try {
@@ -28,6 +33,10 @@ class SearchResultRepositoryImpl implements SearchResultRepository {
     }
   }
 
+  /// Adds [searchHistoryItemModel] to the current search history.
+  ///
+  /// Returns a [FileFailure] in case of a [FileException] and a
+  /// [FunctionResultSuccess] otherwise.
   @override
   Future<Either<Failure, FunctionResult>> addToSearchHistory(
       {@required SearchHistoryItemModel searchHistoryItemModel,
@@ -40,6 +49,9 @@ class SearchResultRepositoryImpl implements SearchResultRepository {
     }
   }
 
+  /// Gets the search results for the [query].
+  ///
+  /// Returns a [ServerFailure] in case of a [ServerException].
   @override
   Future<Either<Failure, List<SearchResult>>> getSearchResults(
       {@required String query}) async {

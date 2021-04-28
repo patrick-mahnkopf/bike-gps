@@ -3,6 +3,9 @@ import 'dart:developer';
 import 'package:f_logs/f_logs.dart';
 import 'package:flutter/widgets.dart';
 
+/// Function results to return for async functions because they should not
+/// return void.
+
 class FunctionResult {}
 
 class FunctionResultSuccess extends FunctionResult {}

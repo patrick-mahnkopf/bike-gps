@@ -7,12 +7,14 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 import 'package:injectable/injectable.dart';
 
+/// A use case that gets alternative tours.
 @lazySingleton
 class GetAlternativeTours extends UseCase<List<Tour>, AlternativeTourParams> {
   final TourRepository repository;
 
   GetAlternativeTours({@required this.repository});
 
+  /// Gets alternative tours to the main one.
   @override
   Future<Either<Failure, List<Tour>>> call(AlternativeTourParams params) async {
     return repository.getAlternativeTours(mainTourName: params.mainTourName);

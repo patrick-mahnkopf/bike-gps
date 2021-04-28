@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
+import 'dart:math' show max;
 
 import 'package:bike_gps/core/controllers/controllers.dart';
 import 'package:bike_gps/core/helpers/settings_helper.dart';
@@ -24,6 +24,7 @@ part 'tour_state.dart';
 const String parserFailureMessage = 'Parser Failure';
 const String serverFailureMessage = 'Server Failure';
 
+/// BLoC responsible for the tours.
 @lazySingleton
 class TourBloc extends Bloc<TourEvent, TourState> {
   final GetTour getTour;
@@ -52,6 +53,9 @@ class TourBloc extends Bloc<TourEvent, TourState> {
     }
   }
 
+  /// Loads the tour and looks for alternative tours.
+  ///
+  /// Yields [TourLoadFailure] state on error.
   Stream<TourState> _mapTourLoadedToState(TourLoaded event) async* {
     yield TourLoading(previousState: state);
     try {
@@ -68,17 +72,25 @@ class TourBloc extends Bloc<TourEvent, TourState> {
     }
   }
 
+  /// Checks if the [Tour] and optionally also alternative tours or a Failure
+  /// was returned by the use case and handles accordingly.
+  ///
+  /// Yields [TourLoadFailure] state on error.
   Stream<TourState> _eitherLoadSuccessOrLoadFailureState(
       Either<Failure, Tour> failureOrTour,
       MapboxController mapboxController,
       Either<Failure, List<Tour>> failureOrAlternativeTours) async* {
     if (failureOrTour.isRight()) {
       final Tour tour = failureOrTour.getOrElse(() => null);
+
+      /// Pass alternative tours if they exist.
       if (failureOrAlternativeTours.isRight()) {
         final List<Tour> alternativeTours =
             failureOrAlternativeTours.getOrElse(() => null);
         yield* _tourLoadSuccessOrEnhanceFirst(
             tour, alternativeTours, mapboxController);
+
+        /// No alternative tours were found.
       } else {
         yield* _tourLoadSuccessOrEnhanceFirst(tour, [], mapboxController);
       }
@@ -90,16 +102,24 @@ class TourBloc extends Bloc<TourEvent, TourState> {
     }
   }
 
+  /// Checks if the tour should be enhanced before using it.
+  ///
+  /// Tours without direction information will be enhanced if the setting is
+  /// turned on and the device is connected to wifi. Directly yields
+  /// [TourLoadSuccess] state if no enhancement should be done.
   Stream<TourState> _tourLoadSuccessOrEnhanceFirst(Tour tour,
       List<Tour> alternativeTours, MapboxController mapboxController) async* {
     Tour tourWithDirections = tour;
     final ConnectivityResult connectivityResult =
         await Connectivity().checkConnectivity();
     final bool wifiConnected = connectivityResult == ConnectivityResult.wifi;
+
+    /// Checks if the tour should be enhanced. Tours without direction
+    /// information should be enhanced if the setting is turned on and the
+    /// device is connected to wifi.
     if (!_tourContainsDirections(tour) &&
         wifiConnected &&
         settingsHelper.enhanceToursEnabled) {
-      log("Tour: ${tour.name} doesn't contain directions");
       FLog.info(text: "Tour: ${tour.name} doesn't contain directions");
       FLog.info(
           text:
@@ -111,9 +131,12 @@ class TourBloc extends Bloc<TourEvent, TourState> {
       }
     }
 
+    /// Only yield the tour, since no alternative tours were found.
     if (alternativeTours == null || alternativeTours.isEmpty) {
       mapboxController.onSelectTour(tour: tourWithDirections);
       yield TourLoadSuccess(tour: tourWithDirections);
+
+      /// Yield the tour and its alternative tours.
     } else {
       mapboxController.onSelectTour(
           tour: tourWithDirections, alternativeTours: alternativeTours);
@@ -122,23 +145,23 @@ class TourBloc extends Bloc<TourEvent, TourState> {
     }
   }
 
+  /// Checks if the [tour]'s waypoints contain direction information.
+  ///
+  /// Only checks up to the first 10 waypoints for performance reasons.
   bool _tourContainsDirections(Tour tour) {
-    for (final WayPoint wayPoint in tour.wayPoints) {
-      log('WayPoint: ${wayPoint.name}, ${wayPoint.direction}',
-          name: '_tourContainsDirections');
-    }
     int wayPointsWithDirections = 0;
-    for (var i = 0; i < tour.wayPoints.length; i++) {
+    const int amountOfWayPointsToCheck = 10;
+    final int maxIterationIndex =
+        max(tour.wayPoints.length, amountOfWayPointsToCheck);
+    for (int i = 0; i < maxIterationIndex; i++) {
       if (tour.wayPoints[i].direction != '') {
         wayPointsWithDirections++;
-      }
-      if (i >= 10) {
-        break;
       }
     }
     return wayPointsWithDirections > 0;
   }
 
+  /// Maps the [failure] to a message displayed in the failure state.
   String _mapFailureToMessage(Failure failure) {
     switch (failure.runtimeType) {
       case ParserFailure:
@@ -152,6 +175,9 @@ class TourBloc extends Bloc<TourEvent, TourState> {
     }
   }
 
+  /// Removes the active tour and all alternative tours.
+  ///
+  /// Yields [TourEmpty] state.
   Stream<TourState> _mapTourRemovedToState() async* {
     yield TourEmpty();
   }

@@ -7,6 +7,7 @@ abstract class NavigationEvent extends Equatable {
   List<Object> get props => [];
 }
 
+/// Event of the NavigationBloc when loading was initiated.
 class NavigationLoaded extends NavigationEvent {
   final Tour tour;
   final LatLng userLocation;
@@ -26,6 +27,7 @@ class NavigationLoaded extends NavigationEvent {
       'NavigationLoaded { userLocation: $userLocation, mapboxController: $mapboxController, tour: ${tour.name} }';
 }
 
+/// Event of the NavigationBloc when the navigation was stopped.
 class NavigationStopped extends NavigationEvent {
   final String name = 'NavigationStopped';
 

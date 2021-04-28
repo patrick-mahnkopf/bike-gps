@@ -7,6 +7,9 @@ abstract class MapboxState extends Equatable {
   List<Object> get props => [];
 }
 
+/// State of the MapboxBloc before initializing the Mapbox map.
+///
+/// This BLoC is not ready for use until the [MapboxInitial] state is active.
 class MapboxPreInitial extends MapboxState {
   @override
   String toString() => 'MapboxPreInitial { }';
@@ -15,6 +18,7 @@ class MapboxPreInitial extends MapboxState {
   List<Object> get props => [];
 }
 
+/// Initial state of the MapboxBloc.
 class MapboxInitial extends MapboxState {
   final MapboxController controller;
 
@@ -28,6 +32,7 @@ class MapboxInitial extends MapboxState {
   List<Object> get props => [controller];
 }
 
+/// State of the MapboxBloc while loading.
 class MapboxLoading extends MapboxState {
   final MapboxController controller;
 
@@ -47,6 +52,7 @@ class MapboxLoading extends MapboxState {
       ];
 }
 
+/// State of the MapboxBloc if loading was successful.
 class MapboxLoadSuccess extends MapboxState {
   final MapboxController controller;
   final String activeStyleString;
@@ -73,6 +79,7 @@ class MapboxLoadSuccess extends MapboxState {
       ];
 }
 
+/// State of the MapboxBloc if loading failed.
 class MapboxLoadFailure extends MapboxState {
   final String message;
 

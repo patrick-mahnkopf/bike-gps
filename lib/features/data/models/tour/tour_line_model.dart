@@ -3,6 +3,10 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 
 import '../../../domain/entities/tour/entities.dart';
 
+/// Represents a tour line as drawn on the Mapbox map.
+///
+/// A tour line consists of three lines. The actual [tour] line, a [background]
+/// line, and a [touchArea] line.
 class TourLineModel extends TourLine {
   const TourLineModel(
       {@required Line background,

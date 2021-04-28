@@ -5,6 +5,9 @@ import 'package:bike_gps/features/domain/entities/tour/tour_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:path/path.dart' as p;
 
+/// A list of all avaiable tours.
+///
+/// Contains the file path, extension, file hash, and bounds for each tour.
 class TourList {
   Map<String, TourInfo> _tourMap = {};
   Map<String, TourBounds> _tourBounds = {};

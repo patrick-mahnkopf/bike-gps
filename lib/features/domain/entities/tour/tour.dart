@@ -32,12 +32,20 @@ class Tour extends Equatable {
                     current.elevation > highest ? current.elevation : highest)
             : 0;
 
+  /// Returns the [TrackPoint] corresponding to [wayPoint].
+  ///
+  /// There exists a TrackPoint form for every WayPoint. This returns that
+  /// trackpoint.
   TrackPoint trackPointForWayPoint(WayPoint wayPoint) =>
       trackPoints.firstWhere((trackPoint) => trackPoint.wayPoint == wayPoint);
 
+  /// Returns a list of all trackpoint coordinates for this [Tour].
   List<LatLng> get trackPointCoordinateList =>
       trackPoints.map((trackPoint) => trackPoint.latLng).toList();
 
+  /// Replaces [currentWayPoint] with [newWayPoint] in this [Tour].
+  ///
+  /// Also updates the corresponding [TrackPoint] with the new [WayPoint].
   void replaceWayPoint(WayPoint currentWayPoint, WayPoint newWayPoint) {
     final TrackPoint currentTrackPoint = trackPointForWayPoint(currentWayPoint);
     final int trackPointIndex = trackPoints.indexOf(currentTrackPoint);
@@ -52,6 +60,9 @@ class Tour extends Equatable {
     wayPoints[wayPointIndex] = newWayPoint;
   }
 
+  /// Adds the [wayPoint] to the [trackPoint].
+  ///
+  /// Also adds the [wayPoint] at the correct location in the [wayPoints] list.
   void addWayPointToTrackPoint(
       TrackPoint trackPoint, WayPoint wayPoint, int i) {
     log('trackPoint: latLng: ${trackPoint.latLng}, i: $i, latLng: ${trackPoints[i].latLng}',

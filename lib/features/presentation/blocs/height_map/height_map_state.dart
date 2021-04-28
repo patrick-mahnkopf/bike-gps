@@ -7,6 +7,7 @@ abstract class HeightMapState extends Equatable {
   List<Object> get props => [];
 }
 
+/// Initial state of the HeightMapBloc.
 class HeightMapInitial extends HeightMapState {
   final String name = 'HeightMapInitial';
 
@@ -14,6 +15,7 @@ class HeightMapInitial extends HeightMapState {
   List<Object> get props => [name];
 }
 
+/// State of the HeightMapBloc while loading.
 class HeightMapLoading extends HeightMapState {
   final String name = 'HeightMapLoading';
 
@@ -21,6 +23,7 @@ class HeightMapLoading extends HeightMapState {
   List<Object> get props => [name];
 }
 
+/// State of the HeightMapBloc if loading was successful.
 class HeightMapLoadSuccess extends HeightMapState {
   String get name => 'HeightMapLoadSuccess';
   final List<TickSpec<num>> primaryMeasureAxisTickSpecs;
@@ -51,6 +54,7 @@ class HeightMapLoadSuccess extends HeightMapState {
       'HeightMapLoadSuccess { primaryMeasureAxisTickSpecs: ${primaryMeasureAxisTickSpecs.length}, domainAxisTickSpecs: ${domainAxisTickSpecs.length}, chartData: ${chartData.length} }';
 }
 
+/// State of the HeightMapBloc if loading failed.
 class HeightMapLoadFailure extends HeightMapState {
   final String message;
 

@@ -9,12 +9,17 @@ import 'package:injectable/injectable.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/usecases/usecase.dart';
 
+/// A use case that adds a search result to the search history.
 @lazySingleton
 class AddToSearchHistory extends UseCase<void, AddToSearchHistoryParams> {
   final SearchResultRepository repository;
 
   AddToSearchHistory({@required this.repository});
 
+  /// Adds the [SearchHistoryItemModel] to the search history.
+  ///
+  /// Returns a [FunctionResultFailure] if an exception occurs and a
+  /// [FunctionResultSuccess] otherwise.
   @override
   Future<Either<Failure, FunctionResult>> call(
       AddToSearchHistoryParams params) async {

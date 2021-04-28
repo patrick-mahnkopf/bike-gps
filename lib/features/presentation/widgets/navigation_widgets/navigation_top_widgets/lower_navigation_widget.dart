@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../../../domain/entities/tour/entities.dart';
 
+/// Shows the turn arrow for the next waypoint.
 class LowerNavigationWidget extends StatelessWidget {
   final WayPoint nextWayPoint;
   final TourConversionHelper turnSymbolHelper;
@@ -15,6 +16,7 @@ class LowerNavigationWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (nextWayPoint != null) {
+      /// The Container housing the widgets.
       return Container(
         padding: EdgeInsets.zero,
         margin: EdgeInsets.zero,
@@ -39,6 +41,8 @@ class LowerNavigationWidget extends StatelessWidget {
                 "Then",
                 style: TextStyle(color: Colors.white, fontSize: 16),
               ),
+
+              /// The turn arrow.
               turnSymbolHelper.getTurnSymbolFromId(
                   iconId: nextWayPoint.turnSymboldId),
             ],

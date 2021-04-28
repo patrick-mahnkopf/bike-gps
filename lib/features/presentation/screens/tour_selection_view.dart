@@ -3,6 +3,7 @@ import 'package:bike_gps/features/presentation/widgets/tour_selection_widgets/to
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
+/// The active view during tour selection.
 class TourSelectionView extends StatelessWidget {
   const TourSelectionView({Key key}) : super(key: key);
 

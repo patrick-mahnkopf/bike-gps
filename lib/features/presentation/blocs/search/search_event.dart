@@ -7,6 +7,7 @@ abstract class SearchEvent extends Equatable {
   List<Object> get props => [];
 }
 
+/// Event of the SearchBloc when the query was cleared.
 class QueryCleared extends SearchEvent {
   @override
   List<Object> get props => [];
@@ -15,6 +16,7 @@ class QueryCleared extends SearchEvent {
   String toString() => 'QueryCleared { }';
 }
 
+/// Event of the SearchBloc when the query was changed.
 class QueryChanged extends SearchEvent {
   final String query;
 
@@ -27,6 +29,7 @@ class QueryChanged extends SearchEvent {
   String toString() => 'QueryChanged { query: $query }';
 }
 
+/// Event of the SearchBloc when the query was submitted.
 class QuerySubmitted extends SearchEvent {
   final SearchResult searchResult;
   final String query;
@@ -45,6 +48,9 @@ class QuerySubmitted extends SearchEvent {
       'QuerySubmitted { searchResult: $searchResult, query: $query, searchResults: $searchResults }';
 }
 
+/// Event of the SearchBloc when the search bar was dismissed.
+///
+/// Saves the current [query] and [searchResults] for later recovery.
 class SearchBarDismissed extends SearchEvent {
   final String query;
   final List<SearchResult> searchResults;
@@ -60,6 +66,9 @@ class SearchBarDismissed extends SearchEvent {
       'SearchBarDismissed { query: $query, searchResults: $searchResults }';
 }
 
+/// Event of the SearchBloc when the search bar was recovered.
+///
+/// Recovers the saved [previousQuery] and [previousSearchResults].
 class SearchBarRecovered extends SearchEvent {
   final String previousQuery;
   final List<SearchResult> previousSearchResults;

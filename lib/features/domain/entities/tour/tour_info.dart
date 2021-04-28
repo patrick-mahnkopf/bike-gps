@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
+/// Represents a collection of frequently used tour information for the tour
+/// list.
 class TourInfo {
   final String name;
   final LatLngBounds bounds;

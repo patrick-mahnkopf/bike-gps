@@ -5,6 +5,7 @@ import 'package:bike_gps/features/domain/entities/search/entities.dart';
 import 'package:bike_gps/features/domain/entities/tour/entities.dart';
 import 'package:bike_gps/features/presentation/blocs/search/search_bloc.dart';
 import 'package:bike_gps/features/presentation/blocs/tour/tour_bloc.dart';
+import 'package:bike_gps/features/presentation/widgets/mapbox_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -18,6 +19,10 @@ import '../../injection_container.dart';
 const String _mapStringsBasePath = 'assets/tokens/';
 const bool _useMapbox = false;
 
+/// Controls the Mapbox map.
+///
+/// Combines functions of the [MapboxMapController] and the [MapboxWidget] as
+/// well as custom ones.
 @singleton
 class MapboxController {
   final String accessToken;
@@ -51,6 +56,7 @@ class MapboxController {
       @required this.searchBloc,
       @required this.tourBloc});
 
+  /// Initializes the map.
   @factoryMethod
   static Future<MapboxController> create(
       {@required ConstantsHelper constantsHelper,
@@ -76,6 +82,10 @@ class MapboxController {
         tourBloc: tourBloc);
   }
 
+  /// Returns the Mapbox access token.
+  ///
+  /// Returns a random string if the Mapbox API isn't used, as this is required
+  /// by Mapbox.
   static Future<String> _getMapboxAccessToken() async {
     if (_useMapbox) {
       return rootBundle
@@ -85,6 +95,7 @@ class MapboxController {
     }
   }
 
+  /// Returns the style strings available to the Mapbox map.
   static Future<Map<String, String>> _getStyleStrings() async {
     return {
       'vector': await rootBundle
@@ -94,6 +105,7 @@ class MapboxController {
     };
   }
 
+  /// Gets the current user location as the initial map camera position.
   static Future<CameraPosition> _getInitialCameraPosition(
       ConstantsHelper constantsHelper) async {
     final LocationData locationData = await getIt<Location>().getLocation();
@@ -102,6 +114,10 @@ class MapboxController {
         zoom: constantsHelper.tourViewZoom);
   }
 
+  /// Handles the selection of a place in the search bar.
+  ///
+  /// Draws an icon at the [searchResult] location and moves the map camera
+  /// there.
   Future<FunctionResult> onSelectPlace(SearchResult searchResult) async {
     try {
       final CameraUpdate cameraUpdate = CameraUpdate.newLatLngZoom(
@@ -117,19 +133,31 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
+  /// Handles the selection of a tour in the search bar.
+  ///
+  /// Draws the [tour] and all [alternativeTours] on the map and moves the
+  /// camera to their combined bounds. Removes all previously drawn objects.
   Future<FunctionResult> onSelectTour(
       {@required Tour tour, List<Tour> alternativeTours}) async {
     try {
+      /// Removes all previously drawn objects.
       if (tourLines.isNotEmpty) {
         await onTourDismissed();
       }
+
+      /// Draws all alternative tours and moves the camera to their combined
+      /// bounds.
       if (alternativeTours != null && alternativeTours.isNotEmpty) {
         await drawAlternativeTours(alternativeTours);
         await animateCameraToTourBounds(
             tour: tour, alternativeTours: alternativeTours);
+
+        /// Moves the camera to the tour bounds.
       } else {
         await animateCameraToTourBounds(tour: tour);
       }
+
+      /// Draws the main tour.
       await _drawMainTour(
           coordinateList: tour.trackPointCoordinateList, tourName: tour.name);
     } on Exception catch (exception, stacktrace) {
@@ -141,6 +169,10 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
+  /// Draws the main tour track and a start and end icon on the map.
+  ///
+  /// Adds the drawn lines to [tourLines]. Returns a [FunctionResultFailure] on
+  /// error.
   Future<FunctionResult> _drawMainTour(
       {@required List<LatLng> coordinateList,
       @required String tourName}) async {
@@ -162,6 +194,10 @@ class MapboxController {
     }
   }
 
+  /// Draws all alternative tour tracks on the map.
+  ///
+  /// Adds the drawn lines to [tourLines]. Returns a [FunctionResultFailure] on
+  /// error.
   Future<FunctionResult> drawAlternativeTours(
       List<Tour> alternativeTours) async {
     try {
@@ -179,6 +215,10 @@ class MapboxController {
     }
   }
 
+  /// Draws the [pathToTour] on the map.
+  ///
+  /// Clears all previous paths to tour. Returns a [FunctionResultFailure] on
+  /// error.
   Future<FunctionResult> addPathToTour(Tour pathToTour) async {
     try {
       clearPathToTour();
@@ -189,6 +229,9 @@ class MapboxController {
     }
   }
 
+  /// Draws the [pathToTour] on the map.
+  ///
+  /// Returns a [FunctionResultFailure] on error.
   Future<FunctionResult> _drawPathToTour(Tour pathToTour) async {
     try {
       tourLines.add(await _drawTour(
@@ -202,33 +245,18 @@ class MapboxController {
     }
   }
 
-  // TODO use for debugging or remove
-  Future<FunctionResult> _markWayPoints(Tour tour) async {
-    if (debugMarkings.isNotEmpty) {
-      mapboxMapController.removeSymbols(debugMarkings);
-      debugMarkings.removeRange(0, debugMarkings.length);
-    }
-    for (int i = 0; i < tour.wayPoints.length; i++) {
-      final LatLng geometry = tour.wayPoints[i].latLng;
-      debugMarkings.add(await mapboxMapController.addSymbol(SymbolOptions(
-        iconImage: 'end_location',
-        iconSize: 0.25,
-        // iconOffset: const Offset(0, 15),
-        iconAnchor: 'bottom',
-        geometry: geometry,
-        textField: '$i',
-        // textOffset: const Offset(0, -1.6),
-        textAnchor: 'bottom',
-      )));
-    }
-    return FunctionResultSuccess();
-  }
-
+  /// Moves the camera to the tour bounds with an animation.
+  ///
+  /// Combines the bounds of the [tour] with those of the [alternativeTours] if
+  /// they exist.
   Future<FunctionResult> animateCameraToTourBounds(
       {@required Tour tour, List<Tour> alternativeTours}) async {
+    /// Stops tracking the user location.
     await mapboxMapController
         .updateMyLocationTrackingMode(MyLocationTrackingMode.None);
     LatLngBounds bounds;
+
+    /// Combines the bounds of all tours if alternative tours exist.
     if (alternativeTours != null && alternativeTours.isNotEmpty) {
       bounds = _getCombinedBounds(tour, alternativeTours);
     } else {
@@ -239,6 +267,7 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
+  /// Combines the bounds of the [tour] with those of all [alternativeTours].
   LatLngBounds _getCombinedBounds(Tour tour, List<Tour> alternativeTours) {
     final TourBounds combinedBounds = tourListHelper.getBounds(tour.name);
     for (final Tour alternativeTour in alternativeTours) {
@@ -259,6 +288,7 @@ class MapboxController {
     return combinedBounds.bounds;
   }
 
+  /// Converts the [bounds] to a [CameraUpdate] with offsets for map movement.
   CameraUpdate _getCameraUpdateFromBounds(LatLngBounds bounds) {
     final double latOffset =
         (bounds.northeast.latitude - bounds.southwest.latitude) / 4;
@@ -273,6 +303,11 @@ class MapboxController {
     return CameraUpdate.newLatLngBounds(adjustedBounds);
   }
 
+  /// Draws the tour along the [lineCoordinateList].
+  ///
+  /// The tour line color depends on whether this tour is the main one, the
+  /// path to a tour, or an alternative one. Returns a [TourLine] containing
+  /// the actual tour line, the background line and the touch area line.
   Future<TourLine> _drawTour({
     @required List<LatLng> lineCoordinateList,
     @required String tourName,
@@ -287,6 +322,7 @@ class MapboxController {
     const String primaryTourColor = '#0099ff';
     const String secondaryTourColor = '#aab7b8';
 
+    /// Adds a background line to create a black border for the tour line.
     final Line backgroundLine = await mapboxMapController.addLine(
       LineOptions(
         geometry: lineCoordinateList,
@@ -296,6 +332,9 @@ class MapboxController {
         lineGapWidth: lineWidth,
       ),
     );
+
+    /// The actual tour line. The color depends on whether this is the main one,
+    /// the path to a tour, or an alternative one.
     final Line tourLine = await mapboxMapController.addLine(
       LineOptions(
         geometry: lineCoordinateList,
@@ -304,6 +343,8 @@ class MapboxController {
             isMainTour || isPathToTour ? primaryTourColor : secondaryTourColor,
       ),
     );
+
+    /// An invisible line to enlarge the touch area for easier tapping.
     final Line touchAreaLine = await mapboxMapController.addLine(
       LineOptions(
         geometry: lineCoordinateList,
@@ -323,9 +364,14 @@ class MapboxController {
     );
   }
 
+  /// Draws a start icon at [startPoint] and an end icon at [endPoint].
+  ///
+  /// The icons are added to [activeTourSymbols].
   Future<FunctionResult> _drawTourStartAndEndIcons(
       LatLng startPoint, LatLng endPoint) async {
     final String mapSymbolPath = ConstantsHelper.mapSymbolPath;
+
+    /// Draws the start icon.
     activeTourSymbols.add(await mapboxMapController.addSymbol(SymbolOptions(
       iconImage: p.join(mapSymbolPath, 'start_location.png'),
       iconSize: 0.75,
@@ -335,6 +381,8 @@ class MapboxController {
       textOffset: const Offset(0, 1),
       textAnchor: 'bottom',
     )));
+
+    /// Draws the end icon.
     activeTourSymbols.add(await mapboxMapController.addSymbol(SymbolOptions(
       iconImage: p.join(mapSymbolPath, 'end_location.png'),
       iconSize: 0.75,
@@ -347,12 +395,18 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
+  /// Handles the tap on the [line].
   Future<FunctionResult> onLineTapped(Line line) async {
+    /// Finds the TourLine belonging to the line that has been tapped.
     for (final TourLine tourLine in tourLines) {
+      /// Checks if this is the correct TourLine and if it can handle taps.
       if (tourLine.tour.options.geometry == line.options.geometry &&
           !tourLine.isActive &&
           !tourLine.isPathToTour) {
+        /// Changes the search bar query to this tour's name.
         searchBloc.searchBarController.query = tourLine.tourName;
+
+        /// Loads the tapped tour.
         tourBloc.add(
             TourLoaded(tourName: tourLine.tourName, mapboxController: this));
         break;
@@ -361,6 +415,7 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
+  /// Clears all drawings, [TourLine]s and active tour symbols.
   Future<FunctionResult> onTourDismissed() async {
     await _clearActiveDrawings();
     tourLines.clear();
@@ -368,6 +423,9 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
+  /// Clears all drawings.
+  ///
+  /// Clears all lines, circles and symbols on the map.
   Future<FunctionResult> _clearActiveDrawings() async {
     await mapboxMapController.clearLines();
     await mapboxMapController.clearCircles();
@@ -375,6 +433,7 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
+  /// Clears all drawings of alternative tours on the map.
   Future<FunctionResult> clearAlternativeTours() async {
     try {
       for (final TourLine tourLine in List<TourLine>.from(tourLines)) {
@@ -388,6 +447,7 @@ class MapboxController {
     }
   }
 
+  /// Clears all drawings of paths to tours on the map.
   Future<FunctionResult> clearPathToTour() async {
     try {
       for (final TourLine tourLine in List<TourLine>.from(tourLines)) {
@@ -401,6 +461,7 @@ class MapboxController {
     }
   }
 
+  /// Removes the [tourLine] from the map and from [tourLines].
   Future<FunctionResult> _removeTourLine(TourLine tourLine) async {
     try {
       await _removeLine(tourLine.background);
@@ -413,8 +474,10 @@ class MapboxController {
     }
   }
 
+  /// Removes the [line] from the map.
   Future<FunctionResult> _removeLine(Line line) async {
     if (mapboxMapController.lines.contains(line)) {
+      /// Finds the correct line saved in the mapboxMapController.
       final Line lineResult = mapboxMapController.lines.firstWhere((element) =>
           element.options.geometry == line.options.geometry &&
           element.options.lineColor == line.options.lineColor);
@@ -423,6 +486,9 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
+  /// Jumps the camera to the location described by the [cameraUpdate].
+  ///
+  /// Disables location tracking. Resets the bearing to 0.
   Future<FunctionResult> _moveCamera(CameraUpdate cameraUpdate) async {
     await mapboxMapController
         .updateMyLocationTrackingMode(MyLocationTrackingMode.None);
@@ -431,6 +497,9 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
+  /// Animates the camera to the location described by the [cameraUpdate].
+  ///
+  /// Disables location tracking. Resets the bearing to 0.
   Future<FunctionResult> _animateCamera(CameraUpdate cameraUpdate) async {
     await mapboxMapController
         .updateMyLocationTrackingMode(MyLocationTrackingMode.None);
@@ -439,6 +508,7 @@ class MapboxController {
     return FunctionResultSuccess();
   }
 
+  /// Draws a place icon at the [coordinates].
   Future<FunctionResult> _drawPlaceIcon(LatLng coordinates) async {
     try {
       final String mapSymbolPath = ConstantsHelper.mapSymbolPath;

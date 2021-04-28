@@ -7,12 +7,14 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 import 'package:injectable/injectable.dart';
 
+/// A use case that gets a tour.
 @lazySingleton
 class GetTour extends UseCase<Tour, TourParams> {
   final TourRepository repository;
 
   GetTour({@required this.repository});
 
+  /// Gets the tour with the given [name] from local storage.
   @override
   Future<Either<Failure, Tour>> call(TourParams params) async {
     return repository.getTour(name: params.name);

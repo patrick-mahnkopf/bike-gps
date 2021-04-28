@@ -7,6 +7,7 @@ abstract class TourEvent extends Equatable {
   List<Object> get props => [];
 }
 
+/// Event of the TourBloc when loading was initiated.
 class TourLoaded extends TourEvent {
   final String tourName;
   final MapboxController mapboxController;
@@ -21,4 +22,5 @@ class TourLoaded extends TourEvent {
       'TourLoaded { tourName: $tourName, mapboxController: $mapboxController }';
 }
 
+/// Event of the TourBloc when the active tour was dismissed.
 class TourRemoved extends TourEvent {}

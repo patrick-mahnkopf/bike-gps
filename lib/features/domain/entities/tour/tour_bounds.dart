@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/widgets.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
+/// Represents the a tour's bounds
 class TourBounds {
   final String name;
   LatLngBounds bounds;
@@ -35,6 +36,9 @@ class TourBounds {
 
   double get area => (east - west) * (north - south);
 
+  /// Calculates the overlap of this [TourBounds] [bounds] with that of [other].
+  ///
+  /// Returns the overlap percentage of the two tour bounds.
   double getOverlap(TourBounds other) {
     if (east <= other.west ||
         other.east <= west ||

@@ -11,6 +11,7 @@ import 'package:injectable/injectable.dart';
 part 'height_map_event.dart';
 part 'height_map_state.dart';
 
+/// BLoC responsible for the height map.
 @injectable
 class HeightMapBloc extends Bloc<HeightMapEvent, HeightMapState> {
   final TourConversionHelper tourConversionHelper;
@@ -27,6 +28,10 @@ class HeightMapBloc extends Bloc<HeightMapEvent, HeightMapState> {
     }
   }
 
+  /// Prepares and returns the height map.
+  ///
+  /// Gets the chart data from the currently active tour. Yields
+  /// [HeightMapLoadSuccess] if successful and [HeightMapLoadFailure] otherwise.
   Stream<HeightMapState> _mapHeightMapLoadedToState(
       HeightMapLoaded event) async* {
     yield HeightMapLoading();
@@ -47,6 +52,7 @@ class HeightMapBloc extends Bloc<HeightMapEvent, HeightMapState> {
     }
   }
 
+  /// Gets the [tour] data to be shown in the chart.
   Future<List<Series<TrackPoint, int>>> _getChartData(Tour tour) async {
     return [
       Series<TrackPoint, int>(
@@ -61,6 +67,7 @@ class HeightMapBloc extends Bloc<HeightMapEvent, HeightMapState> {
     ];
   }
 
+  /// Calculates the y-axis tick spacing and labels for the [tour].
   List<TickSpec<num>> _getPrimaryMeasureAxisTickSpecs(Tour tour) {
     final List<TickSpec<num>> tickSpecs = [];
     final double tickStep = tour.highestPoint / 5;
@@ -75,6 +82,7 @@ class HeightMapBloc extends Bloc<HeightMapEvent, HeightMapState> {
     return tickSpecs;
   }
 
+  /// Calculates the x-axis tick spacing and labels for the [tour].
   List<TickSpec<num>> _getDomainAxisTickSpecs(Tour tour) {
     final List<TickSpec<num>> tickSpecs = [];
     final double tourLength =

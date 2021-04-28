@@ -8,6 +8,7 @@ import 'package:injectable/injectable.dart';
 part 'map_event.dart';
 part 'map_state.dart';
 
+/// BLoC responsible for the map screen.
 @injectable
 class MapBloc extends Bloc<MapEvent, MapState> {
   MapBloc() : super(TourSelectionViewActive());
@@ -23,11 +24,17 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     }
   }
 
+  /// Activates the tour selection view.
+  ///
+  /// Yields [TourSelectionViewActive] state.
   Stream<MapState> _mapTourSelectionViewActivatedToState(
       TourSelectionViewActivated event) async* {
     yield TourSelectionViewActive();
   }
 
+  /// Activates the navigation view.
+  ///
+  /// Yields [NavigationViewActive] state.
   Stream<MapState> _mapNavigationViewActivatedToState(
       NavigationViewActivated event) async* {
     yield NavigationViewActive();

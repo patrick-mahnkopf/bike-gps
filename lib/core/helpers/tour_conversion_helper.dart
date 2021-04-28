@@ -8,12 +8,17 @@ import 'package:injectable/injectable.dart';
 
 import 'constants_helper.dart';
 
+/// Helper class that handles conversions of tour information..
 @injectable
 class TourConversionHelper {
   final ConstantsHelper constantsHelper;
 
   TourConversionHelper({@required this.constantsHelper});
 
+  /// Gets the turn symbol image for the [iconId].
+  ///
+  /// The icon uses the [color] if defined, otherwise it will be white. If no
+  /// icon belonging to the [iconId] is found, an info icon is returned instead.
   Widget getTurnSymbolFromId({@required String iconId, Color color}) {
     final String assetId = _mapTurnSymbolIdToAssetId(iconId);
     log('iconId: $iconId, assetId: $assetId, contained?: ${constantsHelper.turnSymbolAssetPaths.containsKey(assetId.toLowerCase())}',
@@ -30,6 +35,9 @@ class TourConversionHelper {
     }
   }
 
+  /// Maps the [turnSymbolId] to the equivalent id used internally.
+  ///
+  /// Returns the unchanged [turnSymbolId] if there is no known mapping.
   String _mapTurnSymbolIdToAssetId(String turnSymbolId) {
     switch (turnSymbolId) {
       // Turn left
@@ -102,6 +110,9 @@ class TourConversionHelper {
     }
   }
 
+  /// Maps the [surface] id to the internally used color representation.
+  ///
+  /// Returns blue for unknown strings.
   charts.Color mapSurfaceToChartColor({@required String surface}) {
     switch (surface) {
       case 'A':

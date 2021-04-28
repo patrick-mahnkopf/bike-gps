@@ -7,11 +7,13 @@ abstract class TourState extends Equatable {
   List<Object> get props => [];
 }
 
+/// Initial state of the TourBloc when no tour is active.
 class TourEmpty extends TourState {
   @override
   List<Object> get props => [];
 }
 
+/// State of the TourBloc while loading.
 class TourLoading extends TourState {
   final TourState previousState;
 
@@ -20,6 +22,7 @@ class TourLoading extends TourState {
   List<Object> get props => [previousState];
 }
 
+/// State of the TourBloc if loading was successful.
 class TourLoadSuccess extends TourState {
   final Tour tour;
   final List<Tour> alternativeTours;
@@ -35,6 +38,7 @@ class TourLoadSuccess extends TourState {
   List<Object> get props => [tour, alternativeTours];
 }
 
+/// State of the TourBloc if loading failed.
 class TourLoadFailure extends TourState {
   final String message;
 

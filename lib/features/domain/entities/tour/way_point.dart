@@ -3,6 +3,7 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 
 import 'entities.dart';
 
+/// The app's internal waypoint representation.
 class WayPoint extends TrackPoint {
   final String direction;
   final String location;

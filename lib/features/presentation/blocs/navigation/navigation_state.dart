@@ -7,10 +7,13 @@ abstract class NavigationState extends Equatable {
   List<Object> get props => [];
 }
 
+/// Initial state of the NavigationBloc.
 class NavigationInitial extends NavigationState {}
 
+/// State of the NavigationBloc while loading.
 class NavigationLoading extends NavigationState {}
 
+/// State of the NavigationBloc if loading was successful.
 class NavigationLoadSuccess extends NavigationState {
   final WayPoint currentWayPoint;
   final WayPoint nextWayPoint;
@@ -45,6 +48,8 @@ class NavigationLoadSuccess extends NavigationState {
       ];
 }
 
+/// State of the NavigationBloc if loading the navigation to the tour was
+/// successful.
 class NavigationToTourLoadSuccess extends NavigationState {
   final WayPoint currentWayPoint;
   final WayPoint nextWayPoint;
@@ -77,6 +82,7 @@ class NavigationToTourLoadSuccess extends NavigationState {
       ];
 }
 
+/// State of the NavigationBloc if loading failed.
 class NavigationLoadFailure extends NavigationState {
   final String message;
 

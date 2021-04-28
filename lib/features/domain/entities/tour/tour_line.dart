@@ -2,6 +2,10 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
+/// Represents a tour line as drawn on the Mapbox map.
+///
+/// A tour line consists of three lines. The actual [tour] line, a [background]
+/// line, and a [touchArea] line.
 class TourLine extends Equatable {
   final Line background;
   final Line tour;

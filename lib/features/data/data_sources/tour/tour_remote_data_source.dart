@@ -9,7 +9,6 @@ import 'package:bike_gps/core/helpers/tour_list_helper.dart';
 import 'package:bike_gps/features/data/data_sources/tour_parser/tour_parser.dart';
 import 'package:bike_gps/features/domain/entities/tour/entities.dart';
 import 'package:f_logs/f_logs.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart';
 import 'package:injectable/injectable.dart';
@@ -18,6 +17,7 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 import '../../../../core/error/exception.dart';
 import '../../models/tour/models.dart';
 
+/// Class responsible for getting a path to a tour and enhancing tours.
 abstract class TourRemoteDataSource {
   Future<TourModel> getPathToTour(
       {@required LatLng userLocation, @required LatLng tourStart});
@@ -39,9 +39,12 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
       @required this.tourListHelper,
       @required this.constantsHelper});
 
-  /// Calls the route service endpoint found in 'assets/token/route_service_url.txt'.
+  /// Gets a path to the tour or along the given coordinates from the route
+  /// service endpoint defined in the ConstantsHelper.
   ///
-  /// Throws a [ServerException] for all error codes.
+  /// Returns a tour from [userLocation] to [tourStart] or along all points
+  /// contained in [trackPointCoordinates]. Throws a [ServerException] for all
+  /// error codes or if the route service is not ready yet.
   @override
   Future<TourModel> getPathToTour(
       {@required LatLng userLocation,
@@ -68,6 +71,9 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
     }
   }
 
+  /// Checks if the route service is ready.
+  ///
+  /// Sends a GET request to the serverStatusUri defined in the ConstantsHelper.
   Future<bool> _checkRouteServiceReady() async {
     try {
       final Response response = await client.get(
@@ -95,14 +101,15 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
     return false;
   }
 
+  /// Returns the POST response from the route service for the path to tour.
+  ///
+  /// Returns a gpx String for the route from [userLocation] to [tourStart] or
+  /// along all points contained in [trackPointCoordinates].
+  /// Throws a [ServerException] for all error codes.
   Future<String> _getTourFileContentFromRouteService(
       {@required LatLng userLocation,
       @required LatLng tourStart,
       List<LatLng> trackPointCoordinates}) async {
-    final String baseUrl =
-        await rootBundle.loadString('assets/tokens/route_service_url.txt');
-    final Uri baseUri = Uri.parse(baseUrl);
-
     final List<List<double>> coordinateList = _getCoordinateList(
         tourStart: tourStart,
         userLocation: userLocation,
@@ -126,9 +133,6 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
         text: 'ORS request body: $postBody',
         type: LogLevel.INFO,
         dataLogType: DataLogType.NETWORK.toString());
-    // log("Sending body to ORS: $postBody",
-    //     name: 'TourRemoteDataSource getPathToTour PostBody',
-    //     time: DateTime.now());
     final Response response = await client.post(
       constantsHelper.serverRouteServiceUri,
       headers: <String, String>{
@@ -145,10 +149,6 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
           type: LogLevel.INFO,
           dataLogType: DataLogType.NETWORK.toString());
       final String responseBody = _prepareResponseGpxForParser(response.body);
-      // TODO remove when everything ORS related works
-      // log("Code: ${response.statusCode}, Body: $responseBody",
-      //     name: 'TourRemoteDataSource getPathToTour Response',
-      //     time: DateTime.now());
       return responseBody;
     } else {
       FLog.error(
@@ -161,6 +161,10 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
     }
   }
 
+  /// Returns a list of coordinates for the given input.
+  ///
+  /// Returns the [trackPointCoordinates] if they aren't empty or the
+  /// coordinates of [userLocation] and [tourStart] otherwise.
   List<List<double>> _getCoordinateList(
       {@required LatLng userLocation,
       @required LatLng tourStart,
@@ -183,6 +187,9 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
     }
   }
 
+  /// Prepares the gpx string for the GpxReader.
+  ///
+  /// Converts the bounds elements to lower case as expected by the GpxReader.
   String _prepareResponseGpxForParser(String responseGpx) {
     String modifiedResponseGpx = responseGpx;
     modifiedResponseGpx = modifiedResponseGpx.replaceAll('maxLat', 'maxlat');
@@ -192,6 +199,13 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
     return modifiedResponseGpx;
   }
 
+  /// Enhances the given [tour] with additional waypoint information.
+  ///
+  /// Sends the [tour]'s trackpoints to the route service to generate a tour
+  /// with waypoints for the same track. Then adds a location, direction,
+  /// surface, and turn symbol id to every point of the [tour] that corresponds
+  /// to a [WayPoint] of the route service response. This generates waypoints
+  /// in the [tour] even if there weren't any before.
   @override
   Future<Tour> getEnhancedTour({Tour tour}) async {
     try {
@@ -203,6 +217,8 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
           trackPointCoordinates: coordinateList,
           tourName: tour.name);
       for (var i = 0; i < tour.trackPoints.length; i++) {
+        /// Add information from a waypoint in the route service response to
+        /// the current trackpoint if they have the same coordinates.
         for (final WayPoint responseWayPoint in tourResponse.wayPoints) {
           final TrackPoint tourTrackPoint = tour.trackPoints[i];
           final bool pointsHaveSameCoordinates = _haveSameCoordinates(
@@ -210,11 +226,17 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
           final bool responsePointHasDirection =
               responseWayPoint.direction != null &&
                   responseWayPoint.direction != '';
+
+          /// Only use response waypoints if the coordinates match and they have
+          /// direction information
           if (pointsHaveSameCoordinates && responsePointHasDirection) {
             String name;
             String location;
             String direction;
             String turnSymboldId;
+
+            /// Preserve original information where possible if the current
+            /// point of the tour already is a waypoint.
             if (tourTrackPoint.isWayPoint) {
               final WayPoint wayPoint = tourTrackPoint.wayPoint;
               if (wayPoint.name != '') {
@@ -237,6 +259,8 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
               } else {
                 turnSymboldId = responseWayPoint.turnSymboldId;
               }
+              // Use the information from the response waypoint if the current
+              // tour point is a trackpoint.
             } else {
               name = responseWayPoint.name;
               location = responseWayPoint.location;
@@ -273,6 +297,10 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
     }
   }
 
+  /// Checks if two LatLng points have roughly the same coordinates.
+  ///
+  /// Reduces the amount of digits after the decimal point and then checks for
+  /// equality of the coordinates.
   bool _haveSameCoordinates(LatLng first, LatLng second) {
     final double firstLat = _reduceDoublePrecision(first.latitude);
     final double firstLon = _reduceDoublePrecision(first.longitude);
@@ -285,12 +313,22 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
     }
   }
 
+  /// Reduces the precision of [value].
+  ///
+  /// Reduces the amount of digits after the decimal point to three.
   double _reduceDoublePrecision(double value) {
     return double.parse(value.toStringAsFixed(3));
   }
 
+  /// Overrides the local file of the given [tour].
+  ///
+  /// Creates a [TourModel] that is converted to a gpx string to override the
+  /// local [tour] file.
   Future<FunctionResult> _overrideTourFileWithEnhancedTour(Tour tour) async {
     final String filePath = tourListHelper.getPath(tour.name);
+
+    /// The conversion to gpx is limited to models, therefore the tour and its
+    /// entities have to be converted first.
     final List<TrackPointModel> trackPoints = tour.trackPoints
         .map((trackPoint) => TrackPointModel(
             latLng: trackPoint.latLng,

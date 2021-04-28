@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import '../../../../../core/widgets/custom_widgets.dart';
 import '../../../../domain/entities/tour/entities.dart';
 
+/// Shows navigation information for the current turn.
 class UpperNavigationWidget extends StatelessWidget {
   final WayPoint currentWayPoint;
   final double currentWayPointDistance;
@@ -24,6 +25,7 @@ class UpperNavigationWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    /// The Container housing the widgets.
     return Container(
       padding: EdgeInsets.zero,
       margin: EdgeInsets.zero,
@@ -49,8 +51,11 @@ class UpperNavigationWidget extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                /// The turn arrow.
                 turnSymbolHelper.getTurnSymbolFromId(
                     iconId: currentWayPoint.turnSymboldId, color: Colors.white),
+
+                /// The remaining distance to the current waypoint.
                 Text(
                   locationHelper.distanceToString(currentWayPointDistance),
                   style: const TextStyle(
@@ -67,6 +72,7 @@ class UpperNavigationWidget extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    /// A list of items describing the current waypoint.
                     ..._getCurrentWayPointWidgets(),
                   ],
                 ),
@@ -78,18 +84,30 @@ class UpperNavigationWidget extends StatelessWidget {
     );
   }
 
+  /// Gets a list of [CustomContainerTextWidget]s that describe the current
+  /// waypoint.
+  ///
+  /// Includes the location and direction, only the location or only the
+  /// direction if only one of them is available, or the waypoint's name if no
+  /// other information exists.
   List<Widget> _getCurrentWayPointWidgets() {
     final List<Widget> widgets = [];
+
+    /// Adds the location if it exists.
     if (currentWayPoint.location != null && currentWayPoint.location != '') {
       widgets.add(CustomContainerTextWidget(
         text: currentWayPoint.location,
       ));
     }
+
+    /// Adds the direction if it exists.
     if (currentWayPoint.direction != null && currentWayPoint.direction != '') {
       widgets.add(CustomContainerTextWidget(
         text: currentWayPoint.direction,
       ));
     }
+
+    /// Returns only the name if no other information exists.
     if (widgets.isEmpty &&
         currentWayPoint.name != null &&
         currentWayPoint.name != '') {

@@ -2,6 +2,8 @@ import 'package:bike_gps/features/domain/entities/tour/tour_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
+/// Represents a collection of frequently used tour information for the tour
+/// list.
 class TourInfoModel extends TourInfo {
   TourInfoModel(
       {@required String name,
@@ -16,6 +18,7 @@ class TourInfoModel extends TourInfo {
             fileHash: fileHash,
             firstPoint: firstPoint);
 
+  /// Converts this [TourInfoModel] to Json.
   Map<String, dynamic> toJson() => {
         'properties': {
           'name': name,
@@ -38,6 +41,7 @@ class TourInfoModel extends TourInfo {
         },
       };
 
+  /// Converts the Json [map] to a [TourInfoModel].
   factory TourInfoModel.fromJson(
     Map<String, dynamic> map,
   ) {

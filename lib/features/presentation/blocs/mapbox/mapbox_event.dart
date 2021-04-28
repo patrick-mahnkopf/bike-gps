@@ -7,6 +7,7 @@ abstract class MapboxEvent extends Equatable {
   List<Object> get props => [];
 }
 
+/// Event of the MapboxBloc when the Mapbox map was initialized.
 class MapboxInitialized extends MapboxEvent {
   final MapboxController mapboxController;
   final double devicePixelRatio;
@@ -22,6 +23,7 @@ class MapboxInitialized extends MapboxEvent {
       'MapboxInitialized { mapboxController: $mapboxController, devicePixelRatio: $devicePixelRatio }';
 }
 
+/// Event of the MapboxBloc when a change to the Mapboxcontroller was made.
 class MapboxLoaded extends MapboxEvent {
   final MapboxController mapboxController;
   final CameraUpdate cameraUpdate;

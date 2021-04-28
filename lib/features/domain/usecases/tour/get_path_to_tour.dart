@@ -9,12 +9,14 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../entities/tour/entities.dart';
 
+/// A use case that gets a path to the tour.
 @lazySingleton
 class GetPathToTour extends UseCase<Tour, PathToTourParams> {
   final TourRepository repository;
 
   GetPathToTour({@required this.repository});
 
+  /// Gets a path from the [userLocation] to the [tourStart].
   @override
   Future<Either<Failure, Tour>> call(PathToTourParams params) async {
     return repository.getPathToTour(

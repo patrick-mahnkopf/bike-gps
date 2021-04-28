@@ -8,12 +8,14 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../entities/tour/entities.dart';
 
+/// A use case that gets an enhanced version of a tour.
 @lazySingleton
 class GetEnhancedTour extends UseCase<Tour, EnhancedTourParams> {
   final TourRepository repository;
 
   GetEnhancedTour({@required this.repository});
 
+  /// Gets an enhanced version of this tour.
   @override
   Future<Either<Failure, Tour>> call(EnhancedTourParams params) async {
     return repository.getEnhancedTour(tour: params.tour);

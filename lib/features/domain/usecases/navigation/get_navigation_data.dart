@@ -11,12 +11,17 @@ import '../../../../core/helpers/distance_helper.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../entities/tour/entities.dart';
 
+/// A use case that retrieves the data necessary to navigate for the current
+/// tour and user location.
 @lazySingleton
 class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
   final DistanceHelper distanceHelper;
 
   GetNavigationData({this.distanceHelper});
 
+  /// Returns the current [NavigationData].
+  ///
+  /// Returns a [NavigationDataFailure] in case of an error.
   @override
   Future<Either<Failure, NavigationData>> call(NavigationDataParams params) {
     try {
@@ -28,6 +33,10 @@ class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
     }
   }
 
+  /// Gets the [NavigationData] on the [tour] from the current [userLocation].
+  ///
+  /// The [NavigationData] contains the [currentWayPoint], [nextWayPoint],
+  /// [distanceToCurrentWayPoint], and [distanceToTourEnd].
   NavigationData _getNavigationData(
       {@required Tour tour, @required LatLng userLocation}) {
     final List<TrackPoint> trackPoints = tour.trackPoints;
@@ -38,6 +47,9 @@ class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
         userLocation: userLocation,
         trackPointIndex: closestTrackPointIndex);
     int currentTrackPointIndex = closestTrackPointIndex;
+
+    /// Check the following point if it exists and the user already passed the
+    /// closest one.
     if (userPassedTrackPoint &&
         currentTrackPointIndex < trackPoints.length - 1) {
       currentTrackPointIndex++;
@@ -52,6 +64,8 @@ class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
     final int currentWayPointIndex =
         _closestUpcomingWayPointIndex(tour, currentTrackPointIndex);
 
+    /// Return [NavigationData] with null values if there is no more upcoming
+    /// waypoint.
     if (currentWayPointIndex == -1) {
       return NavigationData(
           currentWayPoint: null,
@@ -68,6 +82,7 @@ class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
         distanceHelper.distanceBetweenTourTrackPoints(
             tour, currentTrackPointIndex, currentWayPointIndex);
 
+    /// Calculates the distance from [userLocation] to [currentWayPoint].
     if (userPassedTrackPoint) {
       distanceToCurrentWayPoint = distanceClosestTrackPointCurrentWayPoint +
           distanceUserClosestTrackPoint;
@@ -77,6 +92,7 @@ class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
           .abs();
     }
 
+    /// Get the next [WayPoint] after [currentWayPoint] if it exists.
     final int nextWayPointIndex =
         _closestUpcomingWayPointIndex(tour, currentWayPointIndex + 1);
     if (nextWayPointIndex != -1) {
@@ -90,6 +106,8 @@ class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
         distanceToTourEnd: distanceToTourEnd);
   }
 
+  /// Returns the index of the closest upcoming waypoint to the current user
+  /// location.
   int _closestUpcomingWayPointIndex(Tour tour, int currentTrackPointIndex) {
     final List<TrackPoint> trackPoints = tour.trackPoints;
     for (var i = currentTrackPointIndex; i < trackPoints.length; i++) {
@@ -101,6 +119,7 @@ class GetNavigationData extends UseCase<NavigationData, NavigationDataParams> {
     return -1;
   }
 
+  /// Gets the distance to the tour end from the current [userLocation].
   double _getDistanceToTourEnd(
       Tour tour, int closestTrackPointIndex, LatLng userLocation) {
     final TrackPoint closestTrackPoint =

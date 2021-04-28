@@ -8,6 +8,7 @@ import '../../../domain/entities/tour/entities.dart';
 import 'navigation_top_widgets/lower_navigation_widget.dart';
 import 'navigation_top_widgets/upper_navigation_widget.dart';
 
+/// Shows navigation information for the current turn and next turn.
 class NavigationTopWidget extends StatelessWidget {
   final WayPoint currentWayPoint;
   final double currentWayPointDistance;
@@ -22,6 +23,7 @@ class NavigationTopWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    /// Only builds if navigation data is available.
     if (_navigationDataAvailable()) {
       return Padding(
         padding: const EdgeInsets.all(8.0),
@@ -31,6 +33,7 @@ class NavigationTopWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Flexible(
+                /// Shows navigation information for the current turn.
                 child: UpperNavigationWidget(
                   currentWayPoint: currentWayPoint,
                   nextWayPoint: nextWayPoint,
@@ -40,6 +43,7 @@ class NavigationTopWidget extends StatelessWidget {
                 ),
               ),
               Flexible(
+                /// Shows navigation information for the next turn.
                 child: LowerNavigationWidget(
                   nextWayPoint: nextWayPoint,
                   turnSymbolHelper: getIt<TourConversionHelper>(),
@@ -54,6 +58,10 @@ class NavigationTopWidget extends StatelessWidget {
     }
   }
 
+  /// Checks if navigation data is available.
+  ///
+  /// The current waypoint has to exist and needs at least one of the following:
+  /// direction information or a turn arrow.
   bool _navigationDataAvailable() {
     if (currentWayPoint != null) {
       final bool hasDirection =

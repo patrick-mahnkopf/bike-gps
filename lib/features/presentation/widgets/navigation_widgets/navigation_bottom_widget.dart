@@ -10,6 +10,7 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 import '../../../../injection_container.dart';
 import '../../blocs/map/map_bloc.dart';
 
+/// Shows a bottom sheet used during navigation.
 class NavigationBottomWidget extends StatelessWidget {
   final double distanceToTourStart;
   final double distanceToTourEnd;
@@ -23,6 +24,7 @@ class NavigationBottomWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
+        /// Position the bottom sheet in the bottom.
         Align(
           alignment: Alignment.bottomLeft,
           child: Padding(
@@ -32,6 +34,8 @@ class NavigationBottomWidget extends StatelessWidget {
             ),
           ),
         ),
+
+        /// The actuall bottom sheet.
         BottomSheetWidget(
           grabSectionHeight: bottomSheetGrabSectionHeight,
           topSnapPosition: 0.85,
@@ -45,6 +49,7 @@ class NavigationBottomWidget extends StatelessWidget {
   }
 }
 
+/// The bottom sheet's content.
 class GrabSectionContent extends StatelessWidget {
   final DistanceHelper distanceHelper;
   final double distanceToTourEnd;
@@ -65,6 +70,8 @@ class GrabSectionContent extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(right: 8),
+
+            /// The distance left until the end of the tour.
             child: Text(
               _getTourDistanceText(),
               style: const TextStyle(fontSize: 20),
@@ -74,6 +81,8 @@ class GrabSectionContent extends StatelessWidget {
             padding: const EdgeInsets.only(left: 8),
             child: Align(
               alignment: Alignment.centerRight,
+
+              /// A button to stop the navigation.
               child: ElevatedButton(
                 onPressed: () => stopNavigation(context),
                 style: ElevatedButton.styleFrom(
@@ -92,6 +101,11 @@ class GrabSectionContent extends StatelessWidget {
     );
   }
 
+  /// Gets the remaining distance of the tour in a string representation.
+  ///
+  /// Returns the distance to the tour followed by the total remaining distance
+  /// to the tour end, if the user is not on the tour. Otherwise returns only
+  /// the remaining distance to the tour end.
   String _getTourDistanceText() {
     final String distanceToTour =
         distanceHelper.distanceToString(distanceToTourStart);
@@ -104,6 +118,11 @@ class GrabSectionContent extends StatelessWidget {
     }
   }
 
+  /// Stops the navigation.
+  ///
+  /// Switches the map to the tour selection view. Moves the map camera to the
+  /// currently active tour bounds. Clears the path to the tour if it exists.
+  /// Disables the map's camera tracking.
   void stopNavigation(BuildContext context) {
     final TourState tourState = BlocProvider.of<TourBloc>(context).state;
     final MapboxBloc mapboxBloc = BlocProvider.of<MapboxBloc>(context);

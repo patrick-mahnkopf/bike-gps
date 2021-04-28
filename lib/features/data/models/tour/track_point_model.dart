@@ -3,6 +3,7 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 
 import '../../../domain/entities/tour/entities.dart';
 
+/// Represents a TrackPoint.
 class TrackPointModel extends TrackPoint {
   const TrackPointModel(
       {@required LatLng latLng,

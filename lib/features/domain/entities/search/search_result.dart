@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
+/// Represents a search result.
 class SearchResult extends Equatable {
   final String name;
   final String street;
@@ -36,6 +37,8 @@ class SearchResult extends Equatable {
 
   bool get isState => hasState && name == state;
 
+  /// Gets the most detailed location information possible given the available
+  /// data.
   String get secondaryAddress {
     if (isCountry) {
       return '';

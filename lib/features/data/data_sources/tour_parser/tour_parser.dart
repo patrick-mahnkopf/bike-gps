@@ -13,6 +13,7 @@ import '../../models/tour/models.dart';
 
 enum TourType { tour, route }
 
+/// Tour file parser interface.
 abstract class TourParser {
   final ConstantsHelper constantsHelper;
   final DistanceHelper distanceHelper;
@@ -31,6 +32,7 @@ abstract class TourParser {
   List<String> get fileExtensionPriority;
 }
 
+/// Class responsible for parsing gpx tour files.
 @Injectable(as: TourParser, env: ["public"])
 class GpxParser extends TourParser {
   GpxParser(
@@ -38,9 +40,11 @@ class GpxParser extends TourParser {
       @required DistanceHelper distanceHelper})
       : super(constantsHelper: constantsHelper, distanceHelper: distanceHelper);
 
+  /// The file extensions this parser supports in its preferred order
   @override
   List<String> get fileExtensionPriority => ['.gpx', '.xml'];
 
+  /// Returns a [TourModel] for the given tour [file].
   @override
   Future<TourModel> getTour({@required File file}) async {
     final String tourFileContent = await file.readAsString();
@@ -51,6 +55,9 @@ class GpxParser extends TourParser {
         tourType: TourType.tour);
   }
 
+  /// Parses the [tourFileContent] and returns a [TourModel].
+  ///
+  ///
   @override
   Future<TourModel> getTourFromFileContent(
       {@required String tourFileContent,
@@ -101,6 +108,7 @@ class GpxParser extends TourParser {
     );
   }
 
+  /// Determines if [currentPoint] should be added as a WayPoint.
   bool _shouldAddWayPoint(TourType tourType, int i,
       List<Wpt> combinedTourPoints, Wpt currentPoint) {
     if (_isWaypoint(currentPoint)) {
@@ -114,6 +122,12 @@ class GpxParser extends TourParser {
     }
   }
 
+  /// Determines if [currentPoint] from the route service response should be
+  /// added as a WayPoint.
+  ///
+  /// Does not add the first point. Only adds the first point for each step
+  /// value. Does not add arrival type points that aren't the last point in the
+  /// list.
   bool _shouldAddRouteWayPoint(
       int i, Wpt currentPoint, List<Wpt> combinedTourPoints) {
     if (i > 0) {
@@ -122,6 +136,10 @@ class GpxParser extends TourParser {
       final bool isPrematureArrival =
           currentPoint.extensions['type'] == orsArrivalType &&
               i != combinedTourPoints.length - 1;
+
+      /// Check if the currentPoint has a different step number than the
+      /// previous one and is not an arrival type without being the last point
+      /// in the list.
       if (currentPoint.extensions['step'] != previousPoint.extensions['step'] &&
           !isPrematureArrival) {
         return true;
@@ -133,6 +151,11 @@ class GpxParser extends TourParser {
     }
   }
 
+  /// Adds a WayPoint for [currentPoint] and the corresponding TrackPoint to
+  /// the respective list.
+  ///
+  /// Converts Wpt [currentPoint] to a TrackPoint and WayPoint and adds them to
+  /// [trackPoints] and [wayPoints] respectively.
   void _addWayPoint(Wpt currentPoint, double distanceFromStart,
       List<TrackPointModel> trackPoints, List<WayPointModel> wayPoints) {
     final String direction = _getDirection(currentPoint);
@@ -163,6 +186,7 @@ class GpxParser extends TourParser {
     wayPoints.add(wayPoint);
   }
 
+  /// Adds a TrackPoint for [currentPoint] to the [trackPoints] list.
   void _addTrackPoint(Wpt currentPoint, double distanceFromStart,
       List<TrackPointModel> trackPoints) {
     final TrackPointModel trackPointWithoutWayPoint = TrackPointModel(
@@ -176,6 +200,7 @@ class GpxParser extends TourParser {
     trackPoints.add(trackPointWithoutWayPoint);
   }
 
+  /// Gets the direction of [currentPoint].
   String _getDirection(Wpt currentPoint) {
     if (currentPoint.extensions.containsKey('direction') &&
         currentPoint.extensions['direction'] != '') {
@@ -186,6 +211,7 @@ class GpxParser extends TourParser {
     return '';
   }
 
+  /// Gets the location of [currentPoint].
   String _getLocation(Wpt currentPoint) {
     if (currentPoint.extensions.containsKey('location') &&
         currentPoint.extensions['location'] != '') {
@@ -194,6 +220,7 @@ class GpxParser extends TourParser {
     return '';
   }
 
+  /// Gets the surface of [currentPoint].
   String _getSurface(Wpt currentPoint) {
     if (currentPoint.extensions.containsKey('surface') &&
         currentPoint.extensions['surface'] != '') {
@@ -202,6 +229,7 @@ class GpxParser extends TourParser {
     return 'A';
   }
 
+  /// Gets the turnSymbolId of [currentPoint].
   String _getTurnSymbolId(Wpt currentPoint) {
     if (currentPoint.extensions.containsKey('turnsymbolid') &&
         currentPoint.extensions['turnsymbolid'] != '') {
@@ -213,6 +241,7 @@ class GpxParser extends TourParser {
     return '';
   }
 
+  /// Gets a [TourInfoModel] of the tour [file].
   @override
   Future<TourInfoModel> getTourInfo({File file}) async {
     // TODO make more efficient by not parsing entire file
@@ -227,6 +256,10 @@ class GpxParser extends TourParser {
         firstPoint: tourModel.trackPoints.first.latLng);
   }
 
+  /// Checks if [point] is a waypoint.
+  ///
+  /// Checks if [point] has a non-empty name, description, direction, or
+  /// turnSymbolId.
   bool _isWaypoint(Wpt point) {
     if (point.name != null && point.name != '') {
       return true;
@@ -248,7 +281,13 @@ class GpxParser extends TourParser {
     return false;
   }
 
+  /// Gets the bounds of the [tourGpx].
+  ///
+  /// Gets the bounds from the gpx metadata element if it exists and is not
+  /// empty. Otherwise calculates the bounds by iterating over all
+  /// [trackPoints].
   LatLngBounds getBounds(Gpx tourGpx, List<TrackPointModel> trackPoints) {
+    /// Returns the metadata bounds if they exist and aren't empty or only zero.
     if (tourGpx?.metadata?.bounds != null &&
         (tourGpx.metadata.bounds.maxlon - tourGpx.metadata.bounds.minlon > 0 ||
             tourGpx.metadata.bounds.maxlat - tourGpx.metadata.bounds.minlat >
@@ -265,6 +304,7 @@ class GpxParser extends TourParser {
         'west': trackPoints.first.latLng.longitude,
       };
 
+      /// Finds the extreme points of the tour and returns them as bounds.
       for (final TrackPointModel trackPoint in trackPoints) {
         if (trackPoint.latLng.latitude > extrema['north']) {
           extrema['north'] = trackPoint.latLng.latitude;
@@ -287,11 +327,16 @@ class GpxParser extends TourParser {
     }
   }
 
+  /// Returns a list of the trackpoints with the waypoints inserted at the
+  /// correct locations.
   List<Wpt> getCombinedPoints(Gpx tourGpx) {
     List<Wpt> initialPoints;
     List<Wpt> wayPoints;
+
+    /// Return routepoints if they exist.
     if (tourGpx.rtes.isNotEmpty) {
       return tourGpx.rtes.first.rtepts;
+      // Return and empty list if there are neither routepoints nor trackpoints.
     } else if (tourGpx.rtes.isEmpty && tourGpx.trks.isEmpty) {
       return [];
     } else {
@@ -301,7 +346,7 @@ class GpxParser extends TourParser {
     final List<Wpt> combinedPoints = initialPoints;
 
     for (int i = 0; i < wayPoints.length; i++) {
-      // Find index of trackPoint with lowest distance to current wayPoint
+      /// Finds index of trackPoint with lowest distance to current wayPoint.
       final Wpt wayPoint = wayPoints[i];
       double lowestDistance = double.infinity;
       int lowestDistanceIndex = -1;
@@ -315,11 +360,13 @@ class GpxParser extends TourParser {
         }
       }
 
-      // Insert wayPoint at the correct position
-      // Insert in first position if it's closest to the first trackPoint
+      /// Inserts wayPoint at the correct position.
+      /// Inserts in first position if it's closest to the first trackPoint.
       if (lowestDistanceIndex == 0) {
         combinedPoints.insert(lowestDistanceIndex, wayPoint);
-        // Insert before the current wayPoint if it's closer to the previous trackPoint than to the next one
+
+        /// Inserts before the current wayPoint if it's closer to the previous
+        /// trackPoint than to the next one.
       } else if (distanceHelper.distanceBetweenWpts(
             wayPoint,
             initialPoints[lowestDistanceIndex - 1],
@@ -329,7 +376,8 @@ class GpxParser extends TourParser {
             initialPoints[lowestDistanceIndex + 1],
           )) {
         combinedPoints.insert(lowestDistanceIndex, wayPoint);
-        // Insert after the current wayPoint otherwise
+
+        /// Inserts after the current wayPoint otherwise.
       } else {
         combinedPoints.insert(lowestDistanceIndex + 1, wayPoint);
       }

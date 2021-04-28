@@ -7,12 +7,14 @@ import 'package:injectable/injectable.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/usecases/usecase.dart';
 
+/// A use case that gets the search history.
 @lazySingleton
 class GetSearchHistory extends UseCase<List<SearchResult>, NoParams> {
   final SearchResultRepository repository;
 
   GetSearchHistory({@required this.repository});
 
+  /// Gets the search history.
   @override
   Future<Either<Failure, List<SearchResult>>> call(NoParams params) async {
     return repository.getSearchHistory();

@@ -9,6 +9,9 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:provider/provider.dart';
 import 'package:snapping_sheet/snapping_sheet.dart';
 
+/// A collection of custom widgets used throughout the app.
+
+/// A custom loading indicator.
 class LoadingIndicator extends StatelessWidget {
   const LoadingIndicator({Key key}) : super(key: key);
 
@@ -20,6 +23,9 @@ class LoadingIndicator extends StatelessWidget {
   }
 }
 
+/// A custom container widget with text inside.
+///
+/// Used for list items that only contain text.
 class CustomContainerTextWidget extends StatelessWidget {
   final String text;
   final Color color;
@@ -42,6 +48,10 @@ class CustomContainerTextWidget extends StatelessWidget {
   }
 }
 
+/// A custom button that recenters the Mapbox map on the user location.
+///
+/// Hides automatically when the user location is tracked. Changes the map's
+/// location tracking mode to tracking compass when pressed.
 class RecenterMapWidget extends StatelessWidget {
   final ConstantsHelper constantsHelper;
 
@@ -54,12 +64,16 @@ class RecenterMapWidget extends StatelessWidget {
     final MapState mapState = BlocProvider.of<MapBloc>(context).state;
     return BlocBuilder<MapboxBloc, MapboxState>(
       builder: (context, state) {
+        /// Only show when the map is ready and the user location is not
+        /// already tracked.
         if (state is MapboxLoadSuccess &&
             state.controller.mapboxMapController != null &&
             state.controller.myLocationTrackingMode !=
                 MyLocationTrackingMode.TrackingCompass) {
           return Padding(
             padding: const EdgeInsets.all(8),
+
+            /// Button to recenter the map.
             child: FloatingActionButton.extended(
               onPressed: () => _recenterMap(mapboxBloc, mapState, state),
               backgroundColor: Colors.white,
@@ -80,14 +94,23 @@ class RecenterMapWidget extends StatelessWidget {
     );
   }
 
+  /// Recenters the Mapbox map on the user location.
+  ///
+  /// Changes the map's location tracking mode to tracking compass.
   void _recenterMap(
       MapboxBloc mapboxBloc, MapState mapState, MapboxLoadSuccess state) {
     CameraUpdate cameraUpdate;
+
+    /// Get the zoom used during navigation.
     if (mapState is NavigationViewActive) {
       cameraUpdate = CameraUpdate.zoomTo(constantsHelper.navigationViewZoom);
+
+      /// Get the zoom used during tour selection.
     } else if (mapState is TourSelectionViewActive) {
       cameraUpdate = CameraUpdate.zoomTo(constantsHelper.tourViewZoom);
     }
+
+    /// Apply the zoom and activate the tracking compass location tracking mode.
     mapboxBloc.add(MapboxLoaded(
       mapboxController: state.controller,
       myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass,
@@ -96,39 +119,54 @@ class RecenterMapWidget extends StatelessWidget {
   }
 }
 
+/// A controller handling the bottom sheet snapping behaviour.
 class BottomSheetSnapController extends ChangeNotifier {
   final SnappingSheetController snappingSheetController;
   bool snappingTop = false;
 
   BottomSheetSnapController({@required this.snappingSheetController});
 
+  /// Handles snapping position changes
   void onSnapEnd() {
     bool _snappingTop;
+
+    /// The bottom sheet is in the highest position.
     if (snappingSheetController.currentSnapPosition ==
         snappingSheetController.snapPositions.last) {
       _snappingTop = true;
+
+      /// The bottom sheet is not in the highest position.
     } else {
       _snappingTop = false;
     }
+
+    /// Notifies listeners when snapping at the top changes.
     if (snappingTop != _snappingTop) {
       snappingTop = _snappingTop;
       notifyListeners();
     }
   }
 
+  /// Toggles between the maximum and minimum snap positions.
   void toggleBetweenSnapPositions() {
+    /// Snaps to the maximum if in the minimum position.
     if (snappingSheetController.currentSnapPosition ==
         snappingSheetController.snapPositions.first) {
       snappingSheetController
           .snapToPosition(snappingSheetController.snapPositions.last);
+
+      /// Snaps to the minimum position if anywhere else.
     } else {
       snappingSheetController
           .snapToPosition(snappingSheetController.snapPositions.first);
     }
+
+    /// Notifies listeners.
     onSnapEnd();
   }
 }
 
+/// A custom bottom sheet defining default snapping positions.
 class BottomSheetWidget extends StatelessWidget {
   static final SnappingSheetController _snappingSheetController =
       SnappingSheetController();
@@ -178,6 +216,8 @@ class BottomSheetWidget extends StatelessWidget {
   }
 }
 
+/// A custom bottom sheet grab section including an arrow icon that changes
+/// depending on the snapping position.
 class BottomSheetGrabSection extends StatelessWidget {
   final Widget content;
 
@@ -210,6 +250,7 @@ class BottomSheetGrabSection extends StatelessWidget {
   }
 }
 
+/// A custom divider line for lists.
 class DividerLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -221,6 +262,8 @@ class DividerLine extends StatelessWidget {
   }
 }
 
+/// A horizontal bar used as a bottom sheet grab icon when not in the top
+/// snapping position.
 class GrabIconStraight extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -235,6 +278,8 @@ class GrabIconStraight extends StatelessWidget {
   }
 }
 
+/// A downward arrow used as a bottom sheet grab icon when in the top snapping
+/// position.
 class GrabIconArrow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -269,6 +314,7 @@ class GrabIconArrow extends StatelessWidget {
   }
 }
 
+/// A custom rounded container.
 class RoundedContainer extends StatelessWidget {
   final Widget content;
 
@@ -298,6 +344,7 @@ class RoundedContainer extends StatelessWidget {
   }
 }
 
+/// Displays a [BikeGpsDialogWidget].
 void showBikeGpsDialog(
     {@required BuildContext context,
     @required List<BikeGpsDialogOption> dialogOptions,
@@ -323,6 +370,7 @@ void showBikeGpsDialog(
   );
 }
 
+/// A custom dialog including the Bike GPS logo at the top.
 class BikeGpsDialogWidget extends StatefulWidget {
   final List<BikeGpsDialogOption> dialogOptions;
   final int initialActiveDialogOptionIndex;
@@ -353,12 +401,15 @@ class _BikeGpsDialogWidgetState extends State<BikeGpsDialogWidget> {
       children: [
         Row(
           children: [
+            /// A button to close the dialog.
             const Align(
               alignment: Alignment.topLeft,
               child: CloseButton(),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(48, 24, 16, 8),
+
+              /// The Bike GPS logo.
               child: Image.asset(
                 "assets/images/branding/bike_gps_logo.png",
                 color: Colors.blue,
@@ -367,11 +418,15 @@ class _BikeGpsDialogWidgetState extends State<BikeGpsDialogWidget> {
             )
           ],
         ),
+
+        /// Displays the dialog options.
         ..._getDialogOptions(),
       ],
     );
   }
 
+  /// Applies the correct [_onTapped] callback to the dialog options and
+  /// activates the currently active one.
   List<BikeGpsDialogOption> _getDialogOptions() {
     final List<BikeGpsDialogOption> dialogOptions = [];
     for (var i = 0; i < widget.dialogOptions.length; i++) {
@@ -387,6 +442,7 @@ class _BikeGpsDialogWidgetState extends State<BikeGpsDialogWidget> {
     return dialogOptions;
   }
 
+  /// Calls the registered callback for the dialog option at [optionIndex].
   void _onTapped(int optionIndex) {
     widget.dialogOptions[optionIndex].onPressedCallback();
     setState(() {
@@ -395,6 +451,7 @@ class _BikeGpsDialogWidgetState extends State<BikeGpsDialogWidget> {
   }
 }
 
+/// Custom dialog options for the [BikeGpsDialogWidget].
 class BikeGpsDialogOption extends StatelessWidget {
   final bool isActive;
   final Function onPressedCallback;
@@ -435,13 +492,17 @@ class BikeGpsDialogOption extends StatelessWidget {
     const Color activeOptionColor = Colors.blue;
     const Color inactiveOptionColor = Colors.black;
     return SimpleDialogOption(
+      /// Calls the registered callback.
       onPressed: () => isActive ? null : onTapped(optionIndex),
       child: Row(
         children: [
+          /// The icon of this dialog entry.
           Icon(
             optionIcon,
             color: isActive ? activeOptionColor : inactiveOptionColor,
           ),
+
+          /// The text of this dialog entry.
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
@@ -451,6 +512,8 @@ class BikeGpsDialogOption extends StatelessWidget {
               ),
             ),
           ),
+
+          /// Displays a check mark if this dialog entry is currently active.
           if (isActive)
             const Icon(
               Icons.check,

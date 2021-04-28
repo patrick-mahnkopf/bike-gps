@@ -16,6 +16,10 @@ import '../blocs/tour/tour_bloc.dart';
 import '../widgets/mapbox_widget.dart';
 import 'screens.dart';
 
+/// The app's main screen containing the map and the currently active view.
+///
+/// Initially in the tour selection view. Can change between it and the
+/// navigation view.
 class MapScreen extends StatelessWidget {
   const MapScreen({Key key}) : super(key: key);
 
@@ -25,7 +29,9 @@ class MapScreen extends StatelessWidget {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: MultiBlocProvider(
+        /// Provides the BLoCs to all children in the widget tree.
         providers: [
+          /// Provides and initializes the MapboxBLoC.
           BlocProvider(
             create: (_) => getIt<MapboxBloc>()
               ..add(MapboxInitialized(
@@ -47,6 +53,7 @@ class MapScreen extends StatelessWidget {
         ],
         child: Stack(
           children: [
+            /// Handles the Mapbox map.
             BlocBuilder<MapboxBloc, MapboxState>(
               builder: (context, state) {
                 if (state is MapboxInitial || state is MapboxLoadSuccess) {
@@ -60,6 +67,7 @@ class MapScreen extends StatelessWidget {
             ),
             BlocBuilder<MapBloc, MapState>(
               builder: (context, state) {
+                /// Rebuilds when the navigation view was activated.
                 if (state is NavigationViewActive) {
                   final SearchBloc searchBloc =
                       BlocProvider.of<SearchBloc>(context);
@@ -78,16 +86,22 @@ class MapScreen extends StatelessWidget {
                   final NavigationBloc navigationBloc =
                       BlocProvider.of<NavigationBloc>(context);
 
+                  /// Dismisses the search bar and saves the current contents.
                   if (searchState is QueryLoadSuccess) {
                     searchBloc.add(SearchBarDismissed(
                         query: searchState.query,
                         searchResults: searchState.searchResults));
                   }
 
+                  /// Moves the map to the user location and starts the
+                  /// navigation.
                   if (tourState is TourLoadSuccess) {
                     if (mapboxState is MapboxLoadSuccess &&
                         mapboxState.controller != null) {
                       mapboxState.controller.clearAlternativeTours();
+
+                      /// Sets the tracking mode to tracking compass for the
+                      /// navigation.
                       mapboxBloc.add(
                         MapboxLoaded(
                           mapboxController: mapboxState.controller,
@@ -96,6 +110,8 @@ class MapScreen extends StatelessWidget {
                           cameraUpdate: CameraUpdate.zoomTo(16),
                         ),
                       );
+
+                      /// Starts the navigation.
                       navigationBloc.add(NavigationLoaded(
                         tour: tourState.tour,
                         mapboxController: mapboxState.controller,
@@ -103,6 +119,7 @@ class MapScreen extends StatelessWidget {
                     }
                   }
 
+                  /// Updates the navigation on user location changes.
                   getIt<Location>()
                       .onLocationChanged
                       .listen((LocationData currentLocation) {
@@ -113,15 +130,23 @@ class MapScreen extends StatelessWidget {
                           navigationBloc.state;
                       final LatLng currentLatLng = LatLng(
                           currentLocation.latitude, currentLocation.longitude);
+
+                      /// Recalculates current navigation data on the tour
+                      /// using the new user location.
                       if (navigationState is NavigationLoadSuccess) {
+                        /// Checks if the location actually changed.
                         if (currentLatLng != navigationState.userLocation) {
                           navigationBloc.add(NavigationLoaded(
                               userLocation: currentLatLng,
                               tour: tourState.tour,
                               mapboxController: mapboxState.controller));
                         }
+
+                        /// Recalculates current navigation data to the tour
+                        /// using the new user location.
                       } else if (navigationState
                           is NavigationToTourLoadSuccess) {
+                        /// Checks if the location actually changed.
                         if (currentLatLng != navigationState.userLocation) {
                           navigationBloc.add(NavigationLoaded(
                               userLocation: currentLatLng,
@@ -132,6 +157,8 @@ class MapScreen extends StatelessWidget {
                     }
                   });
                   return const NavigationView();
+
+                  /// Rebuilds when the tour selection view was activated.
                 } else {
                   final SearchBloc searchBloc =
                       BlocProvider.of<SearchBloc>(context);
@@ -143,6 +170,7 @@ class MapScreen extends StatelessWidget {
                   final MapboxState mapboxState =
                       BlocProvider.of<MapboxBloc>(context).state;
 
+                  /// Recovers the search bar with its previous contents.
                   if (searchState is SearchBarInactive) {
                     searchBloc.add(SearchBarRecovered(
                         previousQuery: searchState.previousQuery,
@@ -150,11 +178,13 @@ class MapScreen extends StatelessWidget {
                             searchState.previousSearchResults));
                   }
 
+                  /// Stops the navigation.
                   if (navigationBloc.state is NavigationLoadSuccess ||
                       navigationBloc.state is NavigationToTourLoadSuccess) {
                     navigationBloc.add(NavigationStopped());
                   }
 
+                  /// Redraws alternative tours if they exist.
                   if (tourState is TourLoadSuccess &&
                       mapboxState is MapboxLoadSuccess) {
                     if (tourState.alternativeTours.isNotEmpty) {

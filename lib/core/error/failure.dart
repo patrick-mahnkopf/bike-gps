@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+/// The different failures that can occur in the app.
+
 abstract class Failure extends Equatable {
   @override
   List<Object> get props => [];

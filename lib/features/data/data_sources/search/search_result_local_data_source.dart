@@ -10,6 +10,7 @@ import 'package:bike_gps/features/data/models/search/models.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:injectable/injectable.dart';
 
+/// Class responsible for handling the local search history.
 abstract class SearchResultLocalDataSource {
   Future<List<SearchResultModel>> getSearchHistory();
   Future<FunctionResult> addToSearchHistory(
@@ -35,6 +36,9 @@ class SearchResultLocalDataSourceImpl implements SearchResultLocalDataSource {
         constantsHelper: constantsHelper, tourListHelper: tourListHelper);
   }
 
+  /// Returns a List of the most recently submitted search queries.
+  ///
+  /// Throws a [FileException] if the search history file could not be read.
   @override
   Future<List<SearchHistoryItemModel>> getSearchHistory() async {
     try {
@@ -57,12 +61,20 @@ class SearchResultLocalDataSourceImpl implements SearchResultLocalDataSource {
     }
   }
 
+  /// Adds the [searchHistoryItemModel] to the search history.
+  ///
+  /// Adds the [searchHistoryItemModel] to the first position of the search
+  /// history and writes the history to the local file. Returns a
+  /// [FunctionResultFailure] if an exception occurs and a
+  /// [FunctionResultSuccess] otherwise.
   @override
   Future<FunctionResult> addToSearchHistory(
       {@required SearchHistoryItemModel searchHistoryItemModel,
       @required TourListHelper tourListHelper}) async {
     try {
       List<SearchHistoryItemModel> searchHistory = await getSearchHistory();
+
+      /// Inserts at the first position if a search history already exists
       if (searchHistory != null) {
         searchHistory.insert(0, searchHistoryItemModel);
         searchHistory = _removeSearchHistoryDuplicates(searchHistory);
@@ -82,11 +94,14 @@ class SearchResultLocalDataSourceImpl implements SearchResultLocalDataSource {
     }
   }
 
+  /// Returns the search history after removing duplicate entries.
   List<SearchHistoryItemModel> _removeSearchHistoryDuplicates(
       List<SearchHistoryItemModel> searchHistory) {
     return searchHistory.toSet().toList();
   }
 
+  // Uses LIFO order to shorten the search history if it's longer than
+  // [searchHistoryMaxLengh].
   List<SearchHistoryItemModel> _ensureCorrectSearchHistoryLength(
       List<SearchHistoryItemModel> searchHistory) {
     if (searchHistory.length > searchHistoryMaxLength) {

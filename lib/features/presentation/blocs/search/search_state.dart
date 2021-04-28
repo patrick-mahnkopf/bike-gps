@@ -7,8 +7,12 @@ abstract class SearchState extends Equatable {
   List<Object> get props => [];
 }
 
+/// State of the SearchBloc while loading.
 class QueryLoading extends SearchState {}
 
+/// State of the SearchBloc when the query is empty.
+///
+/// Holds the [searchHistory] to display while the query is empty.
 class QueryEmpty extends SearchState {
   final List<SearchResult> searchHistory;
 
@@ -21,6 +25,7 @@ class QueryEmpty extends SearchState {
   String toString() => 'QueryEmpty { searchHistory: $searchHistory}';
 }
 
+/// State of the SearchBloc if search results were retrieved successfully.
 class QueryLoadSuccess extends SearchState {
   final String query;
   final List<SearchResult> searchResults;
@@ -35,6 +40,7 @@ class QueryLoadSuccess extends SearchState {
       'QueryLoadSuccess { query: $query, searchResults: $searchResults}';
 }
 
+/// State of the SearchBloc if the search failed.
 class QueryLoadFailure extends SearchState {
   final String message;
 
@@ -47,6 +53,10 @@ class QueryLoadFailure extends SearchState {
   String toString() => 'QueryLoadFailure { message: $message}';
 }
 
+/// State of the SearchBloc after the search bar is dismissed.
+///
+/// Saves the [previousQuery] and [previousSearchResults] to restore them when
+/// the search bar is reactivated.
 class SearchBarInactive extends SearchState {
   final String previousQuery;
   final List<SearchResult> previousSearchResults;

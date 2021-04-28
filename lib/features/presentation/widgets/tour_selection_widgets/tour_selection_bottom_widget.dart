@@ -5,6 +5,7 @@ import 'package:bike_gps/injection_container.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+/// Shows a recenter map button and the bottom sheet if there is an active tour.
 class TourSelectionBottomWidget extends StatelessWidget {
   double get bottomSheetGrabSectionHeight => 101;
 
@@ -20,11 +21,15 @@ class TourSelectionBottomWidget extends StatelessWidget {
                 child: Padding(
                   padding:
                       EdgeInsets.only(bottom: bottomSheetGrabSectionHeight),
+
+                  /// A button to recenter the map to the user location.
                   child: RecenterMapWidget(
                     constantsHelper: getIt(),
                   ),
                 ),
               ),
+
+              /// The tour selection bottom sheet.
               TourSelectionBottomSheetWidget(
                 grabSectionHeight: bottomSheetGrabSectionHeight,
               ),
@@ -32,6 +37,8 @@ class TourSelectionBottomWidget extends StatelessWidget {
           );
         } else if (state is TourLoading) {
           return const LoadingIndicator();
+
+          /// Displays only the recenter button when there is no active tour.
         } else {
           return Align(
             alignment: Alignment.bottomLeft,

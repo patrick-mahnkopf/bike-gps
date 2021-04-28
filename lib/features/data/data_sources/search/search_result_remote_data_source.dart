@@ -11,6 +11,7 @@ import 'package:flutter_geocoder/geocoder.dart';
 import 'package:http/http.dart' as http;
 import 'package:injectable/injectable.dart';
 
+/// Class responsible for getting search results from remote Geocoder.
 abstract class SearchResultRemoteDataSource {
   Future<List<SearchResultModel>> getSearchResults({@required String query});
 }
@@ -23,6 +24,11 @@ class SearchResultRemoteDataSourceImpl implements SearchResultRemoteDataSource {
   SearchResultRemoteDataSourceImpl(
       {@required this.tourListHelper, @required this.getTour});
 
+  /// Retrieves search results for the given [query] from the remote Geocoder.
+  ///
+  /// The search results from the Geocoder describe locations. If the [query]
+  /// matches one or more tour names, those tours are added to the start of
+  /// the returned list.
   @override
   Future<List<SearchResultModel>> getSearchResults({String query}) async {
     final List<SearchResultModel> searchResults = [];
@@ -33,6 +39,7 @@ class SearchResultRemoteDataSourceImpl implements SearchResultRemoteDataSource {
     final bool isTourQuery = isTourQueryAndSanitizedQuery.value1;
     final String sanitizedQuery = isTourQueryAndSanitizedQuery.value2;
 
+    /// Adds tours that match the query to the search result list.
     for (final TourInfo tourInfo in tourInfos) {
       final String tourName = tourInfo.name.toLowerCase();
       if (tourName.contains(sanitizedQuery)) {
@@ -42,6 +49,8 @@ class SearchResultRemoteDataSourceImpl implements SearchResultRemoteDataSource {
       }
     }
 
+    /// If the query doesn't start with one of the special tour shortcuts,
+    /// add the Geocoder results to the search result list.
     if (!isTourQuery) {
       final List<SearchResultModel> geocoderResults =
           await _getGeocoderResults(query);
@@ -53,6 +62,8 @@ class SearchResultRemoteDataSourceImpl implements SearchResultRemoteDataSource {
     return searchResults;
   }
 
+  /// Checks if [query] starts with one of the special tour shortcuts and
+  /// sanitizes the [query].
   Tuple2<bool, String> _getIsTourQueryAndSanitizedQuery(String query) {
     final String initialQuery = query.trim().toLowerCase();
     String sanitizedQuery = initialQuery;
@@ -63,6 +74,8 @@ class SearchResultRemoteDataSourceImpl implements SearchResultRemoteDataSource {
       'tour'
     ];
 
+    /// Checks if the query starts with one of the special tour search shortcuts
+    /// and removes it if it does.
     for (final String tourQueryStartString in tourQueryStartStrings) {
       if (sanitizedQuery.startsWith(tourQueryStartString)) {
         sanitizedQuery =
@@ -70,12 +83,16 @@ class SearchResultRemoteDataSourceImpl implements SearchResultRemoteDataSource {
       }
     }
 
+    /// Returns true if a tour shortcut was used.
     if (initialQuery != sanitizedQuery) {
       return Tuple2(true, sanitizedQuery);
     }
     return Tuple2(false, sanitizedQuery);
   }
 
+  /// Gets the Geocoder results for the [query].
+  ///
+  /// Removes Geocoder results that don't have a name.
   Future<List<SearchResultModel>> _getGeocoderResults(String query) async {
     // TODO replace with self hosted alternative
     final response =
@@ -93,6 +110,10 @@ class SearchResultRemoteDataSourceImpl implements SearchResultRemoteDataSource {
     return searchResultList;
   }
 
+  /// Converts the [tourInfo] to a [SearchResultModel].
+  ///
+  /// Uses the address returned by the Geocoder to fill in the
+  /// [SearchResultModel] information.
   Future<SearchResultModel> _getSearchResultModelFromTourInfo(
       TourInfo tourInfo) async {
     final Coordinates tourStartCoordinates = Coordinates(

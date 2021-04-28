@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../domain/entities/tour/entities.dart';
 
+/// The bottom sheet shown during tour selection if there is an active tour.
 class TourSelectionBottomSheetWidget extends StatelessWidget {
   final Tour tour;
   final double grabSectionHeight;
@@ -32,6 +33,12 @@ class TourSelectionBottomSheetWidget extends StatelessWidget {
   }
 }
 
+/// Displays information about the currently active tour and holds the road
+/// book and navigation start buttons.
+///
+/// Shows the tour length and total ascent and descent. The road book button
+/// expands the bottom sheet to reveal further content. The start button starts
+/// the navigation using the currently active tour.
 class GrabSectionContent extends StatelessWidget {
   final DistanceHelper distanceHelper;
 
@@ -54,24 +61,34 @@ class GrabSectionContent extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
+
+                    /// The total tour length.
                     child: Text(
                       distanceHelper.distanceToString(state.tour.tourLength),
                       style: const TextStyle(fontSize: 20),
                     ),
                   ),
+
+                  /// The ascent icon.
                   const Icon(
                     Icons.arrow_upward,
                     color: Colors.green,
                     size: 16,
                   ),
+
+                  /// The tour's total ascent.
                   Text(
                     distanceHelper.distanceToString(state.tour.ascent),
                   ),
+
+                  /// The descent icon.
                   const Icon(
                     Icons.arrow_downward,
                     color: Colors.red,
                     size: 16,
                   ),
+
+                  /// The tour's total descent.
                   Text(
                     distanceHelper.distanceToString(state.tour.descent),
                   ),
@@ -84,9 +101,12 @@ class GrabSectionContent extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Expanded(
+                    /// The road book button.
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.list),
                       label: const Text("Road book"),
+
+                      /// Fully expands the bottom sheet when pressed.
                       onPressed: () => Provider.of<BottomSheetSnapController>(
                               context,
                               listen: false)
@@ -103,9 +123,13 @@ class GrabSectionContent extends StatelessWidget {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.only(left: 8),
+
+                      /// The button to start the navigation.
                       child: ElevatedButton.icon(
                         icon: const Icon(Icons.navigation),
                         label: const Text("Start"),
+
+                        /// Starts the navigation when pressed.
                         onPressed: () => BlocProvider.of<MapBloc>(context)
                             .add(NavigationViewActivated()),
                         style: ElevatedButton.styleFrom(
@@ -132,6 +156,10 @@ class GrabSectionContent extends StatelessWidget {
   }
 }
 
+/// The content of the bottom sheet when expanded.
+///
+/// Includes the height map that always stays on top and the road book which is
+/// a scrollable list of the tour's waypoints.
 class SheetContent extends StatelessWidget {
   const SheetContent({Key key}) : super(key: key);
 
@@ -140,8 +168,12 @@ class SheetContent extends StatelessWidget {
     return BlocBuilder<TourBloc, TourState>(
       builder: (context, tourBlocState) {
         if (tourBlocState is TourLoadSuccess) {
+          /// Loads the height map for the currently active tour.
           BlocProvider.of<HeightMapBloc>(context)
               .add(HeightMapLoaded(tour: tourBlocState.tour));
+
+          /// Due to the height map, there is always at least one item to show
+          /// in this list.
           final int _itemCount = tourBlocState.tour.wayPoints.isEmpty
               ? 1
               : tourBlocState.tour.wayPoints.length;
@@ -152,6 +184,7 @@ class SheetContent extends StatelessWidget {
               children: [
                 BlocBuilder<HeightMapBloc, HeightMapState>(
                   builder: (context, heightMapState) {
+                    /// Shows the height map for the currently active tour.
                     if (heightMapState is HeightMapLoadSuccess &&
                         heightMapState.tour == tourBlocState.tour) {
                       return HeightMap(state: heightMapState);
@@ -177,6 +210,8 @@ class SheetContent extends StatelessWidget {
                             ),
                           ),
                         ),
+
+                        /// Shows the road book for the currently active tour.
                         child: RoadBook(
                           tour: tourBlocState.tour,
                           index: index,
@@ -199,6 +234,7 @@ class SheetContent extends StatelessWidget {
   }
 }
 
+/// The height map showing the height profile of the currently active tour.
 class HeightMap extends StatelessWidget {
   final HeightMapLoadSuccess state;
 
@@ -230,6 +266,7 @@ class HeightMap extends StatelessWidget {
   }
 }
 
+/// The road book displaying a scrollable list of the [tour]'s waypoints.
 class RoadBook extends StatelessWidget {
   final Tour tour;
   final int index;
@@ -244,6 +281,7 @@ class RoadBook extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    /// Displays an error message if there are no waypoitns in the active tour.
     if (tour.wayPoints.isEmpty) {
       return const ListTile(
         leading: Icon(Icons.error),
@@ -251,6 +289,8 @@ class RoadBook extends StatelessWidget {
       );
     } else {
       final WayPoint currentWayPoint = tour.wayPoints[index];
+
+      /// Displays an entry for the current waypoint.
       return ListTile(
         leading: tourConversionHelper.getTurnSymbolFromId(
           iconId: currentWayPoint.turnSymboldId,
@@ -262,33 +302,57 @@ class RoadBook extends StatelessWidget {
     }
   }
 
+  /// Gets a title for the [currentWayPoint].
+  ///
+  /// Returns either the waypoint's name or the location depending on which of
+  /// those exists. Prefers the name over the location.
   Widget _getTileTitle(WayPoint currentWayPoint) {
+    /// Returns the waypoint's name if it exists and isn't empty.
     if (currentWayPoint.name != null && currentWayPoint.name != '') {
       return Text(currentWayPoint.name);
+
+      /// Returns the waypoint's location if it exists and isn't empty.
     } else if (currentWayPoint.location != null &&
         currentWayPoint.location != '') {
       return Text(currentWayPoint.location);
     }
+
+    /// Returns an empty Container if no other information exists.
     return Container();
   }
 
+  /// Gets a subtitle for the [currentWayPoint].
+  ///
+  /// Returns either the waypoint's name or the location depending on which of
+  /// those exists. Prefers the name over the location.
   Widget _getTileSubtitle(WayPoint currentWayPoint) {
     String subtitleContent = '';
     final Widget tileTitle = _getTileTitle(currentWayPoint);
     String tileTitleText = '';
+
+    /// Checks if the main title includes text information.
     if (tileTitle is Text) {
       tileTitleText = tileTitle.data;
     }
+
+    /// Displays the currentWayPoint's location if it exists and wasn't
+    /// already used for the main title.
     if (currentWayPoint.location != null &&
         currentWayPoint.location != '' &&
         tileTitleText != currentWayPoint.location) {
       subtitleContent += "${currentWayPoint.location}\n\n";
     }
+
+    /// Adds the currentWayPoint's direction if it exists.
     if (currentWayPoint.direction != null && currentWayPoint.direction != '') {
       subtitleContent += currentWayPoint.direction;
     }
+
+    /// Returns the subtitle if it isn't empty.
     if (subtitleContent != '') {
       return Text(subtitleContent);
+
+      /// Returns an empty Container if no other information exists.
     } else {
       return Container();
     }

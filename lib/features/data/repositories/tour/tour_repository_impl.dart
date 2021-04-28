@@ -11,6 +11,7 @@ import 'package:mapbox_gl_platform_interface/mapbox_gl_platform_interface.dart';
 import '../../../../core/error/exception.dart';
 import '../../../../core/error/failure.dart';
 
+/// The TourRepository handling communication with the tour data sources.
 @Injectable(as: TourRepository)
 class TourRepositoryImpl implements TourRepository {
   final TourLocalDataSource localDataSource;
@@ -19,6 +20,9 @@ class TourRepositoryImpl implements TourRepository {
   TourRepositoryImpl(
       {@required this.localDataSource, @required this.remoteDataSource});
 
+  /// Gets a [TourModel] for the path from [userLocation] to [tourStart].
+  ///
+  /// Returns a [ServerFailure] in case of a [ServerException].
   @override
   Future<Either<Failure, TourModel>> getPathToTour(
       {@required LatLng userLocation, @required LatLng tourStart}) async {
@@ -30,6 +34,9 @@ class TourRepositoryImpl implements TourRepository {
     }
   }
 
+  /// Gets a [TourModel] for the given tour [name].
+  ///
+  /// Returns a [ParserFailure] in case of a [ParserException].
   @override
   Future<Either<Failure, TourModel>> getTour({@required String name}) async {
     try {
@@ -39,6 +46,10 @@ class TourRepositoryImpl implements TourRepository {
     }
   }
 
+  /// Gets alternative tours for the given tour [mainTourName].
+  ///
+  /// Returns a [ParserFailure] in case of a [ParserException] and a
+  /// [TourListFailure] in case of a [TourListException].
   @override
   Future<Either<Failure, List<TourModel>>> getAlternativeTours(
       {@required String mainTourName}) async {
@@ -52,6 +63,10 @@ class TourRepositoryImpl implements TourRepository {
     }
   }
 
+  /// Gets an enhanced version of the [tour].
+  ///
+  /// Returns a [ParserFailure] in case of a [ParserException] and a
+  /// [ServerFailure] in case of a [ServerException].
   @override
   Future<Either<Failure, Tour>> getEnhancedTour({Tour tour}) async {
     try {

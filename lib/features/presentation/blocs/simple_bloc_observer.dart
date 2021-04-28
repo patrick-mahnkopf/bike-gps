@@ -3,9 +3,9 @@ import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:f_logs/f_logs.dart';
 
-// We can extend `BlocObserver` and override `onTransition` and `onError`
-// in order to handle transitions and errors from all Blocs.
+/// Extends the BlocObserver to log all BLoC changes across the app.
 class SimpleBlocObserver extends BlocObserver {
+  /// Logs all BLoC events across the app.
   @override
   void onEvent(Bloc bloc, Object event) {
     log('Event: $event', name: 'SimpleBlocObserver', time: DateTime.now());
@@ -13,6 +13,7 @@ class SimpleBlocObserver extends BlocObserver {
     super.onEvent(bloc, event);
   }
 
+  /// Logs all BLoC transitions across the app.
   @override
   void onTransition(Bloc bloc, Transition transition) {
     log('Transition: { currentState: ${transition.currentState},\nevent: ${transition.event},\nnextState: ${transition.nextState},\n }',
@@ -23,6 +24,7 @@ class SimpleBlocObserver extends BlocObserver {
     super.onTransition(bloc, transition);
   }
 
+  /// Logs all BLoC errors across the app.
   @override
   void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
     log(error.toString(),

@@ -3,6 +3,7 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 
 import '../../../domain/entities/tour/entities.dart';
 
+/// Represents a WayPoint.
 class WayPointModel extends WayPoint {
   const WayPointModel(
       {@required LatLng latLng,
