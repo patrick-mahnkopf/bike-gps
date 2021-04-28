@@ -56,8 +56,6 @@ class GpxParser extends TourParser {
   }
 
   /// Parses the [tourFileContent] and returns a [TourModel].
-  ///
-  ///
   @override
   Future<TourModel> getTourFromFileContent(
       {@required String tourFileContent,
@@ -70,11 +68,14 @@ class GpxParser extends TourParser {
     final List<TrackPointModel> trackPoints = [];
     final List<WayPointModel> wayPoints = [];
     double previousDistanceFromStart = 0;
+
+    /// Combines all trackpoints and waypoints.
     final List<Wpt> combinedTourPoints = getCombinedPoints(tourGpx);
     for (int i = 0; i < combinedTourPoints.length; i++) {
       final Wpt currentPoint = combinedTourPoints[i];
       double distanceFromStart = 0;
 
+      /// Reads or calculates additional data for the current point.
       if (i > 0) {
         final Wpt previousPoint = combinedTourPoints[i - 1];
         final double distanceToPrevious =
@@ -90,6 +91,8 @@ class GpxParser extends TourParser {
         }
       }
 
+      /// Determines if this point should be added only as a trackpoint of as
+      /// both a trackpoint and a waypoint.
       if (_shouldAddWayPoint(tourType, i, combinedTourPoints, currentPoint)) {
         _addWayPoint(currentPoint, distanceFromStart, trackPoints, wayPoints);
       } else {
