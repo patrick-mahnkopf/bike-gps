@@ -2,11 +2,11 @@
 
 # Bike GPS
 
-[![contributors](https://img.shields.io/github/contributors/patrick-mahnkopf/Anki_More_Overview_Stats)](https://github.com/patrick-mahnkopf/Anki_More_Overview_Stats/graphs/contributors)
-[![forks](https://img.shields.io/github/forks/patrick-mahnkopf/Anki_More_Overview_Stats)](https://github.com/patrick-mahnkopf/Anki_More_Overview_Stats/network/members)
-[![stars](https://img.shields.io/github/stars/patrick-mahnkopf/Anki_More_Overview_Stats)](https://github.com/patrick-mahnkopf/Anki_More_Overview_Stats/stargazers)
-[![license](https://img.shields.io/github/license/patrick-mahnkopf/Anki_More_Overview_Stats)](./LICENSE)
-[![issues](https://img.shields.io/github/issues/patrick-mahnkopf/Anki_More_Overview_Stats)](https://github.com/patrick-mahnkopf/Anki_More_Overview_Stats/issues)
+[![contributors](https://img.shields.io/github/contributors/patrick-mahnkopf/bike-gps)](https://github.com/patrick-mahnkopf/bike-gps/graphs/contributors)
+[![forks](https://img.shields.io/github/forks/patrick-mahnkopf/bike-gps)](https://github.com/patrick-mahnkopf/bike-gps/network/members)
+[![stars](https://img.shields.io/github/stars/patrick-mahnkopf/bike-gps)](https://github.com/patrick-mahnkopf/bike-gps/stargazers)
+[![license](https://img.shields.io/github/license/patrick-mahnkopf/bike-gps)](./LICENSE)
+[![issues](https://img.shields.io/github/issues/patrick-mahnkopf/bike-gps)](https://github.com/patrick-mahnkopf/bike-gps/issues)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=patrick-mahnkopf_Anki_More_Overview_Stats&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=patrick-mahnkopf_Anki_More_Overview_Stats)
 
 Bike GPS is an Open-Source Mobile Cross-Platform Bike Navigation System for iOS and Android developed using Dart and Flutter.  
