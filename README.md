@@ -53,7 +53,7 @@ The app supports "Open with..." and "Share" functionality on mobile devices for 
 
 ### Flutter Prerequisites
 
-- Install the [Flutter sdk version 2.0.0](https://docs.flutter.dev/development/tools/sdk/releases) from the stable channel
+- Install the [Flutter SDK version 2.0.0](https://docs.flutter.dev/development/tools/sdk/releases) from the stable channel
 - See the [official Flutter documentation](https://docs.flutter.dev/get-started/install) for setup guidance
 
 - Clone the repository:
