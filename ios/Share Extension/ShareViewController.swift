@@ -20,21 +20,19 @@ class ShareViewController: SLComposeServiceViewController {
 
     override func viewDidLoad() {
         // This is called after the user selects Post. Do the upload of contentText and/or NSExtensionContext attachments.
-        if let content = extensionContext!.inputItems[0] as? NSExtensionItem {
-            if let contents = content.attachments {
-                for (index, attachment) in (contents).enumerated() {
-                    print("File type:\(attachment.registeredTypeIdentifiers)");
-                    if attachment.hasItemConformingToTypeIdentifier(fileURLType) {
-                        handleFiles(content: content, attachment: attachment, index: index)
-                    } else if attachment.hasItemConformingToTypeIdentifier(imageContentType) {
-                        handleImages(content: content, attachment: attachment, index: index)
-                    } else if attachment.hasItemConformingToTypeIdentifier(textContentType) {
-                        handleText(content: content, attachment: attachment, index: index)
-                    } else if attachment.hasItemConformingToTypeIdentifier(urlContentType) {
-                        handleUrl(content: content, attachment: attachment, index: index)
-                    } else if attachment.hasItemConformingToTypeIdentifier(videoContentType) {
-                        handleVideos(content: content, attachment: attachment, index: index)
-                    }
+        if let content = extensionContext!.inputItems[0] as? NSExtensionItem && let contents = content.attachments {
+            for (index, attachment) in (contents).enumerated() {
+                print("File type:\(attachment.registeredTypeIdentifiers)");
+                if attachment.hasItemConformingToTypeIdentifier(fileURLType) {
+                    handleFiles(content: content, attachment: attachment, index: index)
+                } else if attachment.hasItemConformingToTypeIdentifier(imageContentType) {
+                    handleImages(content: content, attachment: attachment, index: index)
+                } else if attachment.hasItemConformingToTypeIdentifier(textContentType) {
+                    handleText(content: content, attachment: attachment, index: index)
+                } else if attachment.hasItemConformingToTypeIdentifier(urlContentType) {
+                    handleUrl(content: content, attachment: attachment, index: index)
+                } else if attachment.hasItemConformingToTypeIdentifier(videoContentType) {
+                    handleVideos(content: content, attachment: attachment, index: index)
                 }
             }
         }

@@ -52,7 +52,7 @@ import ZIPFoundation
         let fileName = srcUrl.lastPathComponent
         let dstUrl = dstDirectory.appendingPathComponent(fileName)
         print("Destination URL: \(dstUrl.absoluteURL)")
-        if (options[.openInPlace] as? Bool == true) {
+        if (options[.openInPlace] as? Bool) {
             print("Got file with OpenInPlace key => copying to documents")
             _ = copyFile(at: srcUrl, to: dstUrl)
         } else {
